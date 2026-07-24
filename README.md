@@ -1,1 +1,1 @@
-# LAN-Based-Student-Admission-and-Records-Management-System
+The LAN-Based Student Admission and Records Management System is a professional digital infrastructure designed to transition Tawi-Tawi Regional Agricultural College Junior High School (TRAC JHS) from vulnerable, paper-based record-keeping to a centralized, secure environment. The system is engineered to address an "Administrative Crisis" characterized by data redundancy, slow retrieval speeds, and the risk of permanent record loss due to human error or environmental hazards like fire and pests.
