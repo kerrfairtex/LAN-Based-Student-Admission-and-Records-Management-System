@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config/app.php';
-require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/auth.php';
 
 function render_header(string $title, string $active = ''): void
@@ -18,7 +17,7 @@ function render_header(string $title, string $active = ''): void
     <title><?= e($title) ?> | <?= e(APP_NAME) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="/assets/css/style.css" rel="stylesheet">
+    <link href="<?= e(url('/assets/css/style.css')) ?>" rel="stylesheet">
 </head>
 <body>
     <div class="app-shell">
@@ -27,17 +26,17 @@ function render_header(string $title, string $active = ''): void
                 <div class="brand-icon"><i class="bi bi-mortarboard-fill"></i></div>
                 <div>
                     <h1><?= e(APP_NAME) ?></h1>
-                    <p><?= e(APP_SCHOOL) ?></p>
+                    <p><?= e(APP_SCHOOL) ?><br><?= e(APP_LOCATION) ?> · <?= e(APP_REGION) ?></p>
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <a class="nav-link <?= $active === 'dashboard' ? 'active' : '' ?>" href="/dashboard.php"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                <a class="nav-link <?= $active === 'admission' ? 'active' : '' ?>" href="/modules/admission/index.php"><i class="bi bi-person-plus"></i> Admission</a>
-                <a class="nav-link <?= $active === 'records' ? 'active' : '' ?>" href="/modules/records/index.php"><i class="bi bi-folder2-open"></i> Records</a>
-                <a class="nav-link <?= $active === 'search' ? 'active' : '' ?>" href="/modules/search/index.php"><i class="bi bi-search"></i> Search & Inquiry</a>
-                <a class="nav-link <?= $active === 'reports' ? 'active' : '' ?>" href="/modules/reports/index.php"><i class="bi bi-file-earmark-text"></i> Reporting</a>
+                <a class="nav-link <?= $active === 'dashboard' ? 'active' : '' ?>" href="<?= e(url('/dashboard.php')) ?>"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a class="nav-link <?= $active === 'admission' ? 'active' : '' ?>" href="<?= e(url('/modules/admission/index.php')) ?>"><i class="bi bi-person-plus"></i> Admission</a>
+                <a class="nav-link <?= $active === 'records' ? 'active' : '' ?>" href="<?= e(url('/modules/records/index.php')) ?>"><i class="bi bi-folder2-open"></i> Records</a>
+                <a class="nav-link <?= $active === 'search' ? 'active' : '' ?>" href="<?= e(url('/modules/search/index.php')) ?>"><i class="bi bi-search"></i> Search & Inquiry</a>
+                <a class="nav-link <?= $active === 'reports' ? 'active' : '' ?>" href="<?= e(url('/modules/reports/index.php')) ?>"><i class="bi bi-file-earmark-text"></i> Reporting</a>
                 <?php if (is_registrar()): ?>
-                    <a class="nav-link <?= $active === 'backup' ? 'active' : '' ?>" href="/modules/admin/backup.php"><i class="bi bi-hdd-network"></i> Database Backup</a>
+                    <a class="nav-link <?= $active === 'backup' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/backup.php')) ?>"><i class="bi bi-hdd-network"></i> Database Backup</a>
                 <?php endif; ?>
             </nav>
             <div class="sidebar-footer">
@@ -48,7 +47,7 @@ function render_header(string $title, string $active = ''): void
                         <span><?= e(ucfirst($user['role'] ?? '')) ?></span>
                     </div>
                 </div>
-                <a href="/auth/logout.php" class="btn btn-outline-light btn-sm w-100 mt-2"><i class="bi bi-box-arrow-right"></i> Sign Out</a>
+                <a href="<?= e(url('/auth/logout.php')) ?>" class="btn btn-outline-light btn-sm w-100 mt-2"><i class="bi bi-box-arrow-right"></i> Sign Out</a>
             </div>
         </aside>
         <main class="main-content">

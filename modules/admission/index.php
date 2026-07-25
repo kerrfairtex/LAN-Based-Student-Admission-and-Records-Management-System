@@ -21,7 +21,7 @@ render_header('Admission', 'admission');
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <p class="text-muted mb-0">Digital encoding of new student applications with real-time validation.</p>
-    <a href="/modules/admission/create.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> New Application</a>
+    <a href="<?= e(url('/modules/admission/create.php')) ?>" class="btn btn-primary"><i class="bi bi-plus-lg"></i> New Application</a>
 </div>
 
 <div class="table-card glass-panel">
@@ -54,7 +54,7 @@ render_header('Admission', 'admission');
                         <td><?= e(ucfirst($row['enrollment_type'])) ?></td>
                         <td><span class="badge badge-status-<?= e($row['status']) ?>"><?= e(ucfirst($row['status'])) ?></span></td>
                         <td><?= e($row['encoder_name']) ?></td>
-                        <td><a class="btn btn-sm btn-outline-light" href="/modules/admission/view.php?id=<?= (int) $row['id'] ?>">View</a></td>
+                        <td><a class="btn btn-sm btn-outline-light" href="<?= e(url('/modules/admission/view.php?id=<?= (int) $row[\'id\'] ?>')) ?>">View</a></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

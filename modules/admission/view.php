@@ -28,6 +28,8 @@ if (!$admission) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
+    require_csrf();
+
     $action = $_POST['action'] ?? '';
     $notes = trim($_POST['review_notes'] ?? '');
 
@@ -201,6 +203,7 @@ render_header('Admission Details', 'admission');
             <div class="panel-card glass-panel">
                 <h3>Registrar Action</h3>
                 <form method="post">
+        <?= csrf_field() ?>
                     <div class="mb-3">
                         <label class="form-label">Review Notes</label>
                         <textarea name="review_notes" class="form-control" rows="3"></textarea>
@@ -214,7 +217,7 @@ render_header('Admission Details', 'admission');
         <?php endif; ?>
 
         <?php if ($admission['student_id']): ?>
-            <a href="/modules/records/view.php?id=<?= (int) $admission['student_id'] ?>" class="btn btn-outline-light w-100 mt-3">View Student Record</a>
+            <a href="<?= e(url('/modules/records/view.php?id=<?= (int) $admission[\'student_id\'] ?>')) ?>" class="btn btn-outline-light w-100 mt-3">View Student Record</a>
         <?php endif; ?>
     </div>
 </div>

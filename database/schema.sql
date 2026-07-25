@@ -1,5 +1,6 @@
 -- TRAC JHS LAN-Based Student Admission and Records Management System
--- MySQL schema for XAMPP deployment
+-- Foundation schema for XAMPP (Apache + MySQL/MariaDB + PHP 8+)
+-- Import via phpMyAdmin or: mysql -u root < database/schema.sql
 
 CREATE DATABASE IF NOT EXISTS trac_jhs_sarms
   CHARACTER SET utf8mb4
@@ -7,41 +8,68 @@ CREATE DATABASE IF NOT EXISTS trac_jhs_sarms
 
 USE trac_jhs_sarms;
 
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS audit_logs;
+DROP TABLE IF EXISTS academic_records;
+DROP TABLE IF EXISTS enrollments;
+DROP TABLE IF EXISTS admissions;
+DROP TABLE IF EXISTS students;
+DROP TABLE IF EXISTS sections;
+DROP TABLE IF EXISTS grade_levels;
+DROP TABLE IF EXISTS school_years;
+DROP TABLE IF EXISTS users;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ---------------------------------------------------------------------------
+-- users  (Admin = registrar, Staff = encoder)
+-- ---------------------------------------------------------------------------
 CREATE TABLE users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
+    username VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(150) NOT NULL,
     role ENUM('registrar', 'encoder') NOT NULL DEFAULT 'encoder',
     is_active TINYINT(1) NOT NULL DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+    last_active TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_users_username (username),
+    KEY idx_users_role (role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE school_years (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    label VARCHAR(20) NOT NULL UNIQUE,
+    label VARCHAR(20) NOT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 0,
     start_date DATE NULL,
-    end_date DATE NULL
-) ENGINE=InnoDB;
+    end_date DATE NULL,
+    UNIQUE KEY uq_school_years_label (label)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE grade_levels (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(20) NOT NULL UNIQUE
-) ENGINE=InnoDB;
+    name VARCHAR(20) NOT NULL,
+    UNIQUE KEY uq_grade_levels_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE sections (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     grade_level_id INT UNSIGNED NOT NULL,
     name VARCHAR(50) NOT NULL,
-    CONSTRAINT fk_sections_grade FOREIGN KEY (grade_level_id) REFERENCES grade_levels(id)
-) ENGINE=InnoDB;
+    CONSTRAINT fk_sections_grade FOREIGN KEY (grade_level_id) REFERENCES grade_levels(id),
+    UNIQUE KEY uq_section_grade_name (grade_level_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ---------------------------------------------------------------------------
+-- students  (personal profile)
+-- ---------------------------------------------------------------------------
 CREATE TABLE students (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    student_id_no VARCHAR(20) NOT NULL UNIQUE,
-    lrn VARCHAR(12) NULL UNIQUE,
+    student_id_no VARCHAR(20) NOT NULL,
+    lrn VARCHAR(12) NULL,
     first_name VARCHAR(80) NOT NULL,
     middle_name VARCHAR(80) NULL,
     last_name VARCHAR(80) NOT NULL,
@@ -57,15 +85,19 @@ CREATE TABLE students (
     remarks TEXT NULL,
     status ENUM('active', 'transferred', 'graduated', 'dropped') NOT NULL DEFAULT 'active',
     created_by INT UNSIGNED NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_students_created_by FOREIGN KEY (created_by) REFERENCES users(id)
-) ENGINE=InnoDB;
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_students_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    UNIQUE KEY uq_students_id_no (student_id_no),
+    UNIQUE KEY uq_students_lrn (lrn),
+    KEY idx_students_name (last_name, first_name),
+    KEY idx_students_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE admissions (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     student_id INT UNSIGNED NULL,
-    application_no VARCHAR(20) NOT NULL UNIQUE,
+    application_no VARCHAR(20) NOT NULL,
     school_year_id INT UNSIGNED NOT NULL,
     grade_level_id INT UNSIGNED NOT NULL,
     enrollment_type ENUM('new', 'returning', 'transferee') NOT NULL DEFAULT 'new',
@@ -85,17 +117,20 @@ CREATE TABLE admissions (
     documents_submitted JSON NULL,
     status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
     reviewed_by INT UNSIGNED NULL,
-    reviewed_at TIMESTAMP NULL,
+    reviewed_at TIMESTAMP NULL DEFAULT NULL,
     review_notes TEXT NULL,
     created_by INT UNSIGNED NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_admissions_student FOREIGN KEY (student_id) REFERENCES students(id),
     CONSTRAINT fk_admissions_school_year FOREIGN KEY (school_year_id) REFERENCES school_years(id),
     CONSTRAINT fk_admissions_grade FOREIGN KEY (grade_level_id) REFERENCES grade_levels(id),
     CONSTRAINT fk_admissions_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    CONSTRAINT fk_admissions_reviewed_by FOREIGN KEY (reviewed_by) REFERENCES users(id)
-) ENGINE=InnoDB;
+    CONSTRAINT fk_admissions_reviewed_by FOREIGN KEY (reviewed_by) REFERENCES users(id),
+    UNIQUE KEY uq_admissions_app_no (application_no),
+    KEY idx_admissions_status (status),
+    KEY idx_admissions_name (last_name, first_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE enrollments (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -107,15 +142,17 @@ CREATE TABLE enrollments (
     status ENUM('enrolled', 'completed', 'withdrawn') NOT NULL DEFAULT 'enrolled',
     enrolled_at DATE NOT NULL,
     created_by INT UNSIGNED NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_enrollments_student FOREIGN KEY (student_id) REFERENCES students(id),
     CONSTRAINT fk_enrollments_school_year FOREIGN KEY (school_year_id) REFERENCES school_years(id),
     CONSTRAINT fk_enrollments_grade FOREIGN KEY (grade_level_id) REFERENCES grade_levels(id),
     CONSTRAINT fk_enrollments_section FOREIGN KEY (section_id) REFERENCES sections(id),
     CONSTRAINT fk_enrollments_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    UNIQUE KEY uniq_student_school_year (student_id, school_year_id)
-) ENGINE=InnoDB;
+    UNIQUE KEY uniq_student_school_year (student_id, school_year_id),
+    KEY idx_enrollments_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Academic history linked to student + school year (records module)
 CREATE TABLE academic_records (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     student_id INT UNSIGNED NOT NULL,
@@ -128,14 +165,14 @@ CREATE TABLE academic_records (
     record_notes TEXT NULL,
     archived TINYINT(1) NOT NULL DEFAULT 0,
     updated_by INT UNSIGNED NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_records_student FOREIGN KEY (student_id) REFERENCES students(id),
     CONSTRAINT fk_records_school_year FOREIGN KEY (school_year_id) REFERENCES school_years(id),
     CONSTRAINT fk_records_grade FOREIGN KEY (grade_level_id) REFERENCES grade_levels(id),
     CONSTRAINT fk_records_updated_by FOREIGN KEY (updated_by) REFERENCES users(id),
     UNIQUE KEY uniq_record_student_year (student_id, school_year_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE audit_logs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -145,10 +182,14 @@ CREATE TABLE audit_logs (
     entity_id INT UNSIGNED NULL,
     details TEXT NULL,
     ip_address VARCHAR(45) NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users(id)
-) ENGINE=InnoDB;
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users(id),
+    KEY idx_audit_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ---------------------------------------------------------------------------
+-- Seed data
+-- ---------------------------------------------------------------------------
 INSERT INTO grade_levels (name) VALUES
     ('Grade 7'), ('Grade 8'), ('Grade 9'), ('Grade 10');
 
@@ -163,7 +204,7 @@ INSERT INTO school_years (label, is_active, start_date, end_date) VALUES
 
 -- Default credentials (change after first login):
 -- registrar / Registrar@2026
--- encoder / Encoder@2026
+-- encoder   / Encoder@2026
 INSERT INTO users (username, password_hash, full_name, role) VALUES
-    ('registrar', '$2b$12$ixr4m7fEh1L/m0t4U9Csvup2BjvIWJnWqtZFrUtW/be7mIhJ6HQtm', 'School Registrar', 'registrar'),
-    ('encoder', '$2b$12$Yh2H3MITi8ULsXY.KKtICeync80kGHFb.IpLmzLAyWP7A6E5/Fnje', 'Data Encoder', 'encoder');
+    ('registrar', '$2y$10$J3yYuFMGsf89Ae/Li/IMEeYsVEf85EHrIH0DzZUKrYhsl5.TbjFki', 'School Registrar', 'registrar'),
+    ('encoder', '$2y$10$uqu6a1xzHGqOM/DktEsUr..9dZT1B/BkOdLqVJznwApTwubYEeKZu', 'Data Encoder', 'encoder');

@@ -23,7 +23,7 @@ render_header('Student Master List', 'reports');
 ?>
 <div class="no-print mb-3 d-flex gap-2">
     <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Print Report</button>
-    <a href="/modules/reports/index.php" class="btn btn-outline-light">Back</a>
+    <a href="<?= e(url('/modules/reports/index.php')) ?>" class="btn btn-outline-light">Back</a>
 </div>
 
 <div class="print-report">

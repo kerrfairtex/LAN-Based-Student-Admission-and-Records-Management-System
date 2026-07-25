@@ -71,7 +71,7 @@ render_header('Search & Inquiry', 'search');
             <td><?= e($student['lrn'] ?: '—') ?></td>
             <td><?= e($student['grade_name'] ?: '—') ?></td>
             <td><?= e(ucfirst($student['status'])) ?></td>
-            <td><a class="btn btn-sm btn-outline-light" href="/modules/records/view.php?id=<?= (int) $student['id'] ?>">Open Record</a></td>
+            <td><a class="btn btn-sm btn-outline-light" href="<?= e(url('/modules/records/view.php?id=<?= (int) $student[\'id\'] ?>')) ?>">Open Record</a></td>
           </tr>
         <?php endforeach; ?>
       </tbody>

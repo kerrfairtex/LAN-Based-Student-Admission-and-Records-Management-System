@@ -47,9 +47,9 @@ render_header('Dashboard', 'dashboard');
         <div class="panel-card glass-panel">
             <h3>Quick Actions</h3>
             <div class="d-grid gap-2">
-                <a class="btn btn-primary" href="/modules/admission/create.php"><i class="bi bi-person-plus"></i> New Admission</a>
-                <a class="btn btn-outline-light" href="/modules/search/index.php"><i class="bi bi-search"></i> Search Student</a>
-                <a class="btn btn-outline-light" href="/modules/reports/index.php"><i class="bi bi-file-earmark-text"></i> Generate Report</a>
+                <a class="btn btn-primary" href="<?= e(url('/modules/admission/create.php')) ?>"><i class="bi bi-person-plus"></i> New Admission</a>
+                <a class="btn btn-outline-light" href="<?= e(url('/modules/search/index.php')) ?>"><i class="bi bi-search"></i> Search Student</a>
+                <a class="btn btn-outline-light" href="<?= e(url('/modules/reports/index.php')) ?>"><i class="bi bi-file-earmark-text"></i> Generate Report</a>
             </div>
         </div>
     </div>

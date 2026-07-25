@@ -2,6 +2,22 @@
 
 declare(strict_types=1);
 
+/**
+ * Build an application-relative URL (supports XAMPP subfolder installs).
+ */
+function url(string $path = '/'): string
+{
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+
+    if ($path === '' || $path === '/') {
+        return APP_BASE_PATH === '' ? '/' : APP_BASE_PATH . '/';
+    }
+
+    return APP_BASE_PATH . '/' . ltrim($path, '/');
+}
+
 function e(?string $value): string
 {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
@@ -9,7 +25,7 @@ function e(?string $value): string
 
 function redirect(string $path): never
 {
-    header('Location: ' . $path);
+    header('Location: ' . url($path));
     exit;
 }
 
@@ -28,6 +44,40 @@ function get_flash(): ?array
     unset($_SESSION['flash']);
 
     return $flash;
+}
+
+function csrf_token(): string
+{
+    if (empty($_SESSION['_csrf'])) {
+        $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+    }
+
+    return $_SESSION['_csrf'];
+}
+
+function csrf_field(): string
+{
+    return '<input type="hidden" name="_csrf" value="' . e(csrf_token()) . '">';
+}
+
+function verify_csrf(?string $token): bool
+{
+    $sessionToken = $_SESSION['_csrf'] ?? '';
+
+    return is_string($token)
+        && $sessionToken !== ''
+        && hash_equals($sessionToken, $token);
+}
+
+function require_csrf(): void
+{
+    $token = $_POST['_csrf'] ?? null;
+
+    if (!verify_csrf(is_string($token) ? $token : null)) {
+        http_response_code(419);
+        flash('danger', 'Your session token expired. Please try again.');
+        redirect('/');
+    }
 }
 
 function audit_log(string $action, string $entityType, ?int $entityId = null, ?string $details = null): void
@@ -76,6 +126,11 @@ function validate_lrn(?string $lrn): bool
     }
 
     return (bool) preg_match('/^\d{12}$/', $lrn);
+}
+
+function validate_school_year_label(string $label): bool
+{
+    return (bool) preg_match(SCHOOL_YEAR_PATTERN, $label);
 }
 
 function validate_required(array $fields, array $input): array

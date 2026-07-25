@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config/app.php';
-require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/auth.php';
 
 if (is_logged_in()) {
@@ -14,6 +13,8 @@ $error = '';
 $username = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
+
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
@@ -37,13 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,650&family=Great+Vibes&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="/assets/css/landing.css" rel="stylesheet">
+    <link href="<?= e(url('/assets/css/landing.css')) ?>" rel="stylesheet">
 </head>
 <body class="landing-body">
     <div class="landing">
         <div class="landing__media" aria-hidden="true">
             <img
-                src="/assets/img/hero-trac-jhs.jpg"
+                src="<?= e(url('/assets/img/hero-trac-jhs.jpg')) ?>"
                 alt=""
                 width="1920"
                 height="1080"
@@ -75,11 +76,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h2 class="login-panel__title" id="signin-title">Staff Sign In</h2>
                 <p class="login-panel__hint">Authorized Registrar and Data Encoder accounts only.</p>
 
-                <?php if ($error !== ''): ?>
+                <?php
+                $flash = get_flash();
+                if ($flash): ?>
+                    <div class="login-alert" role="alert"><?= e($flash['message']) ?></div>
+                <?php elseif ($error !== ''): ?>
                     <div class="login-alert" role="alert"><?= e($error) ?></div>
                 <?php endif; ?>
 
-                <form method="post" action="/index.php" novalidate>
+                <form method="post" action="<?= e(url('/index.php')) ?>" novalidate>
+                    <?= csrf_field() ?>
                     <div class="field">
                         <label for="username">Username</label>
                         <div class="input-shell">
@@ -157,6 +163,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </footer>
     </div>
 
-    <script src="/assets/js/landing.js" defer></script>
+    <script src="<?= e(url('/assets/js/landing.js')) ?>" defer></script>
 </body>
 </html>

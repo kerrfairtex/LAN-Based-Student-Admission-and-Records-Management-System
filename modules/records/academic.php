@@ -29,6 +29,7 @@ $input = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     foreach (array_keys($input) as $key) {
         $input[$key] = trim((string) ($_POST[$key] ?? ''));
     }
@@ -108,6 +109,7 @@ render_header('Academic Record', 'records');
 <div class="panel-card glass-panel">
     <p class="text-muted">Student: <strong><?= e(trim("{$student['last_name']}, {$student['first_name']}")) ?></strong> (<?= e($student['student_id_no']) ?>)</p>
     <form method="post">
+        <?= csrf_field() ?>
         <input type="hidden" name="student_id" value="<?= $studentId ?>">
         <div class="row g-3">
             <div class="col-md-4">
@@ -155,7 +157,7 @@ render_header('Academic Record', 'records');
         </div>
         <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn btn-primary">Save Record</button>
-            <a href="/modules/records/view.php?id=<?= $studentId ?>" class="btn btn-outline-light">Cancel</a>
+            <a href="<?= e(url('/modules/records/view.php?id=<?= $studentId ?>')) ?>" class="btn btn-outline-light">Cancel</a>
         </div>
     </form>
 </div>
