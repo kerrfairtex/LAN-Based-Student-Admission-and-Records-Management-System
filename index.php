@@ -31,11 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="TRAC JHS Student Admission and Records Management System — Bongao, Tawi-Tawi.">
+    <meta name="description" content="TRAC JHS Student Admission and Records Management System — Bongao, Tawi-Tawi, BARMM.">
     <title>TRAC JHS | Student Admission &amp; Records</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,650&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,650&family=Great+Vibes&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="/assets/css/landing.css" rel="stylesheet">
 </head>
@@ -50,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 fetchpriority="high"
             >
             <div class="landing__scrim"></div>
-            <div class="landing__glow"></div>
         </div>
+        <div class="landing__corner" aria-hidden="true"></div>
 
         <main class="landing__content">
             <section class="landing__intro">
@@ -62,6 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <span class="brand-mark__place">Bongao, Tawi-Tawi</span>
                     </div>
                 </div>
+
+                <p class="brand-mark__affiliation">Bangsamoro · Basic Education · Laboratory High School</p>
 
                 <h1 class="landing__headline">Student Admission &amp; Records</h1>
                 <p class="landing__support">
@@ -122,12 +124,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </section>
         </main>
 
+        <section class="landing__banner" aria-label="Institutional message">
+            <div class="landing__banner-inner">
+                <div class="landing__seals" aria-hidden="true">
+                    <div class="seal" title="Bangsamoro">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3.2l1.2 3.7h3.9l-3.1 2.3 1.2 3.7L12 10.6 8.8 12.9l1.2-3.7-3.1-2.3h3.9L12 3.2z"/>
+                            <path d="M7.2 16.2c2.1-1.8 7.5-1.8 9.6 0-.8 2.4-2.9 3.8-4.8 3.8s-4-1.4-4.8-3.8z" opacity=".85"/>
+                        </svg>
+                    </div>
+                    <div class="seal" title="Education">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 4l9 4.5-9 4.5L3 8.5 12 4zm-7 8.2v3.3c0 .9 3.1 2.7 7 2.7s7-1.8 7-2.7v-3.3l-7 3.5-7-3.5z"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="landing__slogan">Empowering the Bangsamoro through quality junior high education</p>
+            </div>
+        </section>
+
         <footer class="landing__footer">
-            <span>
-                <strong>Laboratory High School</strong>
-                · Tawi-Tawi Regional Agricultural College
-            </span>
-            <span>Intranet access only · Authorized personnel</span>
+            <div class="landing__footer-inner">
+                <span>
+                    <strong>Laboratory High School</strong>
+                    · Tawi-Tawi Regional Agricultural College
+                </span>
+                <div class="landing__contacts">
+                    <span><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Bongao, Tawi-Tawi · BARMM</span>
+                    <span><i class="bi bi-shield-lock-fill" aria-hidden="true"></i> Intranet access only</span>
+                </div>
+            </div>
         </footer>
     </div>
 
