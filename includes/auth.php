@@ -21,14 +21,14 @@ function require_login(): void
 {
     if (!is_logged_in()) {
         flash('warning', 'Please sign in to continue.');
-        redirect('/auth/login.php');
+        redirect('/');
     }
 
     if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > SESSION_TIMEOUT) {
         session_unset();
         session_destroy();
         flash('warning', 'Your session has expired. Please sign in again.');
-        redirect('/auth/login.php');
+        redirect('/');
     }
 
     $_SESSION['last_activity'] = time();
