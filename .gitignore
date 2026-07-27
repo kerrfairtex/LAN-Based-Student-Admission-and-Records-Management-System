@@ -1,0 +1,3 @@
+backups/*.sql
+.DS_Store
+Thumbs.db
