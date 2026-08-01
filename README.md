@@ -32,6 +32,7 @@ The system utilizes a **three-tier client-server architecture**, logically separ
 3. Open phpMyAdmin (`http://localhost/phpmyadmin`).
 4. Import the database schema:
    - File: `database/schema.sql`
+   - For existing installations upgrading from Phase 1, also run `database/migrations/002_phase2.sql`
 5. Configure database credentials in `config/database.php` if needed (default XAMPP: `root` with no password).
 6. Access the system from the server or any LAN workstation:
    ```
@@ -55,6 +56,12 @@ Change these passwords immediately after first login.
 4. **Search & Inquiry** — Instant lookup by Student ID, LRN, or name
 5. **Reporting** — Printable reports (Times New Roman, 12pt)
 6. **Database Backup** — Registrar-only manual MySQL export
+7. **Enrollment Management** — Section assignment during approval and reassignment
+8. **Transfer Tracking** — Incoming/outgoing SF10 requests with 30-day SLA (DepEd DO 54-2016)
+9. **SF10-JHS** — Permanent academic record with quarterly grades per learning area
+10. **User Management** — Registrar creates/disables staff accounts
+11. **System Settings** — School years and section configuration
+12. **Audit Log** — Registrar review of sensitive actions
 
 ## Security
 
@@ -86,10 +93,15 @@ Deploy on a dedicated LAN server with a static IP. Workstations connect through 
 ├── includes/            # Shared PHP utilities
 ├── modules/
 │   ├── admission/
+│   ├── enrollment/
 │   ├── records/
+│   ├── transfers/
 │   ├── search/
 │   ├── reports/
+│   ├── account/
 │   └── admin/
+├── docs/
+│   └── ROADMAP.md
 ├── dashboard.php
 └── index.php
 ```

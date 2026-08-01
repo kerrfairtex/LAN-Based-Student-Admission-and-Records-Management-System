@@ -32,6 +32,9 @@ function require_login(): void
     }
 
     $_SESSION['last_activity'] = time();
+
+    $stmt = db()->prepare('UPDATE users SET last_active = NOW() WHERE id = :id');
+    $stmt->execute(['id' => (int) $_SESSION['user']['id']]);
 }
 
 function require_registrar(): void

@@ -24,6 +24,14 @@ render_header('Dashboard', 'dashboard');
         <p class="mb-1 text-muted">Enrolled (<?= e($stats['active_school_year']) ?>)</p>
         <div class="stat-value"><?= (int) $stats['enrolled_this_year'] ?></div>
     </div>
+    <div class="stat-card glass-panel">
+        <p class="mb-1 text-muted">Unassigned Sections</p>
+        <div class="stat-value"><?= (int) $stats['unassigned_sections'] ?></div>
+    </div>
+    <div class="stat-card glass-panel">
+        <p class="mb-1 text-muted">Overdue Transfers</p>
+        <div class="stat-value <?= $stats['overdue_transfers'] > 0 ? 'text-danger' : '' ?>"><?= (int) $stats['overdue_transfers'] ?></div>
+    </div>
 </div>
 
 <div class="row g-3">
@@ -48,6 +56,8 @@ render_header('Dashboard', 'dashboard');
             <h3>Quick Actions</h3>
             <div class="d-grid gap-2">
                 <a class="btn btn-primary" href="/modules/admission/create.php"><i class="bi bi-person-plus"></i> New Admission</a>
+                <a class="btn btn-outline-light" href="/modules/enrollment/index.php"><i class="bi bi-people"></i> Manage Enrollment</a>
+                <a class="btn btn-outline-light" href="/modules/transfers/index.php"><i class="bi bi-arrow-left-right"></i> Transfer Requests</a>
                 <a class="btn btn-outline-light" href="/modules/search/index.php"><i class="bi bi-search"></i> Search Student</a>
                 <a class="btn btn-outline-light" href="/modules/reports/index.php"><i class="bi bi-file-earmark-text"></i> Generate Report</a>
             </div>
