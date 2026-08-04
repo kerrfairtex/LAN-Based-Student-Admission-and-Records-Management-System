@@ -91,6 +91,7 @@ render_header('System Settings', 'settings');
                                 <td>
                                     <?php if (!$year['is_active']): ?>
                                         <form method="post" class="d-inline">
+                                            <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="activate_year">
                                             <input type="hidden" name="year_id" value="<?= (int) $year['id'] ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-light">Set Active</button>
