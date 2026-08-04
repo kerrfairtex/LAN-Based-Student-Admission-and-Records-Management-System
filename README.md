@@ -85,12 +85,15 @@ Deploy on a dedicated LAN server with a static IP. Workstations connect through 
 ## Project Structure
 
 ```
-├── assets/css/          # Glassmorphism theme
-├── auth/                # Login / logout
-├── backups/             # Exported SQL files (protected)
-├── config/              # App and database config
-├── database/            # schema.sql
-├── includes/            # Shared PHP utilities
+├── assets/
+│   ├── css/             # Landing + glassmorphism app theme
+│   ├── img/             # Brand / hero assets
+│   └── js/
+├── auth/                # Login redirect / logout
+├── backups/             # Exported SQL files (web-blocked)
+├── config/              # app.php, database.php, constants.php
+├── database/            # schema.sql (foundation seed)
+├── includes/            # auth, layout, helpers (CSRF, url, RBAC)
 ├── modules/
 │   ├── admission/
 │   ├── enrollment/
@@ -102,9 +105,17 @@ Deploy on a dedicated LAN server with a static IP. Workstations connect through 
 │   └── admin/
 ├── docs/
 │   └── ROADMAP.md
+├── .htaccess            # Deny config/includes/database/backups
 ├── dashboard.php
-└── index.php
+└── index.php            # Branded landing + sign-in
 ```
+
+## Foundation notes
+
+- `APP_BASE_PATH` auto-detects XAMPP subfolder installs (e.g. `/trac-jhs-sarms`)
+- Use `url('/path')` for links; `redirect('/path')` for Location headers
+- CSRF tokens are required on all POST forms
+- Roles: `registrar` (Admin) and `encoder` (Staff)
 
 ---
 

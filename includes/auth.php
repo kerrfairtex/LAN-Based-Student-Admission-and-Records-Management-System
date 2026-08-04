@@ -14,21 +14,26 @@ function current_user(): ?array
 
 function is_registrar(): bool
 {
-    return is_logged_in() && ($_SESSION['user']['role'] ?? '') === 'registrar';
+    return is_logged_in() && ($_SESSION['user']['role'] ?? '') === ROLE_REGISTRAR;
+}
+
+function is_encoder(): bool
+{
+    return is_logged_in() && ($_SESSION['user']['role'] ?? '') === ROLE_ENCODER;
 }
 
 function require_login(): void
 {
     if (!is_logged_in()) {
         flash('warning', 'Please sign in to continue.');
-        redirect('/auth/login.php');
+        redirect('/');
     }
 
     if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > SESSION_TIMEOUT) {
         session_unset();
         session_destroy();
         flash('warning', 'Your session has expired. Please sign in again.');
-        redirect('/auth/login.php');
+        redirect('/');
     }
 
     $_SESSION['last_activity'] = time();
@@ -64,6 +69,9 @@ function attempt_login(string $username, string $password): bool
         return false;
     }
 
+    $touch = db()->prepare('UPDATE users SET last_active = NOW() WHERE id = :id');
+    $touch->execute(['id' => $user['id']]);
+
     unset($user['password_hash'], $user['is_active']);
     $_SESSION['user'] = $user;
     $_SESSION['last_activity'] = time();
@@ -79,6 +87,6 @@ function logout_user(): void
         audit_log('logout', 'users', (int) $_SESSION['user']['id'], 'User signed out');
     }
 
-    session_unset();
-    session_destroy();
+    unset($_SESSION['user'], $_SESSION['last_activity'], $_SESSION['_csrf']);
+    session_regenerate_id(true);
 }

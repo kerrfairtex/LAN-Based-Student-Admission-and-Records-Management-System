@@ -19,6 +19,7 @@ $existingBackups = array_values(array_filter(
 rsort($existingBackups);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     $filename = 'trac_jhs_backup_' . date('Y-m-d_His') . '.sql';
     $filepath = $backupDir . '/' . $filename;
 
@@ -78,6 +79,7 @@ render_header('Database Backup', 'backup');
             <h3>Create New Backup</h3>
             <p class="text-muted">Exports all tables and data into a downloadable SQL file.</p>
             <form method="post">
+        <?= csrf_field() ?>
                 <button type="submit" class="btn btn-primary"><i class="bi bi-download"></i> Export Database</button>
             </form>
         </div>
@@ -103,7 +105,7 @@ render_header('Database Backup', 'backup');
                             <tr>
                                 <td><?= e($file) ?></td>
                                 <td><?= e(number_format(filesize($path) / 1024, 2)) ?> KB</td>
-                                <td><a class="btn btn-sm btn-outline-light" href="/modules/admin/download_backup.php?file=<?= e(rawurlencode($file)) ?>">Download</a></td>
+                                <td><a class="btn btn-sm btn-outline-light" href="<?= e(url('/modules/admin/download_backup.php?file=<?= e(rawurlencode($file)) ?>')) ?>">Download</a></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

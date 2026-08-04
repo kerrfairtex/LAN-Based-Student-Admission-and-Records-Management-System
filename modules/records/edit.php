@@ -37,6 +37,7 @@ $input = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     foreach (array_keys($input) as $key) {
         $input[$key] = trim((string) ($_POST[$key] ?? ''));
     }
@@ -97,6 +98,7 @@ render_header('Edit Student Record', 'records');
 ?>
 <div class="panel-card glass-panel">
     <form method="post" novalidate>
+        <?= csrf_field() ?>
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label">Student ID</label>
@@ -173,7 +175,7 @@ render_header('Edit Student Record', 'records');
 
         <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="/modules/records/view.php?id=<?= $id ?>" class="btn btn-outline-light">Cancel</a>
+            <a href="<?= e(url('/modules/records/view.php?id=<?= $id ?>')) ?>" class="btn btn-outline-light">Cancel</a>
         </div>
     </form>
 </div>
