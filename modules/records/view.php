@@ -147,7 +147,8 @@ render_header('Student Record', 'records');
 </div>
 
 <div class="d-flex gap-2 mt-3 no-print">
-    <a href="<?= e(url('/modules/records/edit.php?id=<?= (int) $student[\'id\'] ?>')) ?>" class="btn btn-outline-light">Edit Profile</a>
+    <a href="<?= e(url('/modules/records/sf10_edit.php?student_id=' . (int) $student['id'])) ?>" class="btn btn-primary">SF10 Grades</a>
+    <a href="<?= e(url('/modules/records/edit.php?id=' . (int) $student['id'])) ?>" class="btn btn-outline-light">Edit Profile</a>
     <a href="<?= e(url('/modules/records/index.php')) ?>" class="btn btn-outline-light">Back to Records</a>
 </div>
 <?php

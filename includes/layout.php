@@ -32,10 +32,15 @@ function render_header(string $title, string $active = ''): void
             <nav class="sidebar-nav">
                 <a class="nav-link <?= $active === 'dashboard' ? 'active' : '' ?>" href="<?= e(url('/dashboard.php')) ?>"><i class="bi bi-speedometer2"></i> Dashboard</a>
                 <a class="nav-link <?= $active === 'admission' ? 'active' : '' ?>" href="<?= e(url('/modules/admission/index.php')) ?>"><i class="bi bi-person-plus"></i> Admission</a>
+                <a class="nav-link <?= $active === 'enrollment' ? 'active' : '' ?>" href="<?= e(url('/modules/enrollment/index.php')) ?>"><i class="bi bi-people"></i> Enrollment</a>
                 <a class="nav-link <?= $active === 'records' ? 'active' : '' ?>" href="<?= e(url('/modules/records/index.php')) ?>"><i class="bi bi-folder2-open"></i> Records</a>
+                <a class="nav-link <?= $active === 'transfers' ? 'active' : '' ?>" href="<?= e(url('/modules/transfers/index.php')) ?>"><i class="bi bi-arrow-left-right"></i> Transfers</a>
                 <a class="nav-link <?= $active === 'search' ? 'active' : '' ?>" href="<?= e(url('/modules/search/index.php')) ?>"><i class="bi bi-search"></i> Search & Inquiry</a>
                 <a class="nav-link <?= $active === 'reports' ? 'active' : '' ?>" href="<?= e(url('/modules/reports/index.php')) ?>"><i class="bi bi-file-earmark-text"></i> Reporting</a>
                 <?php if (is_registrar()): ?>
+                    <a class="nav-link <?= $active === 'users' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/users.php')) ?>"><i class="bi bi-person-gear"></i> Users</a>
+                    <a class="nav-link <?= $active === 'settings' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/settings.php')) ?>"><i class="bi bi-gear"></i> Settings</a>
+                    <a class="nav-link <?= $active === 'audit' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/audit.php')) ?>"><i class="bi bi-journal-text"></i> Audit Log</a>
                     <a class="nav-link <?= $active === 'backup' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/backup.php')) ?>"><i class="bi bi-hdd-network"></i> Database Backup</a>
                 <?php endif; ?>
             </nav>
@@ -48,6 +53,7 @@ function render_header(string $title, string $active = ''): void
                     </div>
                 </div>
                 <a href="<?= e(url('/auth/logout.php')) ?>" class="btn btn-outline-light btn-sm w-100 mt-2"><i class="bi bi-box-arrow-right"></i> Sign Out</a>
+                <a href="<?= e(url('/modules/account/password.php')) ?>" class="btn btn-outline-light btn-sm w-100 mt-2"><i class="bi bi-key"></i> Change Password</a>
             </div>
         </aside>
         <main class="main-content">

@@ -188,17 +188,34 @@ function dashboard_stats(): array
     $totalStudents = (int) db()->query("SELECT COUNT(*) AS c FROM students WHERE status = 'active'")->fetch()['c'];
     $pendingAdmissions = (int) db()->query("SELECT COUNT(*) AS c FROM admissions WHERE status = 'pending'")->fetch()['c'];
     $enrolledThisYear = 0;
+    $unassignedSections = 0;
+    $overdueTransfers = 0;
 
     if ($yearId > 0) {
         $stmt = db()->prepare('SELECT COUNT(*) AS c FROM enrollments WHERE school_year_id = :year_id AND status = "enrolled"');
         $stmt->execute(['year_id' => $yearId]);
         $enrolledThisYear = (int) $stmt->fetch()['c'];
+
+        $stmt = db()->prepare('SELECT COUNT(*) AS c FROM enrollments WHERE school_year_id = :year_id AND status = "enrolled" AND section_id IS NULL');
+        $stmt->execute(['year_id' => $yearId]);
+        $unassignedSections = (int) $stmt->fetch()['c'];
+    }
+
+    try {
+        $overdueTransfers = (int) db()->query(
+            "SELECT COUNT(*) AS c FROM transfer_requests
+             WHERE status NOT IN ('completed', 'escalated') AND due_date < CURDATE()"
+        )->fetch()['c'];
+    } catch (PDOException) {
+        $overdueTransfers = 0;
     }
 
     return [
         'total_students' => $totalStudents,
         'pending_admissions' => $pendingAdmissions,
         'enrolled_this_year' => $enrolledThisYear,
+        'unassigned_sections' => $unassignedSections,
+        'overdue_transfers' => $overdueTransfers,
         'active_school_year' => $activeYear['label'] ?? 'Not set',
     ];
 }

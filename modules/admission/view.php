@@ -34,6 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
     $notes = trim($_POST['review_notes'] ?? '');
 
     if ($action === 'approve' && $admission['status'] === 'pending') {
+        $sectionId = (int) ($_POST['section_id'] ?? 0) ?: null;
+
         db()->beginTransaction();
 
         try {
@@ -73,10 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
 
             $insertEnrollment = db()->prepare(
                 'INSERT INTO enrollments (
-                    student_id, school_year_id, grade_level_id, enrollment_type,
+                    student_id, school_year_id, grade_level_id, section_id, enrollment_type,
                     enrolled_at, created_by
                 ) VALUES (
-                    :student_id, :school_year_id, :grade_level_id, :enrollment_type,
+                    :student_id, :school_year_id, :grade_level_id, :section_id, :enrollment_type,
                     :enrolled_at, :created_by
                 )'
             );
@@ -85,10 +87,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
                 'student_id' => $studentId,
                 'school_year_id' => (int) $admission['school_year_id'],
                 'grade_level_id' => (int) $admission['grade_level_id'],
+                'section_id' => $sectionId,
                 'enrollment_type' => $admission['enrollment_type'],
                 'enrolled_at' => date('Y-m-d'),
                 'created_by' => (int) $_SESSION['user']['id'],
             ]);
+
+            if ($admission['enrollment_type'] === 'transferee' && $admission['previous_school']) {
+                $dueDate = date('Y-m-d', strtotime('+30 days'));
+                $transfer = db()->prepare(
+                    'INSERT INTO transfer_requests (
+                        student_id, direction, counterpart_school, request_date,
+                        first_attendance_date, due_date, status, created_by
+                    ) VALUES (
+                        :student_id, "incoming", :counterpart_school, :request_date,
+                        :first_attendance_date, :due_date, "pending", :created_by
+                    )'
+                );
+                $transfer->execute([
+                    'student_id' => $studentId,
+                    'counterpart_school' => $admission['previous_school'],
+                    'request_date' => date('Y-m-d'),
+                    'first_attendance_date' => date('Y-m-d'),
+                    'due_date' => $dueDate,
+                    'created_by' => (int) $_SESSION['user']['id'],
+                ]);
+            }
 
             $updateAdmission = db()->prepare(
                 'UPDATE admissions
@@ -135,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
 }
 
 $documents = json_decode($admission['documents_submitted'] ?? '{}', true) ?: [];
+$sections = fetch_sections((int) $admission['grade_level_id']);
 
 render_header('Admission Details', 'admission');
 ?>
@@ -204,6 +229,15 @@ render_header('Admission Details', 'admission');
                 <h3>Registrar Action</h3>
                 <form method="post">
         <?= csrf_field() ?>
+                    <div class="mb-3">
+                        <label class="form-label">Section Assignment</label>
+                        <select name="section_id" class="form-select">
+                            <option value="">Unassigned (assign later)</option>
+                            <?php foreach ($sections as $section): ?>
+                                <option value="<?= (int) $section['id'] ?>"><?= e($section['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Review Notes</label>
                         <textarea name="review_notes" class="form-control" rows="3"></textarea>
