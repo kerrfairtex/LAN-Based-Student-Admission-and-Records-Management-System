@@ -230,6 +230,28 @@ CREATE TABLE sf10_grade_entries (
     UNIQUE KEY uniq_sf10_entry (student_id, school_year_id, grade_level_id, learning_area)
 ) ENGINE=InnoDB;
 
+CREATE TABLE app_settings (
+    setting_key VARCHAR(50) NOT NULL PRIMARY KEY,
+    setting_value VARCHAR(255) NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE lis_import_logs (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL,
+    school_year_id INT UNSIGNED NULL,
+    rows_total INT UNSIGNED NOT NULL DEFAULT 0,
+    rows_created INT UNSIGNED NOT NULL DEFAULT 0,
+    rows_updated INT UNSIGNED NOT NULL DEFAULT 0,
+    rows_skipped INT UNSIGNED NOT NULL DEFAULT 0,
+    rows_errors INT UNSIGNED NOT NULL DEFAULT 0,
+    error_details TEXT NULL,
+    imported_by INT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_lis_import_user FOREIGN KEY (imported_by) REFERENCES users(id),
+    CONSTRAINT fk_lis_import_year FOREIGN KEY (school_year_id) REFERENCES school_years(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------------
 -- Seed data
 -- ---------------------------------------------------------------------------
@@ -251,3 +273,7 @@ INSERT INTO school_years (label, is_active, start_date, end_date) VALUES
 INSERT INTO users (username, password_hash, full_name, role) VALUES
     ('registrar', '$2y$10$J3yYuFMGsf89Ae/Li/IMEeYsVEf85EHrIH0DzZUKrYhsl5.TbjFki', 'School Registrar', 'registrar'),
     ('encoder', '$2y$10$uqu6a1xzHGqOM/DktEsUr..9dZT1B/BkOdLqVJznwApTwubYEeKZu', 'Data Encoder', 'encoder');
+
+INSERT INTO app_settings (setting_key, setting_value) VALUES
+    ('lis_school_id', '000000'),
+    ('lis_division', 'Division of Tawi-Tawi');

@@ -41,6 +41,7 @@ function render_header(string $title, string $active = ''): void
                     <a class="nav-link <?= $active === 'users' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/users.php')) ?>"><i class="bi bi-person-gear"></i> Users</a>
                     <a class="nav-link <?= $active === 'settings' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/settings.php')) ?>"><i class="bi bi-gear"></i> Settings</a>
                     <a class="nav-link <?= $active === 'audit' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/audit.php')) ?>"><i class="bi bi-journal-text"></i> Audit Log</a>
+                    <a class="nav-link <?= $active === 'lis' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/lis.php')) ?>"><i class="bi bi-file-earmark-spreadsheet"></i> LIS CSV</a>
                     <a class="nav-link <?= $active === 'backup' ? 'active' : '' ?>" href="<?= e(url('/modules/admin/backup.php')) ?>"><i class="bi bi-hdd-network"></i> Database Backup</a>
                 <?php endif; ?>
             </nav>

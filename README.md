@@ -62,8 +62,20 @@ Change these passwords immediately after first login.
 10. **User Management** — Registrar creates/disables staff accounts
 11. **System Settings** — School years and section configuration
 12. **Audit Log** — Registrar review of sensitive actions
+13. **LIS CSV** — SF1-aligned export/import for DepEd Learner Information System encoding
 
-## Security
+## LIS CSV Export / Import (Phase 3)
+
+Registrar → **LIS CSV** in the sidebar:
+
+- **Export:** Download enrolled learners as SF1-aligned CSV (filter by school year, grade, section)
+- **Import:** Upload CSV to create/update students; matches by LRN or Student ID
+- **Template:** Download sample CSV with correct column headers
+- **Settings:** Configure 6-digit EBEIS School ID in System Settings
+
+Run `database/migrations/003_lis_csv.sql` when upgrading an existing database.
+
+Reference columns align with SF1 School Register and Enhanced BEEF fields (DO 35 s.2022).
 
 - Password hashing via PHP `password_hash()`
 - Session timeout (30 minutes)
