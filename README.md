@@ -33,6 +33,7 @@ The system utilizes a **three-tier client-server architecture**, logically separ
 4. Import the database schema:
    - File: `database/schema.sql`
    - For existing installations upgrading from Phase 1, also run `database/migrations/002_phase2.sql`
+   - For LIS CSV support, run `database/migrations/003_lis_csv.sql`
 5. Configure database credentials in `config/database.php` if needed (default XAMPP: `root` with no password).
 6. Access the system from the server or any LAN workstation:
    ```
