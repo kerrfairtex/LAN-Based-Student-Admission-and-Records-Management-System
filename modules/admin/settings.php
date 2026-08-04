@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../includes/layout.php';
+require_once __DIR__ . '/../../includes/lis.php';
 
 require_registrar();
 
@@ -11,6 +12,7 @@ $schoolYears = fetch_school_years();
 $sections = fetch_sections();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add_year') {
@@ -52,6 +54,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ->execute(['grade' => $gradeId, 'name' => $name]);
             flash('success', "Section {$name} added.");
         }
+        redirect('/modules/admin/settings.php');
+    }
+
+    if ($action === 'lis_settings') {
+        $schoolId = trim($_POST['lis_school_id'] ?? '');
+        $division = trim($_POST['lis_division'] ?? '');
+
+        if ($schoolId !== '' && preg_match('/^\d{6}$/', $schoolId)) {
+            set_app_setting('lis_school_id', $schoolId);
+        }
+        if ($division !== '') {
+            set_app_setting('lis_division', $division);
+        }
+        flash('success', 'LIS export settings updated.');
         redirect('/modules/admin/settings.php');
     }
 }
@@ -144,6 +160,27 @@ render_header('System Settings', 'settings');
                         <button type="submit" class="btn btn-primary btn-sm w-100">Add</button>
                     </div>
                 </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel-card glass-panel">
+            <h3>LIS Export Settings</h3>
+            <p class="text-muted small">Six-digit EBEIS School ID used in SF1 CSV exports for DepEd LIS.</p>
+            <form method="post">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="lis_settings">
+                <div class="mb-3">
+                    <label class="form-label">School ID (6 digits)</label>
+                    <input type="text" name="lis_school_id" class="form-control" pattern="\d{6}" maxlength="6"
+                           value="<?= e(lis_school_id()) ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Schools Division Office</label>
+                    <input type="text" name="lis_division" class="form-control"
+                           value="<?= e(lis_division()) ?>" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Save LIS Settings</button>
             </form>
         </div>
     </div>

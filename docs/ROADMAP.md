@@ -64,7 +64,7 @@
 
 | # | Deliverable |
 |---|-------------|
-| 3.1 | LIS CSV export/import compatibility |
+| 3.1 | LIS CSV export/import compatibility | Done |
 | 3.2 | Automated scheduled backups (cron) |
 | 3.3 | SF9 (Report Card) generation |
 | 3.4 | Barcode/QR on student ID printouts |
