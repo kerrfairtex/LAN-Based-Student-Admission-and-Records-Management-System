@@ -4,13 +4,13 @@
 FROM php:8.3-apache
 
 # PHP extensions required by the app.
-# NOTE: a2dismod/a2enmod are chained with ';' and explicit '|| true' so no
-# && / || precedence ambiguity can silently skip a step.
+# MPM handling is done with rm -f (deterministic) instead of a2dismod, because
+# a2dismod can silently fail and '|| true' masks it — the official php:apache
+# image ships with BOTH mpm_event and mpm_prefork symlinked in mods-enabled.
 RUN docker-php-ext-install pdo_mysql mysqli \
-    && { a2dismod -f mpm_event 2>/dev/null || true; \
-         a2dismod -f mpm_worker 2>/dev/null || true; \
-         a2enmod mpm_prefork; \
-         a2enmod rewrite headers; }
+    && rm -f /etc/apache2/mods-enabled/mpm_event.load /etc/apache2/mods-enabled/mpm_event.conf \
+    && rm -f /etc/apache2/mods-enabled/mpm_worker.load /etc/apache2/mods-enabled/mpm_worker.conf \
+    && a2enmod mpm_prefork rewrite headers
 
 # Allow .htaccess (deny rules for config/ includes/ database/ backups/)
 RUN sed -ri 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf \
