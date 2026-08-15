@@ -5,7 +5,8 @@ FROM php:8.3-apache
 
 # PHP extensions required by the app
 RUN docker-php-ext-install pdo_mysql mysqli \
-    && a2enmod rewrite headers
+    && a2dismod mpm_event 2>/dev/null || true \
+    && a2enmod mpm_prefork rewrite headers
 
 # Allow .htaccess (deny rules for config/ includes/ database/ backups/)
 RUN sed -ri 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf \
