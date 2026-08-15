@@ -43,6 +43,10 @@ if ($sql === false || trim($sql) === '') {
     exit(1);
 }
 
+// Strip full-line comments so statements classify cleanly (CREATE DATABASE /
+// USE detection must not be hidden behind "--" comment lines).
+$sql = preg_replace('/^\s*--.*$/m', '', $sql);
+
 // Split into statements. Split on ";\n" which is safe here — no semicolons
 // appear inside string literals or data values in schema.sql.
 $statements = array_filter(
