@@ -1,0 +1,15 @@
+# Exclude large/unrelated artifacts from Docker build context
+node_modules/
+ui/
+.env
+.env.local
+backups/*.sql
+.git/
+.gitignore
+*.md
+docs/
+package.json
+package-lock.json
+pnpm-lock.yaml
+turbo.json
+tsconfig.json
