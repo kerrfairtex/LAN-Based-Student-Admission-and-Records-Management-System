@@ -35,7 +35,7 @@ function transfer_days_remaining(array $transfer): int
     return (int) floor((strtotime($transfer['due_date']) - strtotime('today')) / 86400);
 }
 
-function fetch_transfer_requests(?string $direction = null): array
+function fetch_transfer_requests(?string $direction = null, int $limit = 0, int $offset = 0): array
 {
     $sql = 'SELECT t.*, s.student_id_no, s.lrn,
                    CONCAT(s.last_name, ", ", s.first_name) AS student_name,
@@ -50,12 +50,20 @@ function fetch_transfer_requests(?string $direction = null): array
 
     $sql .= ' ORDER BY t.due_date ASC, t.created_at DESC';
 
-    $stmt = db()->prepare($sql);
-    if ($direction) {
-        $stmt->execute(['direction' => $direction]);
-    } else {
-        $stmt->execute();
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit OFFSET :offset';
     }
+
+    $stmt = db()->prepare($sql);
+    $params = [];
+    if ($direction) {
+        $params['direction'] = $direction;
+    }
+    if ($limit > 0) {
+        $params['limit'] = $limit;
+        $params['offset'] = $offset;
+    }
+    $stmt->execute($params);
 
     return $stmt->fetchAll();
 }

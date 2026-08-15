@@ -175,9 +175,125 @@ function fetch_sections(?int $gradeLevelId = null): array
 
 function active_school_year(): ?array
 {
+    if (isset($_SESSION['selected_school_year_id'])) {
+        $stmt = db()->prepare('SELECT * FROM school_years WHERE id = :id');
+        $stmt->execute(['id' => $_SESSION['selected_school_year_id']]);
+        $year = $stmt->fetch();
+        if ($year) {
+            return $year;
+        }
+    }
     $stmt = db()->query('SELECT * FROM school_years WHERE is_active = 1 LIMIT 1');
-
     return $stmt->fetch() ?: null;
+}
+
+function fetch_all_school_years(): array
+{
+    return db()->query('SELECT * FROM school_years ORDER BY label DESC')->fetchAll();
+}
+
+function select_school_year(int $yearId): void
+{
+    $_SESSION['selected_school_year_id'] = $yearId;
+}
+
+/**
+ * @return array{overdue: array, recent: array}
+ */
+function fetch_notifications(): array
+{
+    $notifications = ['overdue' => [], 'recent' => []];
+
+    try {
+        $overdue = db()->query(
+            "SELECT t.id, t.direction, t.counterpart_school, t.due_date,
+                    s.student_id_no, s.first_name, s.last_name
+             FROM transfer_requests t
+             JOIN students s ON s.id = t.student_id
+             WHERE t.status NOT IN ('completed', 'escalated')
+               AND t.due_date < CURDATE()
+             ORDER BY t.due_date ASC
+             LIMIT 10"
+        )->fetchAll();
+        $notifications['overdue'] = $overdue;
+    } catch (PDOException) {
+    }
+
+    try {
+        $recent = db()->query(
+            "SELECT a.id, a.application_no, a.status, a.first_name, a.last_name,
+                    a.created_at, u.full_name AS reviewer
+             FROM admissions a
+             LEFT JOIN users u ON u.id = a.reviewed_by
+             WHERE a.status = 'approved'
+               AND a.reviewed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+             ORDER BY a.reviewed_at DESC
+             LIMIT 10"
+        )->fetchAll();
+        $notifications['recent'] = $recent;
+    } catch (PDOException) {
+    }
+
+    return $notifications;
+}
+
+/**
+ * Pagination helper.
+ *
+ * @return array{data: array, total: int, per_page: int, current_page: int, last_page: int, offset: int}
+ */
+function paginate(int $total, int $perPage = 20, int $currentPage = 1): array
+{
+    $currentPage = max(1, $currentPage);
+    $lastPage = (int) ceil($total / $perPage);
+    $offset = ($currentPage - 1) * $perPage;
+
+    return [
+        'data' => [],
+        'total' => $total,
+        'per_page' => $perPage,
+        'current_page' => $currentPage,
+        'last_page' => max(1, $lastPage),
+        'offset' => $offset,
+    ];
+}
+
+function render_pager(int $currentPage, int $lastPage, string $baseUrl): string
+{
+    if ($lastPage <= 1) {
+        return '';
+    }
+
+    $html = '<nav aria-label="Pagination"><ul class="pagination justify-content-center">';
+    $params = $_GET;
+    unset($params['page']);
+
+    // First
+    $firstUrl = $baseUrl . '?' . http_build_query(array_merge($params, ['page' => 1]));
+    $html .= '<li class="page-item ' . ($currentPage <= 1 ? 'disabled' : '') . '"><a class="page-link" href="' . e($firstUrl) . '">&laquo;</a></li>';
+
+    // Previous
+    $prevUrl = $baseUrl . '?' . http_build_query(array_merge($params, ['page' => max(1, $currentPage - 1)]));
+    $html .= '<li class="page-item ' . ($currentPage <= 1 ? 'disabled' : '') . '"><a class="page-link" href="' . e($prevUrl) . '">&lsaquo;</a></li>';
+
+    // Page numbers (window of 5)
+    $start = max(1, $currentPage - 2);
+    $end = min($lastPage, $currentPage + 2);
+    for ($i = $start; $i <= $end; $i++) {
+        $pageUrl = $baseUrl . '?' . http_build_query(array_merge($params, ['page' => $i]));
+        $html .= '<li class="page-item ' . ($i === $currentPage ? 'active' : '') . '"><a class="page-link" href="' . e($pageUrl) . '">' . $i . '</a></li>';
+    }
+
+    // Next
+    $nextUrl = $baseUrl . '?' . http_build_query(array_merge($params, ['page' => min($lastPage, $currentPage + 1)]));
+    $html .= '<li class="page-item ' . ($currentPage >= $lastPage ? 'disabled' : '') . '"><a class="page-link" href="' . e($nextUrl) . '">&rsaquo;</a></li>';
+
+    // Last
+    $lastUrl = $baseUrl . '?' . http_build_query(array_merge($params, ['page' => $lastPage]));
+    $html .= '<li class="page-item ' . ($currentPage >= $lastPage ? 'disabled' : '') . '"><a class="page-link" href="' . e($lastUrl) . '">&raquo;</a></li>';
+
+    $html .= '</ul></nav>';
+    return $html;
 }
 
 function dashboard_stats(): array

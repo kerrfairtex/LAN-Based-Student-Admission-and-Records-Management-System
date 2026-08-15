@@ -22,27 +22,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $setActive = isset($_POST['is_active']);
 
         if ($label) {
-            if ($setActive) {
-                db()->exec('UPDATE school_years SET is_active = 0');
+            try {
+                db()->beginTransaction();
+                if ($setActive) {
+                    db()->exec('UPDATE school_years SET is_active = 0');
+                }
+                db()->prepare(
+                    'INSERT INTO school_years (label, is_active, start_date, end_date) VALUES (:label, :active, :start, :end)'
+                )->execute([
+                    'label' => $label,
+                    'active' => $setActive ? 1 : 0,
+                    'start' => $start ?: null,
+                    'end' => $end ?: null,
+                ]);
+                db()->commit();
+                flash('success', "School year {$label} added.");
+            } catch (PDOException $e) {
+                db()->rollBack();
+                flash('danger', 'Failed to add school year: ' . $e->getMessage());
             }
-            db()->prepare(
-                'INSERT INTO school_years (label, is_active, start_date, end_date) VALUES (:label, :active, :start, :end)'
-            )->execute([
-                'label' => $label,
-                'active' => $setActive ? 1 : 0,
-                'start' => $start ?: null,
-                'end' => $end ?: null,
-            ]);
-            flash('success', "School year {$label} added.");
         }
         redirect('/modules/admin/settings.php');
     }
 
     if ($action === 'activate_year' && isset($_POST['year_id'])) {
-        db()->exec('UPDATE school_years SET is_active = 0');
-        db()->prepare('UPDATE school_years SET is_active = 1 WHERE id = :id')
-            ->execute(['id' => (int) $_POST['year_id']]);
-        flash('success', 'Active school year updated.');
+        try {
+            db()->beginTransaction();
+            db()->exec('UPDATE school_years SET is_active = 0');
+            db()->prepare('UPDATE school_years SET is_active = 1 WHERE id = :id')
+                ->execute(['id' => (int) $_POST['year_id']]);
+            db()->commit();
+            flash('success', 'Active school year updated.');
+        } catch (PDOException $e) {
+            db()->rollBack();
+            flash('danger', 'Failed to activate school year: ' . $e->getMessage());
+        }
         redirect('/modules/admin/settings.php');
     }
 
@@ -50,9 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $gradeId = (int) ($_POST['grade_level_id'] ?? 0);
         $name = trim($_POST['section_name'] ?? '');
         if ($gradeId && $name) {
-            db()->prepare('INSERT INTO sections (grade_level_id, name) VALUES (:grade, :name)')
-                ->execute(['grade' => $gradeId, 'name' => $name]);
-            flash('success', "Section {$name} added.");
+            try {
+                db()->prepare('INSERT INTO sections (grade_level_id, name) VALUES (:grade, :name)')
+                    ->execute(['grade' => $gradeId, 'name' => $name]);
+                flash('success', "Section {$name} added.");
+            } catch (PDOException $e) {
+                flash('danger', 'Failed to add section: ' . $e->getMessage());
+            }
         }
         redirect('/modules/admin/settings.php');
     }

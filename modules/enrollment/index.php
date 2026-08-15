@@ -10,8 +10,21 @@ require_login();
 $activeYear = active_school_year();
 $yearId = (int) ($activeYear['id'] ?? 0);
 
+$perPage = 20;
+$currentPage = max(1, (int) ($_GET['page'] ?? 1));
+$offset = ($currentPage - 1) * $perPage;
+
 $enrollments = [];
+$total = 0;
+
 if ($yearId > 0) {
+    // Count total
+    $countStmt = db()->prepare('SELECT COUNT(*) AS c FROM enrollments WHERE school_year_id = :year_id AND status = "enrolled"');
+    $countStmt->execute(['year_id' => $yearId]);
+    $total = (int) $countStmt->fetch()['c'];
+
+    $paginated = paginate($total, $perPage, $currentPage);
+
     $stmt = db()->prepare(
         'SELECT e.id, e.section_id, e.enrollment_type, e.enrolled_at,
                 s.id AS student_pk, s.student_id_no, s.lrn,
@@ -23,9 +36,10 @@ if ($yearId > 0) {
          JOIN grade_levels g ON g.id = e.grade_level_id
          LEFT JOIN sections sec ON sec.id = e.section_id
          WHERE e.school_year_id = :year_id AND e.status = "enrolled"
-         ORDER BY g.id, sec.name, s.last_name'
+         ORDER BY g.id, sec.name, s.last_name
+         LIMIT :limit OFFSET :offset'
     );
-    $stmt->execute(['year_id' => $yearId]);
+    $stmt->execute(['year_id' => $yearId, 'limit' => $paginated['per_page'], 'offset' => $paginated['offset']]);
     $enrollments = $stmt->fetchAll();
 }
 
@@ -88,6 +102,11 @@ render_header('Enrollment Management', 'enrollment');
             </tbody>
         </table>
     </div>
+    <?php if ($yearId > 0 && $paginated['last_page'] > 1): ?>
+        <div class="p-3">
+            <?= render_pager($paginated['current_page'], $paginated['last_page'], url('/modules/enrollment/index.php')) ?>
+        </div>
+    <?php endif; ?>
 </div>
 <?php
 render_footer();

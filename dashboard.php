@@ -8,6 +8,7 @@ require_once __DIR__ . '/includes/layout.php';
 require_login();
 
 $stats = dashboard_stats();
+$activeYear = active_school_year();
 
 render_header('Dashboard', 'dashboard');
 ?>
@@ -34,6 +35,36 @@ render_header('Dashboard', 'dashboard');
     </div>
 </div>
 
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <a class="quick-action-card" href="<?= e(url('/modules/admission/create.php')) ?>">
+        <div class="qa-icon qa-primary"><i class="bi bi-person-plus"></i></div>
+        <span class="qa-label">New Admission</span>
+    </a>
+    <a class="quick-action-card" href="<?= e(url('/modules/transfers/create.php')) ?>">
+        <div class="qa-icon qa-success"><i class="bi bi-arrow-left-right"></i></div>
+        <span class="qa-label">Transfer</span>
+    </a>
+    <a class="quick-action-card" href="<?= e(url('/modules/search/index.php')) ?>">
+        <div class="qa-icon qa-warning"><i class="bi bi-search"></i></div>
+        <span class="qa-label">Search</span>
+    </a>
+    <a class="quick-action-card" href="<?= e(url('/modules/reports/index.php')) ?>">
+        <div class="qa-icon qa-danger"><i class="bi bi-file-earmark-text"></i></div>
+        <span class="qa-label">Reports</span>
+    </a>
+    <?php if (is_registrar()): ?>
+        <a class="quick-action-card" href="<?= e(url('/modules/admin/backup.php')) ?>">
+            <div class="qa-icon qa-success"><i class="bi bi-hdd-network"></i></div>
+            <span class="qa-label">Backup</span>
+        </a>
+        <a class="quick-action-card" href="<?= e(url('/modules/admin/lis.php')) ?>">
+            <div class="qa-icon qa-warning"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+            <span class="qa-label">LIS CSV</span>
+        </a>
+    <?php endif; ?>
+</div>
+
 <div class="row g-3">
     <div class="col-lg-7">
         <div class="panel-card glass-panel">
@@ -53,13 +84,17 @@ render_header('Dashboard', 'dashboard');
     </div>
     <div class="col-lg-5">
         <div class="panel-card glass-panel">
-            <h3>Quick Actions</h3>
-            <div class="d-grid gap-2">
-                <a class="btn btn-primary" href="<?= e(url('/modules/admission/create.php')) ?>"><i class="bi bi-person-plus"></i> New Admission</a>
-                <a class="btn btn-outline-light" href="<?= e(url('/modules/enrollment/index.php')) ?>"><i class="bi bi-people"></i> Manage Enrollment</a>
-                <a class="btn btn-outline-light" href="<?= e(url('/modules/transfers/index.php')) ?>"><i class="bi bi-arrow-left-right"></i> Transfer Requests</a>
-                <a class="btn btn-outline-light" href="<?= e(url('/modules/search/index.php')) ?>"><i class="bi bi-search"></i> Search Student</a>
-                <a class="btn btn-outline-light" href="<?= e(url('/modules/reports/index.php')) ?>"><i class="bi bi-file-earmark-text"></i> Generate Report</a>
+            <h3>Active School Year</h3>
+            <p class="text-muted mb-1">
+                <strong><?= e($activeYear['label'] ?? 'Not set') ?></strong>
+            </p>
+            <p class="text-muted small mb-3">
+                Changed from the top bar. Takes effect across all modules.
+            </p>
+            <div class="d-grid">
+                <a href="<?= e(url('/modules/admin/settings.php')) ?>" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-gear"></i> Manage in Settings
+                </a>
             </div>
         </div>
     </div>

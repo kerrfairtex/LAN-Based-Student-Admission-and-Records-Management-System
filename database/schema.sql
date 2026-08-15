@@ -171,6 +171,7 @@ CREATE TABLE academic_records (
     CONSTRAINT fk_records_school_year FOREIGN KEY (school_year_id) REFERENCES school_years(id),
     CONSTRAINT fk_records_grade FOREIGN KEY (grade_level_id) REFERENCES grade_levels(id),
     CONSTRAINT fk_records_updated_by FOREIGN KEY (updated_by) REFERENCES users(id),
+    KEY idx_records_updated_by (updated_by),
     UNIQUE KEY uniq_record_student_year (student_id, school_year_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -205,7 +206,9 @@ CREATE TABLE transfer_requests (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_transfer_student FOREIGN KEY (student_id) REFERENCES students(id),
     CONSTRAINT fk_transfer_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    CONSTRAINT fk_transfer_updated_by FOREIGN KEY (updated_by) REFERENCES users(id)
+    CONSTRAINT fk_transfer_updated_by FOREIGN KEY (updated_by) REFERENCES users(id),
+    KEY idx_transfer_status (status),
+    KEY idx_transfer_student (student_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE sf10_grade_entries (
@@ -227,6 +230,7 @@ CREATE TABLE sf10_grade_entries (
     CONSTRAINT fk_sf10_school_year FOREIGN KEY (school_year_id) REFERENCES school_years(id),
     CONSTRAINT fk_sf10_grade FOREIGN KEY (grade_level_id) REFERENCES grade_levels(id),
     CONSTRAINT fk_sf10_updated_by FOREIGN KEY (updated_by) REFERENCES users(id),
+    KEY idx_sf10_updated_by (updated_by),
     UNIQUE KEY uniq_sf10_entry (student_id, school_year_id, grade_level_id, learning_area)
 ) ENGINE=InnoDB;
 

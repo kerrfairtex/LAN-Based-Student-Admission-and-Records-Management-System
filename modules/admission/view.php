@@ -251,7 +251,13 @@ render_header('Admission Details', 'admission');
         <?php endif; ?>
 
         <?php if ($admission['student_id']): ?>
-            <a href="<?= e(url('/modules/records/view.php?id=<?= (int) $admission[\'student_id\'] ?>')) ?>" class="btn btn-outline-light w-100 mt-3">View Student Record</a>
+            <a href="<?= e(url('/modules/records/view.php?id=' . (int) $admission['student_id'])) ?>" class="btn btn-outline-light w-100 mt-3">View Student Record</a>
+        <?php endif; ?>
+
+        <?php if ($admission['status'] === 'pending'): ?>
+            <a href="<?= e(url('/modules/admission/edit.php?id=' . (int) $admission['id'])) ?>" class="btn btn-outline-light w-100 mt-2">
+                <i class="bi bi-pencil"></i> Edit Application
+            </a>
         <?php endif; ?>
     </div>
 </div>

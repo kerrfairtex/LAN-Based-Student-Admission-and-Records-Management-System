@@ -9,7 +9,20 @@ require_once __DIR__ . '/../../includes/transfers.php';
 require_login();
 
 $direction = $_GET['direction'] ?? '';
-$transfers = fetch_transfer_requests($direction ?: null);
+$perPage = 20;
+$currentPage = max(1, (int) ($_GET['page'] ?? 1));
+
+// Count total
+$countStmt = db()->prepare(
+    'SELECT COUNT(*) AS c FROM transfer_requests t
+     WHERE 1=1' . ($direction ? ' AND t.direction = :direction' : '')
+);
+$countStmt->execute($direction ? ['direction' => $direction] : []);
+$total = (int) $countStmt->fetch()['c'];
+
+$paginated = paginate($total, $perPage, $currentPage);
+
+$transfers = fetch_transfer_requests($direction ?: null, $paginated['per_page'], $paginated['offset']);
 $overdue = overdue_transfer_count();
 
 render_header('Transfer Requests', 'transfers');
@@ -81,6 +94,11 @@ render_header('Transfer Requests', 'transfers');
             </tbody>
         </table>
     </div>
+    <?php if ($paginated['last_page'] > 1): ?>
+        <div class="p-3">
+            <?= render_pager($paginated['current_page'], $paginated['last_page'], url('/modules/transfers/index.php')) ?>
+        </div>
+    <?php endif; ?>
 </div>
 <?php
 render_footer();
