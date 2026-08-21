@@ -38,7 +38,7 @@ function transfer_days_remaining(array $transfer): int
 function fetch_transfer_requests(?string $direction = null, int $limit = 0, int $offset = 0): array
 {
     $sql = 'SELECT t.*, s.student_id_no, s.lrn,
-                   CONCAT(s.last_name, ", ", s.first_name) AS student_name,
+                   CONCAT(s.last_name, \', \', s.first_name) AS student_name,
                    u.full_name AS created_by_name
             FROM transfer_requests t
             JOIN students s ON s.id = t.student_id

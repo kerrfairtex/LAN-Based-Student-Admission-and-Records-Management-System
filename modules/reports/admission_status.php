@@ -9,7 +9,7 @@ require_login();
 
 $rows = db()->query(
     'SELECT a.application_no, a.status, a.enrollment_type,
-            CONCAT(a.last_name, ", ", a.first_name) AS applicant_name,
+            CONCAT(a.last_name, \', \', a.first_name) AS applicant_name,
             g.name AS grade_name, sy.label AS school_year, a.created_at
      FROM admissions a
      JOIN grade_levels g ON g.id = a.grade_level_id

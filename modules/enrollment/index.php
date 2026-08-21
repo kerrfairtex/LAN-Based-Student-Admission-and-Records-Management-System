@@ -28,7 +28,7 @@ if ($yearId > 0) {
     $stmt = db()->prepare(
         'SELECT e.id, e.section_id, e.enrollment_type, e.enrolled_at,
                 s.id AS student_pk, s.student_id_no, s.lrn,
-                CONCAT(s.last_name, ", ", s.first_name) AS student_name,
+                CONCAT(s.last_name, \', \', s.first_name) AS student_name,
                 g.id AS grade_level_id, g.name AS grade_name,
                 sec.name AS section_name
          FROM enrollments e

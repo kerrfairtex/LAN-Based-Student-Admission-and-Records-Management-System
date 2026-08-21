@@ -11,7 +11,7 @@ $id = (int) ($_GET['id'] ?? 0);
 
 $stmt = db()->prepare(
     'SELECT e.*, s.student_id_no, s.lrn,
-            CONCAT(s.last_name, ", ", s.first_name) AS student_name,
+            CONCAT(s.last_name, \', \', s.first_name) AS student_name,
             g.name AS grade_name, g.id AS grade_level_id,
             sec.name AS section_name, sy.label AS school_year
      FROM enrollments e

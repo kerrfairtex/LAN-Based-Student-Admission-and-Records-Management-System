@@ -20,8 +20,8 @@ if ($query !== '') {
          LEFT JOIN grade_levels g ON g.id = e.grade_level_id
          WHERE s.student_id_no LIKE :q
             OR s.lrn LIKE :q
-            OR CONCAT(s.first_name, " ", s.middle_name, " ", s.last_name) LIKE :q
-            OR CONCAT(s.last_name, ", ", s.first_name) LIKE :q
+            OR CONCAT(s.first_name, \' \', s.middle_name, \' \', s.last_name) LIKE :q
+            OR CONCAT(s.last_name, \', \', s.first_name) LIKE :q
          ORDER BY s.last_name, s.first_name
          LIMIT 50'
     );
