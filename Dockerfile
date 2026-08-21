@@ -15,6 +15,9 @@ RUN sed -ri 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 WORKDIR /var/www/html
 COPY . .
 
+# Disable PHP opcache to prevent stale compiled bytecode
+RUN echo "opcache.enable=0" > /usr/local/etc/php/conf.d/opcache-disable.ini
+
 # Entrypoint: sets search_path for Supabase PG, binds Apache to $PORT,
 # and resolves the base image's dual-MPM (event+prefork) conflict at runtime.
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
