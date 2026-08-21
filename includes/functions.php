@@ -310,11 +310,11 @@ function dashboard_stats(): array
     $overdueTransfers = 0;
 
     if ($yearId > 0) {
-        $stmt = db()->prepare('SELECT COUNT(*) AS c FROM enrollments WHERE school_year_id = :year_id AND status = "enrolled"');
+        $stmt = db()->prepare('SELECT COUNT(*) AS c FROM enrollments WHERE school_year_id = :year_id AND status = \'enrolled\'');
         $stmt->execute(['year_id' => $yearId]);
         $enrolledThisYear = (int) $stmt->fetch()['c'];
 
-        $stmt = db()->prepare('SELECT COUNT(*) AS c FROM enrollments WHERE school_year_id = :year_id AND status = "enrolled" AND section_id IS NULL');
+        $stmt = db()->prepare('SELECT COUNT(*) AS c FROM enrollments WHERE school_year_id = :year_id AND status = \'enrolled\' AND section_id IS NULL');
         $stmt->execute(['year_id' => $yearId]);
         $unassignedSections = (int) $stmt->fetch()['c'];
     }

@@ -19,7 +19,7 @@ $total = 0;
 
 if ($yearId > 0) {
     // Count total
-    $countStmt = db()->prepare('SELECT COUNT(*) AS c FROM enrollments WHERE school_year_id = :year_id AND status = "enrolled"');
+    $countStmt = db()->prepare('SELECT COUNT(*) AS c FROM enrollments WHERE school_year_id = :year_id AND status = \'enrolled\'');
     $countStmt->execute(['year_id' => $yearId]);
     $total = (int) $countStmt->fetch()['c'];
 
@@ -35,7 +35,7 @@ if ($yearId > 0) {
          JOIN students s ON s.id = e.student_id
          JOIN grade_levels g ON g.id = e.grade_level_id
          LEFT JOIN sections sec ON sec.id = e.section_id
-         WHERE e.school_year_id = :year_id AND e.status = "enrolled"
+         WHERE e.school_year_id = :year_id AND e.status = \'enrolled\'
          ORDER BY g.id, sec.name, s.last_name
          LIMIT :limit OFFSET :offset'
     );

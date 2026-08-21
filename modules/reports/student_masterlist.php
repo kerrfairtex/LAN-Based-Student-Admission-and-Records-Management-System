@@ -9,13 +9,13 @@ require_login();
 
 $rows = db()->query(
     'SELECT s.student_id_no, s.lrn,
-            CONCAT(s.last_name, ", ", s.first_name, " ", IFNULL(s.middle_name, "")) AS full_name,
+            CONCAT(s.last_name, \', \', s.first_name, \' \', COALESCE(s.middle_name, \'\')) AS full_name,
             s.sex, g.name AS grade_name, s.status
      FROM students s
-     LEFT JOIN enrollments e ON e.student_id = s.id AND e.status = "enrolled"
+     LEFT JOIN enrollments e ON e.student_id = s.id AND e.status = \'enrolled\'
      LEFT JOIN school_years sy ON sy.id = e.school_year_id AND sy.is_active = 1
      LEFT JOIN grade_levels g ON g.id = e.grade_level_id
-     WHERE s.status = "active"
+     WHERE s.status = \'active\'
      ORDER BY s.last_name, s.first_name'
 )->fetchAll();
 

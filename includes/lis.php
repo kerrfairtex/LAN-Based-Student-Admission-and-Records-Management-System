@@ -264,7 +264,7 @@ function lis_fetch_export_rows(int $schoolYearId, ?int $gradeLevelId = null, ?in
             JOIN school_years sy ON sy.id = e.school_year_id
             JOIN grade_levels g ON g.id = e.grade_level_id
             LEFT JOIN sections sec ON sec.id = e.section_id
-            WHERE e.school_year_id = :year_id AND e.status = "enrolled"';
+            WHERE e.school_year_id = :year_id AND e.status = \'enrolled\'';
 
     $params = ['year_id' => $schoolYearId];
 

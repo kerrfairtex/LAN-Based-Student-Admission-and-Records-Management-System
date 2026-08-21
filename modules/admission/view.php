@@ -100,8 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
                         student_id, direction, counterpart_school, request_date,
                         first_attendance_date, due_date, status, created_by
                     ) VALUES (
-                        :student_id, "incoming", :counterpart_school, :request_date,
-                        :first_attendance_date, :due_date, "pending", :created_by
+                        :student_id, \'incoming\', :counterpart_school, :request_date,
+                        :first_attendance_date, :due_date, \'pending\', :created_by
                     )'
                 );
                 $transfer->execute([
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
 
             $updateAdmission = db()->prepare(
                 'UPDATE admissions
-                 SET status = "approved", student_id = :student_id, reviewed_by = :reviewed_by,
+                 SET status = \'approved\', student_id = :student_id, reviewed_by = :reviewed_by,
                      reviewed_at = NOW(), review_notes = :review_notes
                  WHERE id = :id'
             );
@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
     if ($action === 'reject' && $admission['status'] === 'pending') {
         $stmt = db()->prepare(
             'UPDATE admissions
-             SET status = "rejected", reviewed_by = :reviewed_by,
+             SET status = \'rejected\', reviewed_by = :reviewed_by,
                  reviewed_at = NOW(), review_notes = :review_notes
              WHERE id = :id'
         );

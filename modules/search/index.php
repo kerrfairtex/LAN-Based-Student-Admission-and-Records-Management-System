@@ -15,7 +15,7 @@ if ($query !== '') {
     $stmt = db()->prepare(
         'SELECT s.*, g.name AS grade_name, sy.label AS school_year
          FROM students s
-         LEFT JOIN enrollments e ON e.student_id = s.id AND e.status = "enrolled"
+         LEFT JOIN enrollments e ON e.student_id = s.id AND e.status = \'enrolled\'
          LEFT JOIN school_years sy ON sy.id = e.school_year_id AND sy.is_active = 1
          LEFT JOIN grade_levels g ON g.id = e.grade_level_id
          WHERE s.student_id_no LIKE :q

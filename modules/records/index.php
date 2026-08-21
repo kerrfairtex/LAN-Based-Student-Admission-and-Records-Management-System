@@ -12,7 +12,7 @@ $currentPage = max(1, (int) ($_GET['page'] ?? 1));
 $offset = ($currentPage - 1) * $perPage;
 
 // Count total active students
-$totalStmt = db()->query('SELECT COUNT(*) AS c FROM students WHERE status = "active"');
+$totalStmt = db()->query('SELECT COUNT(*) AS c FROM students WHERE status = \'active\'');
 $total = (int) $totalStmt->fetch()['c'];
 
 $paginated = paginate($total, $perPage, $currentPage);
@@ -20,11 +20,11 @@ $paginated = paginate($total, $perPage, $currentPage);
 $stmt = db()->prepare(
     'SELECT s.*, e.grade_level_id, g.name AS grade_name, sy.label AS school_year, sec.name AS section_name
      FROM students s
-     LEFT JOIN enrollments e ON e.student_id = s.id AND e.status = "enrolled"
+     LEFT JOIN enrollments e ON e.student_id = s.id AND e.status = \'enrolled\'
      LEFT JOIN school_years sy ON sy.id = e.school_year_id
      LEFT JOIN grade_levels g ON g.id = e.grade_level_id
      LEFT JOIN sections sec ON sec.id = e.section_id
-     WHERE s.status = "active"
+     WHERE s.status = \'active\'
      ORDER BY s.last_name, s.first_name
      LIMIT :limit OFFSET :offset'
 );

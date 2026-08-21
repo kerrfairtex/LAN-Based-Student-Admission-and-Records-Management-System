@@ -17,7 +17,7 @@ if ($yearId > 0) {
         'SELECT g.name AS grade_name, COUNT(e.id) AS total
          FROM grade_levels g
          LEFT JOIN enrollments e ON e.grade_level_id = g.id
-             AND e.school_year_id = :year_id AND e.status = "enrolled"
+             AND e.school_year_id = :year_id AND e.status = \'enrolled\'
          GROUP BY g.id, g.name
          ORDER BY g.id'
     );
