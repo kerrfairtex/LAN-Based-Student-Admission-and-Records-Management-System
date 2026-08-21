@@ -1,21 +1,21 @@
-/* TRAC JHS Landing — visual system referenced from BARMM / MBHTE / MOST institutional branding
-   Palette cues: forest green roof & seals, gold kris accents, cream facade, sky wash */
+/* TRAC JHS Landing — BARMM / MBHTE / MOST institutional color palette
+   Forest green roof & seals, gold kris accents, cream facade, sky wash */
 
 :root {
-    --brand-green: #0a5c28;
-    --brand-green-deep: #06401c;
-    --brand-green-banner: #0b6b30;
-    --brand-green-rich: #117a38;
-    --brand-gold: #d4a017;
-    --brand-gold-bright: #f0c419;
-    --brand-gold-soft: #e8c547;
-    --cream: #f4f0e4;
-    --cream-warm: #efe8d4;
+    --brand-green: #0A5C28;
+    --brand-green-deep: #06401C;
+    --brand-green-banner: #0B6B30;
+    --brand-green-rich: #117A38;
+    --brand-gold: #D4A017;
+    --brand-gold-bright: #F0C419;
+    --brand-gold-soft: #E8C547;
+    --cream: #F4F0E4;
+    --cream-warm: #EFE8D4;
     --ink: #142016;
-    --ink-soft: rgba(244, 240, 228, 0.9);
-    --panel: rgba(4, 24, 12, 0.85);
-    --panel-border: rgba(212, 160, 23, 0.5);
-    --danger: #fca5a5;
+    --ink-soft: rgba(244, 240, 228, 0.85);
+    --panel-bg: rgba(4, 20, 10, 0.88);
+    --panel-border: rgba(212, 160, 23, 0.55);
+    --danger: #FCA5A5;
     --font-display: "Fraunces", "Palatino Linotype", Palatino, serif;
     --font-script: "Great Vibes", "Segoe Script", cursive;
     --font-ui: "Source Sans 3", "Segoe UI", sans-serif;
@@ -38,6 +38,9 @@ body.landing-body {
     color: var(--cream);
     background: var(--brand-green-deep);
     -webkit-font-smoothing: antialiased;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.65;
 }
 
 .landing {
@@ -68,11 +71,11 @@ body.landing-body {
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(108deg, rgba(6, 40, 20, 0.9) 0%, rgba(6, 40, 20, 0.72) 34%, rgba(6, 40, 20, 0.2) 62%, rgba(6, 40, 20, 0.45) 100%),
-        linear-gradient(180deg, rgba(8, 48, 24, 0.12) 0%, rgba(8, 48, 24, 0.05) 40%, rgba(4, 28, 14, 0.78) 100%);
+        linear-gradient(108deg, rgba(6, 40, 20, 0.92) 0%, rgba(6, 40, 20, 0.78) 34%, rgba(6, 40, 20, 0.25) 62%, rgba(6, 40, 20, 0.5) 100%),
+        linear-gradient(180deg, rgba(8, 48, 24, 0.15) 0%, rgba(8, 48, 24, 0.08) 40%, rgba(4, 28, 14, 0.82) 100%);
 }
 
-/* Gold / green corner accent inspired by the reference graphic frame */
+/* Gold/green corner accent */
 .landing__corner {
     position: absolute;
     left: 0;
@@ -104,6 +107,7 @@ body.landing-body {
     max-width: 34rem;
 }
 
+/* ===== Brand Mark ===== */
 .brand-mark {
     display: inline-flex;
     align-items: center;
@@ -122,7 +126,7 @@ body.landing-body {
     place-items: center;
     position: relative;
     background:
-        radial-gradient(circle at 50% 42%, #1f8a45 0 38%, transparent 39%),
+        radial-gradient(circle at 50% 42%, #1F8A45 0 38%, transparent 39%),
         radial-gradient(circle at 50% 50%, var(--brand-green-rich), var(--brand-green-deep));
     border: 3px solid var(--brand-gold-bright);
     box-shadow:
@@ -158,7 +162,7 @@ body.landing-body {
     font-weight: 650;
     letter-spacing: -0.03em;
     line-height: 0.95;
-    color: var(--cream);
+    color: #F4F0E4;
     text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
 }
 
@@ -181,13 +185,14 @@ body.landing-body {
     animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.16s forwards;
 }
 
+/* ===== Headline & Support ===== */
 .landing__headline {
     margin: 0 0 0.85rem;
     font-family: var(--font-display);
     font-size: clamp(1.55rem, 3.2vw, 2.15rem);
     font-weight: 500;
     line-height: 1.2;
-    color: var(--cream);
+    color: #F4F0E4;
     opacity: 0;
     transform: translateY(18px);
     animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.22s forwards;
@@ -197,18 +202,19 @@ body.landing-body {
     margin: 0;
     max-width: 30rem;
     font-size: 1.08rem;
-    line-height: 1.55;
+    line-height: 1.65;
     color: var(--ink-soft);
     opacity: 0;
     transform: translateY(18px);
     animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.34s forwards;
 }
 
+/* ===== Login Panel ===== */
 .login-panel {
     width: 100%;
     padding: 1.75rem 1.6rem 1.5rem;
     border-radius: 16px;
-    background: var(--panel);
+    background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
@@ -225,13 +231,13 @@ body.landing-body {
     font-family: var(--font-display);
     font-size: 1.4rem;
     font-weight: 650;
-    color: var(--cream);
+    color: #F4F0E4;
 }
 
 .login-panel__hint {
     margin: 0 0 1.35rem;
     font-size: 0.95rem;
-    color: var(--ink-soft);
+    color: rgba(244, 240, 228, 0.8);
 }
 
 .login-panel label {
@@ -258,13 +264,14 @@ body.landing-body {
 .input-shell input {
     width: 100%;
     appearance: none;
-    border: 1px solid rgba(212, 160, 23, 0.45);
-    background: rgba(2, 18, 8, 0.75);
-    color: var(--cream);
+    border: 1px solid rgba(212, 160, 23, 0.5);
+    background: rgba(2, 14, 6, 0.85);
+    color: #F4F0E4;
     border-radius: 10px;
     padding: 0.85rem 2.75rem 0.85rem 0.95rem;
     font: inherit;
     font-size: 1rem;
+    font-weight: 400;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
@@ -275,7 +282,7 @@ body.landing-body {
 
 .input-shell input:focus {
     border-color: var(--brand-gold-bright);
-    background: rgba(2, 18, 8, 0.9);
+    background: rgba(2, 14, 6, 0.95);
     box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.28);
 }
 
@@ -308,10 +315,10 @@ body.landing-body {
     border-radius: 10px;
     padding: 0.9rem 1rem;
     font: inherit;
-    font-size: 1.02rem;
+    font-size: 1.05rem;
     font-weight: 700;
     letter-spacing: 0.03em;
-    color: var(--brand-green-deep);
+    color: #06401C;
     background: linear-gradient(135deg, var(--brand-gold-bright), var(--brand-gold));
     cursor: pointer;
     transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
@@ -338,13 +345,14 @@ body.landing-body {
     margin: 0 0 1rem;
     padding: 0.75rem 0.85rem;
     border-radius: 10px;
-    border: 1px solid rgba(245, 183, 177, 0.35);
-    background: rgba(120, 30, 30, 0.35);
+    border: 1px solid rgba(252, 165, 165, 0.4);
+    background: rgba(120, 30, 30, 0.4);
     color: var(--danger);
     font-size: 0.92rem;
+    font-weight: 500;
 }
 
-/* Green institutional banner — referenced from MOST/BARMM promotional footer strip */
+/* ===== Footer Banner ===== */
 .landing__banner {
     position: relative;
     z-index: 2;
@@ -377,7 +385,7 @@ body.landing-body {
     height: 3rem;
     border-radius: 50%;
     border: 2px solid var(--brand-gold-bright);
-    background: radial-gradient(circle at 40% 35%, #1f8a45, var(--brand-green-deep));
+    background: radial-gradient(circle at 40% 35%, #1F8A45, var(--brand-green-deep));
     display: grid;
     place-items: center;
     color: var(--brand-gold-bright);
@@ -402,8 +410,8 @@ body.landing-body {
 .landing__footer {
     position: relative;
     z-index: 2;
-    background: rgba(4, 28, 14, 0.92);
-    border-top: 1px solid rgba(212, 160, 23, 0.22);
+    background: rgba(4, 28, 14, 0.94);
+    border-top: 1px solid rgba(212, 160, 23, 0.25);
 }
 
 .landing__footer-inner {
@@ -416,7 +424,7 @@ body.landing-body {
     justify-content: space-between;
     align-items: center;
     font-size: 0.84rem;
-    color: rgba(244, 240, 228, 0.78);
+    color: rgba(244, 240, 228, 0.82);
 }
 
 .landing__footer strong {
@@ -442,6 +450,7 @@ body.landing-body {
     font-size: 0.95rem;
 }
 
+/* ===== Animations ===== */
 @keyframes rise-in {
     to {
         opacity: 1;
@@ -458,6 +467,7 @@ body.landing-body {
     }
 }
 
+/* ===== Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
     .landing__media img,
     .brand-mark,
@@ -472,6 +482,7 @@ body.landing-body {
     }
 }
 
+/* ===== Mobile ===== */
 @media (max-width: 900px) {
     .landing__content {
         grid-template-columns: 1fr;
@@ -487,7 +498,7 @@ body.landing-body {
 
     .landing__scrim {
         background:
-            linear-gradient(180deg, rgba(6, 40, 20, 0.4) 0%, rgba(6, 40, 20, 0.5) 32%, rgba(6, 40, 20, 0.9) 70%, rgba(4, 28, 14, 0.96) 100%);
+            linear-gradient(180deg, rgba(6, 40, 20, 0.45) 0%, rgba(6, 40, 20, 0.55) 32%, rgba(6, 40, 20, 0.92) 70%, rgba(4, 28, 14, 0.97) 100%);
     }
 
     .landing__media img {
@@ -498,29 +509,11 @@ body.landing-body {
     .landing__footer-inner {
         width: min(100% - 1.75rem, 560px);
         grid-template-columns: 1fr;
+        text-align: center;
+        justify-items: center;
     }
 
-    .landing__footer-inner {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .landing__corner {
-        width: 120px;
-        height: 120px;
-    }
-}
-
-@media (max-width: 480px) {
-    .brand-mark__name {
-        font-size: 2.35rem;
-    }
-
-    .login-panel {
-        padding: 1.4rem 1.2rem 1.25rem;
-    }
-
-    .landing__slogan {
-        font-size: 1.25rem;
+    .landing__banner-inner {
+        gap: 0.5rem;
     }
 }
