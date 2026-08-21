@@ -28,6 +28,7 @@ if (!$transfer) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     $action = $_POST['action'] ?? '';
     $notes = trim($_POST['notes'] ?? '');
 

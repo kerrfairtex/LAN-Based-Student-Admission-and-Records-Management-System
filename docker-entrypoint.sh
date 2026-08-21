@@ -1,16 +1,20 @@
 #!/bin/bash
-# TRAC JHS SARMS container entrypoint
+# TRAC JHS SARMS container entrypoint (Render + Supabase)
 #
-# 1. Bind Apache to Railway's injected $PORT (default 8080). Apache's stock
-#    ports.conf listens on 80, which Railway's proxy cannot reach -> 502.
-# 2. Remove the mpm_event / mpm_worker enabled symlinks that the base
+# 1. Set PGOPTIONS so PHP's pgsql connection uses the trac_jhs_sarms schema
+#    on the shared Supabase project (avoids colliding with other apps).
+# 2. Bind Apache to Render's injected $PORT (default 10000).
+# 3. Remove the mpm_event / mpm_worker enabled symlinks that the base
 #    php:apache image ships alongside mpm_prefork (runtime, deterministic —
 #    build-time removal is defeated by layer caching).
-# 3. Boot Apache.
+# 4. Boot Apache.
 
 set -e
 
-PORT="${PORT:-8080}"
+PORT="${PORT:-10000}"
+
+# Point PHP's pgsql connections to the correct schema on Supabase
+export PGOPTIONS="-c search_path=${DB_SCHEMA:-trac_jhs_sarms},public"
 
 # Point Apache at the runtime port
 sed -ri "s/^Listen 80$/Listen ${PORT}/" /etc/apache2/ports.conf

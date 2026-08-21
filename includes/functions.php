@@ -104,7 +104,8 @@ function audit_log(string $action, string $entityType, ?int $entityId = null, ?s
 function generate_student_id(): string
 {
     $year = date('Y');
-    $stmt = db()->query("SELECT COUNT(*) AS total FROM students WHERE student_id_no LIKE 'TRAC-{$year}-%'");
+    $stmt = db()->prepare("SELECT COUNT(*) AS total FROM students WHERE student_id_no LIKE :pattern");
+    $stmt->execute(['pattern' => "TRAC-{$year}-%"]);
     $count = (int) $stmt->fetch()['total'] + 1;
 
     return sprintf('TRAC-%s-%04d', $year, $count);
@@ -113,7 +114,8 @@ function generate_student_id(): string
 function generate_application_no(): string
 {
     $year = date('Y');
-    $stmt = db()->query("SELECT COUNT(*) AS total FROM admissions WHERE application_no LIKE 'ADM-{$year}-%'");
+    $stmt = db()->prepare("SELECT COUNT(*) AS total FROM admissions WHERE application_no LIKE :pattern");
+    $stmt->execute(['pattern' => "ADM-{$year}-%"]);
     $count = (int) $stmt->fetch()['total'] + 1;
 
     return sprintf('ADM-%s-%04d', $year, $count);
@@ -211,7 +213,7 @@ function fetch_notifications(): array
              FROM transfer_requests t
              JOIN students s ON s.id = t.student_id
              WHERE t.status NOT IN ('completed', 'escalated')
-               AND t.due_date < CURDATE()
+               AND t.due_date < CURRENT_DATE
              ORDER BY t.due_date ASC
              LIMIT 10"
         )->fetchAll();
@@ -226,7 +228,7 @@ function fetch_notifications(): array
              FROM admissions a
              LEFT JOIN users u ON u.id = a.reviewed_by
              WHERE a.status = 'approved'
-               AND a.reviewed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+               AND a.reviewed_at >= NOW() - INTERVAL '7 days'
              ORDER BY a.reviewed_at DESC
              LIMIT 10"
         )->fetchAll();
@@ -320,7 +322,7 @@ function dashboard_stats(): array
     try {
         $overdueTransfers = (int) db()->query(
             "SELECT COUNT(*) AS c FROM transfer_requests
-             WHERE status NOT IN ('completed', 'escalated') AND due_date < CURDATE()"
+             WHERE status NOT IN ('completed', 'escalated') AND due_date < CURRENT_DATE"
         )->fetch()['c'];
     } catch (PDOException) {
         $overdueTransfers = 0;

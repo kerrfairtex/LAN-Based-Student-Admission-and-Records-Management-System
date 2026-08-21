@@ -73,7 +73,7 @@ function overdue_transfer_count(): int
     $stmt = db()->query(
         "SELECT COUNT(*) AS c FROM transfer_requests
          WHERE status NOT IN ('completed', 'escalated')
-           AND due_date < CURDATE()"
+           AND due_date < CURRENT_DATE"
     );
 
     return (int) $stmt->fetch()['c'];

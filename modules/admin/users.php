@@ -10,6 +10,7 @@ require_registrar();
 $users = db()->query('SELECT id, username, full_name, role, is_active, last_active, created_at FROM users ORDER BY role, full_name')->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'create') {

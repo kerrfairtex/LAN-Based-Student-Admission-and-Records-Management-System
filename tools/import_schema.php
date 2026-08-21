@@ -1,10 +1,10 @@
 <?php
 
 /**
- * One-shot schema importer for Railway MySQL.
+ * One-shot schema importer for Supabase PostgreSQL.
  *
  * Reads the same DB_* env vars as config/database.php, then executes
- * database/schema.sql statement-by-statement against the target database.
+ * database/schema.sql statement-by-statement against the target Postgres.
  *
  * Usage: php tools/import_schema.php
  */
@@ -12,8 +12,9 @@
 declare(strict_types=1);
 
 $host = getenv('DB_HOST') ?: 'localhost';
-$name = getenv('DB_NAME') ?: 'trac_jhs_sarms';
-$user = getenv('DB_USER') ?: 'root';
+$port = getenv('DB_PORT') ?: '6543';
+$name = getenv('DB_NAME') ?: 'postgres';
+$user = getenv('DB_USER') ?: 'postgres';
 $pass = getenv('DB_PASS') ?: '';
 
 $schemaFile = __DIR__ . '/../database/schema.sql';
@@ -24,7 +25,7 @@ if (!is_file($schemaFile)) {
 
 try {
     $pdo = new PDO(
-        sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $host, $name),
+        sprintf('pgsql:host=%s;port=%s;dbname=%s', $host, $port, $name),
         $user,
         $pass,
         [
@@ -33,7 +34,7 @@ try {
         ]
     );
 } catch (PDOException $e) {
-    fwrite(STDERR, "FATAL: cannot connect to MySQL: " . $e->getMessage() . "\n");
+    fwrite(STDERR, "FATAL: cannot connect to Postgres: " . $e->getMessage() . "\n");
     exit(1);
 }
 
@@ -43,24 +44,21 @@ if ($sql === false || trim($sql) === '') {
     exit(1);
 }
 
-// Strip full-line comments so statements classify cleanly (CREATE DATABASE /
-// USE detection must not be hidden behind "--" comment lines).
+// Strip full-line comments so statements classify cleanly
 $sql = preg_replace('/^\s*--.*$/m', '', $sql);
 
-// Split into statements. Split on ";\n" which is safe here — no semicolons
-// appear inside string literals or data values in schema.sql.
+// Split into statements
 $statements = array_filter(
     array_map('trim', preg_split('/;\s*\n/', $sql)),
     static fn (string $s): bool => $s !== ''
 );
 
-// Drop CREATE DATABASE / USE statements — the database already exists
-// (created by the MYSQL_DATABASE env var on the container).
 $executed = 0;
 $skipped = 0;
 foreach ($statements as $stmt) {
     $upper = strtoupper(substr($stmt, 0, 60));
-    if (str_starts_with($upper, 'CREATE DATABASE') || str_starts_with($upper, 'USE ')) {
+    // Skip SET search_path and SET NAMES — handled by PGOPTIONS
+    if (str_starts_with($upper, 'CREATE SCHEMA') || preg_match('/^SET\s+(search_path|NAMES)/i', $upper)) {
         $skipped++;
         continue;
     }
@@ -70,15 +68,13 @@ foreach ($statements as $stmt) {
         $executed++;
     } catch (PDOException $e) {
         fwrite(STDERR, "ERROR executing:\n{$stmt}\n→ " . $e->getMessage() . "\n");
-        // Re-throw: a failed DDL statement should abort the import so we don't
-        // ship a half-initialized schema.
         exit(1);
     }
 }
 
-echo "IMPORT OK: {$executed} statements executed, {$skipped} skipped (DB/USE).\n";
+echo "IMPORT OK: {$executed} statements executed, {$skipped} skipped (SCHEMA / SET).\n";
 
 // Verify table count
-$tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+$tables = $pdo->query("SELECT tablename FROM pg_tables WHERE schemaname = current_schema() ORDER BY tablename")->fetchAll(PDO::FETCH_COLUMN);
 echo 'Tables: ' . count($tables) . ' → ' . implode(', ', $tables) . "\n";
 exit(0);

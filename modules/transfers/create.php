@@ -24,6 +24,7 @@ $students = db()->query(
 )->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     foreach (array_keys($input) as $key) {
         $input[$key] = trim((string) ($_POST[$key] ?? ''));
     }

@@ -27,6 +27,7 @@ $input = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     $input['school_year_id'] = trim($_POST['school_year_id'] ?? '');
     $input['grade_level_id'] = trim($_POST['grade_level_id'] ?? '');
 

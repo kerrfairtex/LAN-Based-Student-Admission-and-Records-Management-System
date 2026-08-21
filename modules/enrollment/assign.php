@@ -32,6 +32,7 @@ if (!$enrollment) {
 $sections = fetch_sections((int) $enrollment['grade_level_id']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     $sectionId = (int) ($_POST['section_id'] ?? 0);
 
     if ($sectionId <= 0) {

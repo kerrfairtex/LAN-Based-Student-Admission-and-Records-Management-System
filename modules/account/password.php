@@ -11,6 +11,7 @@ $userId = (int) $_SESSION['user']['id'];
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf();
     $current = $_POST['current_password'] ?? '';
     $new = $_POST['new_password'] ?? '';
     $confirm = $_POST['confirm_password'] ?? '';
@@ -42,6 +43,7 @@ render_header('Change Password', 'account');
         <div class="alert alert-danger"><?= e($error) ?></div>
     <?php endif; ?>
     <form method="post">
+        <?= csrf_field() ?>
         <div class="mb-3">
             <label class="form-label">Current Password</label>
             <input type="password" name="current_password" class="form-control" required>
