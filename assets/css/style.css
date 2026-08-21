@@ -54,6 +54,11 @@ body {
     min-height: 100vh;
 }
 
+/* ===== Bootstrap Overrides ===== */
+.text-muted {
+    color: var(--text-secondary, #CBD5E1) !important;
+}
+
 /* ===== Cards & Panels ===== */
 .glass-panel {
     background: var(--card-bg);
@@ -81,7 +86,9 @@ body {
 
 .panel-card p.text-muted,
 .stat-card p.text-muted,
-.table-card p.text-muted {
+.table-card p.text-muted,
+.panel-card p.mb-1.text-muted,
+.stat-card p.mb-1.text-muted {
     color: var(--text-secondary);
     font-size: 0.9rem;
     line-height: 1.65;
