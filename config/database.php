@@ -22,11 +22,10 @@ function db(): PDO
     }
 
     $dsn = sprintf(
-        'pgsql:host=%s;port=%s;dbname=%s;options=--search_path%%3D%s',
+        'pgsql:host=%s;port=%s;dbname=%s',
         DB_HOST,
         getenv('DB_PORT') ?: '6543',
-        DB_NAME,
-        DB_SCHEMA
+        DB_NAME
     );
 
     try {
