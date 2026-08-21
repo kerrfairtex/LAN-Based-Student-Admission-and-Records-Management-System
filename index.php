@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <h1 class="landing__headline">Student Admission &amp; Records</h1>
                 <p class="landing__support">
-                    Centralized Junior High enrollment records for Tawi-Tawi Regional Agricultural College — secure on the school LAN.
+                    Junior High enrollment records for Tawi-Tawi Regional Agricultural College.
                 </p>
             </section>
 
@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </span>
                 <div class="landing__contacts">
                     <span><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Bongao, Tawi-Tawi · BARMM</span>
-                    <span><i class="bi bi-shield-lock-fill" aria-hidden="true"></i> Intranet access only</span>
+                    <span><i class="bi bi-globe" aria-hidden="true"></i> Internet Access Only</span>
                 </div>
             </div>
         </footer>
