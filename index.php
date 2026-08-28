@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="site-header">
     <a class="wordmark" href="#top" aria-label="TRAC JHS home"><span>TRAC</span><b>JHS</b></a>
-    <nav class="site-nav" data-mobile-nav aria-label="Primary navigation">
+    <nav class="site-nav" id="primary-nav" data-mobile-nav aria-label="Primary navigation">
         <a href="#capabilities">Capabilities</a><a href="#architecture">How it works</a><a href="#workflow">Workflow</a>
         <a class="nav-login" href="#sign-in">Staff sign in <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
     </nav>
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?= csrf_field() ?>
             <label for="username">Username</label><input type="text" id="username" name="username" autocomplete="username" required autofocus value="<?= e($username) ?>" placeholder="Enter your username">
             <label for="password">Password</label><div class="password-field"><input type="password" id="password" name="password" autocomplete="current-password" required placeholder="Enter your password"><button type="button" data-password-toggle aria-label="Show password" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i></button></div>
-            <button type="submit" class="button button--gold button--full">Sign in <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+            <button type="submit" class="button button--gold button--full btn-signin">Sign in <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
         </form><p class="card-note"><i class="bi bi-shield-lock" aria-hidden="true"></i> Access is managed by your school administrator.</p>
     </div>
 </section>

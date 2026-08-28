@@ -54,6 +54,18 @@ function require_registrar(): void
 
 function attempt_login(string $username, string $password): bool
 {
+    $now = time();
+    $window = 300;
+    $limit = 5;
+    if (!isset($_SESSION['login_attempts']) || ($now - (int) ($_SESSION['login_window'] ?? 0)) > $window) {
+        $_SESSION['login_attempts'] = 0;
+        $_SESSION['login_window'] = $now;
+    }
+    if ((int) $_SESSION['login_attempts'] >= $limit) {
+        return false;
+    }
+    $_SESSION['login_attempts']++;
+
     $stmt = db()->prepare(
         'SELECT id, username, password_hash, full_name, role, is_active
          FROM users WHERE username = :username LIMIT 1'
@@ -73,8 +85,10 @@ function attempt_login(string $username, string $password): bool
     $touch->execute(['id' => $user['id']]);
 
     unset($user['password_hash'], $user['is_active']);
+    session_regenerate_id(true);
     $_SESSION['user'] = $user;
     $_SESSION['last_activity'] = time();
+    unset($_SESSION['login_attempts'], $_SESSION['login_window']);
 
     audit_log('login', 'users', (int) $user['id'], 'User signed in');
 
