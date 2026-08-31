@@ -26,6 +26,31 @@ define('APP_BASE_PATH', rtrim($basePath, '/'));
 
 date_default_timezone_set(APP_TIMEZONE);
 
+/**
+ * Ensure a writable directory exists at $path. Handles three cases:
+ *   1. Path is a real directory — do nothing.
+ *   2. Path is a symlink (Render persistent-disk pattern) — mkdir the target if missing.
+ *   3. Path is missing — mkdir recursively.
+ * Suppresses the "File exists" warning when the path is a dangling symlink.
+ *
+ * Defined here (not in functions.php) because config/app.php is the first file
+ * loaded by every page, including before session storage needs to be set up.
+ */
+function ensure_dir(string $path, int $mode = 0750): void
+{
+    if (is_dir($path)) {
+        return;
+    }
+    if (is_link($path)) {
+        $target = readlink($path);
+        if ($target !== false && !is_dir($target)) {
+            @mkdir($target, $mode, true);
+        }
+        return;
+    }
+    @mkdir($path, $mode, true);
+}
+
 require_once __DIR__ . '/constants.php';
 
 if (session_status() === PHP_SESSION_NONE) {
