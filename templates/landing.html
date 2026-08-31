@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRAC JHS — Bongao, Tawi-Tawi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-950:#0A2418;
+    --green-900:#0F3120;
+    --green-800:#173D29;
+    --green-700:#215136;
+    --gold-500:#D4A72C;
+    --gold-400:#E3BE52;
+    --bronze-600:#B96A2C;
+    --cream-100:#F5EEDC;
+    --cream-200:#EDE3C8;
+    --ink-900:#141B14;
+    --line: rgba(245,238,220,0.14);
+    --max: 1120px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--green-950);
+    color:var(--cream-100);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+  a{color:inherit;text-decoration:none;}
+  img,svg{display:block;max-width:100%;}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 24px;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ---------- Nav ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(10,36,24,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;height:72px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:38px;height:38px;flex:none;}
+  .brand-text{line-height:1.15;}
+  .brand-text strong{display:block;font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--cream-100);}
+  .brand-text span{display:block;font-size:11px;color:var(--gold-400);letter-spacing:0.02em;}
+  nav.links{display:flex;gap:32px;font-size:14.5px;font-weight:500;}
+  nav.links a{color:var(--cream-200);opacity:0.85;position:relative;padding:4px 0;}
+  nav.links a:hover{opacity:1;}
+  .btn-portal{
+    border:1px solid var(--gold-500);color:var(--gold-400);
+    padding:9px 18px;border-radius:3px;font-size:13.5px;font-weight:600;
+    transition:background .2s ease, color .2s ease;
+  }
+  .btn-portal:hover{background:var(--gold-500);color:var(--green-950);}
+  .menu-btn{display:none;background:none;border:0;color:var(--cream-100);font-size:22px;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    padding:96px 0 84px;
+    overflow:hidden;
+    border-bottom:1px solid var(--line);
+    background:
+      radial-gradient(ellipse at 78% 20%, rgba(212,167,44,0.10), transparent 55%),
+      linear-gradient(180deg, var(--green-950), #0C2A1C 60%, var(--green-950));
+  }
+  .hero-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;align-items:center;}
+  .eyebrow-row{display:flex;align-items:center;gap:10px;margin-bottom:22px;color:var(--gold-400);font-size:13.5px;font-weight:600;}
+  .eyebrow-row .dot{width:6px;height:6px;border-radius:50%;background:var(--gold-500);}
+  .hero h1{font-size:clamp(34px,5.2vw,54px);line-height:1.06;color:var(--cream-100);}
+  .hero h1 em{font-style:italic;color:var(--gold-400);font-weight:500;}
+  .hero p.lede{margin-top:22px;font-size:17px;line-height:1.65;color:var(--cream-200);opacity:0.85;max-width:46ch;}
+  .hero-ctas{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--gold-500);color:var(--green-950);padding:14px 26px;border-radius:3px;
+    font-weight:700;font-size:14.5px;transition:transform .18s ease, box-shadow .18s ease;
+    box-shadow:0 0 0 rgba(212,167,44,0);
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(212,167,44,0.25);}
+  .btn-ghost{
+    border:1px solid var(--line);color:var(--cream-100);padding:14px 26px;border-radius:3px;
+    font-weight:600;font-size:14.5px;transition:border-color .18s ease;
+  }
+  .btn-ghost:hover{border-color:var(--gold-500);}
+  .hero-meta{display:flex;gap:28px;margin-top:44px;padding-top:26px;border-top:1px solid var(--line);}
+  .hero-meta div strong{display:block;font-family:'Fraunces',serif;font-size:22px;color:var(--gold-400);}
+  .hero-meta div span{display:block;font-size:12px;color:var(--cream-200);opacity:0.7;margin-top:2px;}
+
+  .emblem-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+  .emblem-ring{position:absolute;inset:0;border:1px solid var(--line);border-radius:50%;}
+  #sunburst path, #sunburst circle{
+    stroke:var(--gold-500);
+    stroke-width:1.4;
+    fill:none;
+    stroke-dasharray:900;
+    stroke-dashoffset:900;
+    animation:draw 2.4s ease forwards;
+  }
+  #sunburst .fillshape{fill:var(--green-800);stroke:var(--gold-500);opacity:0;animation:fadein 1s ease forwards 1.6s;}
+  #sunburst .kris{stroke:var(--bronze-600);}
+  @keyframes draw{to{stroke-dashoffset:0;}}
+  @keyframes fadein{to{opacity:1;}}
+
+  /* ---------- Woven divider ---------- */
+  .weave{height:14px;width:100%;background-image:repeating-linear-gradient(45deg, var(--gold-500) 0 2px, transparent 2px 14px), repeating-linear-gradient(-45deg, var(--bronze-600) 0 2px, transparent 2px 14px);background-size:20px 20px;opacity:0.35;}
+
+  /* ---------- Section shell ---------- */
+  section{padding:88px 0;}
+  .section-head{max-width:640px;margin-bottom:52px;}
+  .section-head .kicker{color:var(--gold-400);font-size:13px;font-weight:600;margin-bottom:12px;display:block;}
+  .section-head h2{font-size:clamp(26px,3.4vw,36px);color:var(--cream-100);}
+  .section-head p{margin-top:14px;font-size:15.5px;line-height:1.6;color:var(--cream-200);opacity:0.8;}
+
+  /* ---------- About ---------- */
+  .about{background:var(--green-900);}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start;}
+  .about-grid p{font-size:15.5px;line-height:1.75;color:var(--cream-200);opacity:0.88;margin:0 0 16px;}
+  .credential-list{list-style:none;margin:26px 0 0;padding:0;display:flex;flex-direction:column;gap:14px;}
+  .credential-list li{display:flex;gap:12px;font-size:14.5px;color:var(--cream-200);opacity:0.9;}
+  .credential-list svg{flex:none;width:18px;height:18px;margin-top:2px;color:var(--gold-500);}
+
+  /* ---------- Programs ---------- */
+  .programs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+  .program-card{background:var(--green-950);padding:32px 28px;}
+  .program-card .num{font-family:'Fraunces',serif;font-size:13px;color:var(--gold-500);}
+  .program-card h3{font-size:19px;margin-top:14px;color:var(--cream-100);}
+  .program-card p{font-size:14px;line-height:1.6;color:var(--cream-200);opacity:0.78;margin-top:10px;}
+
+  /* ---------- Admissions timeline ---------- */
+  .admissions{background:var(--green-900);}
+  .timeline{position:relative;padding-left:2px;}
+  .timeline::before{content:'';position:absolute;left:15px;top:6px;bottom:6px;width:1px;background:var(--line);}
+  .step{position:relative;display:grid;grid-template-columns:32px 1fr;gap:22px;padding:0 0 40px 0;opacity:0;transform:translateY(14px);transition:opacity .6s ease, transform .6s ease;}
+  .step.in{opacity:1;transform:translateY(0);}
+  .step:last-child{padding-bottom:0;}
+  .step-dot{width:32px;height:32px;border-radius:50%;border:1px solid var(--gold-500);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:13px;color:var(--gold-400);background:var(--green-900);z-index:1;}
+  .step h3{font-size:17.5px;color:var(--cream-100);margin-bottom:6px;}
+  .step p{font-size:14.5px;line-height:1.6;color:var(--cream-200);opacity:0.78;max-width:56ch;}
+
+  .admissions-side{background:var(--green-800);border:1px solid var(--line);padding:32px;border-radius:4px;}
+  .admissions-side h3{font-size:18px;color:var(--cream-100);margin-bottom:8px;}
+  .admissions-side p{font-size:14px;color:var(--cream-200);opacity:0.8;line-height:1.6;margin-bottom:22px;}
+  .req-list{list-style:none;margin:0 0 26px;padding:0;font-size:13.5px;color:var(--cream-200);opacity:0.85;display:flex;flex-direction:column;gap:9px;}
+  .req-list li{padding-left:16px;position:relative;}
+  .req-list li::before{content:'—';position:absolute;left:0;color:var(--gold-500);}
+  .admissions-grid{display:grid;grid-template-columns:1.3fr 0.9fr;gap:56px;}
+
+  /* ---------- Campus ---------- */
+  .campus-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+  .campus-card{border:1px solid var(--line);padding:26px 22px;transition:border-color .2s ease, background .2s ease;}
+  .campus-card:hover{border-color:var(--gold-500);background:var(--green-800);}
+  .campus-card svg{width:26px;height:26px;color:var(--gold-500);margin-bottom:16px;}
+  .campus-card h3{font-size:15.5px;color:var(--cream-100);margin-bottom:6px;}
+  .campus-card p{font-size:13px;line-height:1.55;color:var(--cream-200);opacity:0.75;}
+
+  /* ---------- Quote ---------- */
+  .quote-section{background:var(--green-900);}
+  .quote-box{max-width:760px;margin:0 auto;text-align:left;border-left:2px solid var(--gold-500);padding-left:32px;}
+  .quote-box p.q{font-family:'Fraunces',serif;font-size:clamp(20px,2.6vw,26px);font-style:italic;line-height:1.5;color:var(--cream-100);font-weight:500;}
+  .quote-attr{margin-top:20px;font-size:13.5px;color:var(--gold-400);}
+  .quote-attr span{display:block;color:var(--cream-200);opacity:0.6;font-size:12.5px;margin-top:2px;}
+
+  /* ---------- Contact / footer ---------- */
+  footer{background:var(--green-950);border-top:1px solid var(--line);}
+  .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;padding:80px 0 56px;}
+  .contact-grid h2{font-size:clamp(24px,3vw,32px);color:var(--cream-100);margin-bottom:16px;}
+  .contact-grid p{font-size:15px;line-height:1.65;color:var(--cream-200);opacity:0.8;max-width:44ch;}
+  .contact-list{margin-top:28px;display:flex;flex-direction:column;gap:16px;}
+  .contact-list div{display:flex;gap:14px;font-size:14.5px;color:var(--cream-200);}
+  .contact-list svg{flex:none;width:18px;height:18px;color:var(--gold-500);margin-top:2px;}
+  .foot-form{background:var(--green-800);border:1px solid var(--line);padding:30px;border-radius:4px;}
+  .foot-form label{display:block;font-size:12.5px;color:var(--cream-200);opacity:0.75;margin-bottom:7px;}
+  .foot-form input,.foot-form select{width:100%;background:var(--green-950);border:1px solid var(--line);color:var(--cream-100);padding:11px 13px;border-radius:3px;font-size:14px;font-family:'Inter',sans-serif;margin-bottom:16px;}
+  .foot-form input:focus,.foot-form select:focus{outline:2px solid var(--gold-500);outline-offset:1px;border-color:var(--gold-500);}
+  .foot-bottom{border-top:1px solid var(--line);padding:24px 0;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--cream-200);opacity:0.6;flex-wrap:wrap;gap:10px;}
+
+  @media (max-width:860px){
+    nav.links{display:none;}
+    .menu-btn{display:block;}
+    .hero-grid{grid-template-columns:1fr;}
+    .emblem-wrap{order:-1;width:180px;margin:0 auto 8px;}
+    .hero-meta{flex-wrap:wrap;row-gap:18px;}
+    .about-grid,.admissions-grid,.contact-grid{grid-template-columns:1fr;gap:36px;}
+    .programs-grid{grid-template-columns:1fr;}
+    .campus-grid{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="19" stroke="#D4A72C" stroke-width="1"/>
+        <circle cx="20" cy="20" r="8" fill="none" stroke="#D4A72C" stroke-width="1"/>
+        <path d="M20 8 L20 12 M20 28 L20 32 M8 20 L12 20 M28 20 L32 20 M11.5 11.5 L14.3 14.3 M25.7 25.7 L28.5 28.5 M11.5 28.5 L14.3 25.7 M25.7 14.3 L28.5 11.5" stroke="#D4A72C" stroke-width="1"/>
+      </svg>
+      <span class="brand-text"><strong>TRAC JHS</strong><span>Bongao, Tawi-Tawi</span></span>
+    </a>
+    <nav class="links">
+      <a href="#about">About</a>
+      <a href="#programs">Academics</a>
+      <a href="#admissions">Admissions</a>
+      <a href="#campus">Campus</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="btn-portal" href="#staff">Staff Sign In</a>
+    <button class="menu-btn" aria-label="Menu">☰</button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" style="padding-top:88px;">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow-row"><span class="dot"></span> Laboratory High School · Tawi-Tawi Regional Agricultural College</div>
+        <h1>Junior high education, <em>rooted</em> in the land and the community it serves.</h1>
+        <p class="lede">TRAC JHS prepares students in Bongao for senior high and beyond, pairing the DepEd junior high curriculum with hands-on agricultural science and Bangsamoro values — inside a working college campus.</p>
+        <div class="hero-ctas">
+          <a class="btn-primary" href="#admissions">Start an application</a>
+          <a class="btn-ghost" href="#about">About the school</a>
+        </div>
+        <div class="hero-meta">
+          <div><strong>Grades 7–10</strong><span>Junior high program</span></div>
+          <div><strong>1:28</strong><span>Teacher to student ratio</span></div>
+          <div><strong>BARMM</strong><span>Basic education dept.</span></div>
+        </div>
+      </div>
+
+      <div class="emblem-wrap">
+        <div class="emblem-ring"></div>
+        <svg id="sunburst" viewBox="0 0 300 300" width="100%">
+          <circle class="fillshape" cx="150" cy="150" r="95"/>
+          <circle cx="150" cy="150" r="95"/>
+          <circle cx="150" cy="150" r="60"/>
+          <g>
+            <path d="M150 40 L150 8 M150 260 L150 292 M40 150 L8 150 M260 150 L292 150"/>
+            <path d="M76 76 L54 54 M224 224 L246 246 M76 224 L54 246 M224 76 L246 54"/>
+          </g>
+          <path class="kris" d="M150 210 C 140 225, 160 235, 150 250 C 142 260, 158 268, 150 280" />
+          <path d="M115 150 Q150 120 185 150 Q150 180 115 150 Z" />
+        </svg>
+      </div>
+    </div>
+  </section>
+  <div class="weave"></div>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="wrap about-grid">
+      <div>
+        <span class="section-head kicker">About the school</span>
+        <h2 style="margin-bottom:20px;font-size:clamp(24px,3vw,32px);">A campus built for learning by doing.</h2>
+        <p>TRAC JHS operates as the laboratory high school of Tawi-Tawi Regional Agricultural College, sharing its grounds, farm facilities, and faculty expertise. Students move between standard classroom instruction and applied sessions on the college's working fields.</p>
+        <p>The school follows the DepEd Basic Education curriculum under the Bangsamoro Autonomous Region, with an exploratory track in agricultural technology and integrated instruction in Bangsamoro history, values, and Arabic language.</p>
+      </div>
+      <ul class="credential-list">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M5 10v6c0 1.5 3 3 7 3s7-1.5 7-3v-6"/></svg> DepEd-recognized junior high curriculum, Grades 7–10</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M8 4v5"/></svg> Shared campus and faculty with Tawi-Tawi Regional Agricultural College</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z"/></svg> Bangsamoro values and Arabic language integrated into daily instruction</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Weekly applied sessions on the college's agricultural fields and labs</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- PROGRAMS -->
+  <section id="programs">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="kicker">Academics</span>
+        <h2>What students study</h2>
+        <p>Core subjects follow the national curriculum; the school's exploratory and applied tracks reflect its setting inside an agricultural college.</p>
+      </div>
+      <div class="programs-grid">
+        <div class="program-card">
+          <div class="num">Core</div>
+          <h3>General junior high curriculum</h3>
+          <p>Filipino, English, mathematics, science, Araling Panlipunan, MAPEH, and TLE, taught to DepEd Grades 7–10 standards.</p>
+        </div>
+        <div class="program-card">
+          <div class="num">Applied</div>
+          <h3>Agricultural technology track</h3>
+          <p>Rotating fieldwork in crop production, poultry, and small-scale fisheries alongside the college's agriculture students.</p>
+        </div>
+        <div class="program-card">
+          <div class="num">Cultural</div>
+          <h3>Bangsamoro studies & Arabic</h3>
+          <p>Regional history, Islamic values education, and Arabic language instruction integrated across grade levels.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMISSIONS -->
+  <section class="admissions" id="admissions">
+    <div class="wrap admissions-grid">
+      <div>
+        <span class="section-head kicker" style="display:block;margin-bottom:12px;">Admissions</span>
+        <h2 style="font-size:clamp(24px,3vw,32px);margin-bottom:36px;">How to apply</h2>
+        <div class="timeline">
+          <div class="step"><div class="step-dot">1</div><div><h3>Register interest</h3><p>Submit the inquiry form below or visit the registrar's office on campus with a valid ID for the parent or guardian.</p></div></div>
+          <div class="step"><div class="step-dot">2</div><div><h3>Submit documents</h3><p>Bring the completed enrollment form, PSA birth certificate, and Form 138 (report card) from the previous school.</p></div></div>
+          <div class="step"><div class="step-dot">3</div><div><h3>Placement assessment</h3><p>Incoming Grade 7 students sit a short placement check; transferees are assessed against their previous grade level.</p></div></div>
+          <div class="step"><div class="step-dot">4</div><div><h3>Confirm enrollment</h3><p>Once accepted, families confirm the slot with the registrar and receive the student's section and schedule.</p></div></div>
+        </div>
+      </div>
+      <div class="admissions-side">
+        <h3>Requirements checklist</h3>
+        <p>What to prepare before your visit to the registrar.</p>
+        <ul class="req-list">
+          <li>PSA birth certificate (original + photocopy)</li>
+          <li>Form 138 / report card from previous school</li>
+          <li>Certificate of Good Moral Character</li>
+          <li>2 pcs 1x1 ID photo</li>
+          <li>Barangay residency certificate</li>
+        </ul>
+        <a class="btn-primary" href="#contact" style="display:inline-block;width:100%;text-align:center;">Contact the registrar</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAMPUS -->
+  <section id="campus">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="kicker">Campus</span>
+        <h2>Where students learn</h2>
+      </div>
+      <div class="campus-grid">
+        <div class="campus-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h18M5 12v7h14v-7M9 19v-5h6v5"/></svg>
+          <h3>Classrooms</h3>
+          <p>Sectioned by grade level, shared within the college's academic building.</p>
+        </div>
+        <div class="campus-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V7l8-4 8 4v12M12 3v18M4 7l8 4 8-4"/></svg>
+          <h3>Agricultural labs</h3>
+          <p>Working fields and greenhouses used for applied TLE and science sessions.</p>
+        </div>
+        <div class="campus-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 4.5A2.5 2.5 0 016.5 2H20v18H6.5A2.5 2.5 0 014 17.5v-13z"/></svg>
+          <h3>Library</h3>
+          <p>Reference materials and reading space shared with the college.</p>
+        </div>
+        <div class="campus-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="14" rx="1"/><path d="M8 21h8M12 18v3"/></svg>
+          <h3>Computer room</h3>
+          <p>Used for TLE instruction and the registrar's records system.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUOTE -->
+  <section class="quote-section">
+    <div class="wrap">
+      <div class="quote-box">
+        <p class="q">"Being on a working agricultural campus means our students see the science before they read it in a textbook."</p>
+        <p class="quote-attr">Office of the Registrar<span>TRAC Junior High School</span></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer id="contact">
+  <div class="wrap contact-grid">
+    <div>
+      <h2>Visit or reach the registrar</h2>
+      <p>Have a question about enrollment, records, or the campus? The registrar's office handles all student and admission records.</p>
+      <div class="contact-list">
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> TRAC campus, Bongao, Tawi-Tawi, BARMM</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.7A2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .3 2 .6 2.9a2 2 0 01-.4 2.1L8 10a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.9.5 2.9.6a2 2 0 011.7 2z"/></svg> Registrar's office · Mon–Fri, 8am–5pm</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 6 10-6"/></svg> registrar@tracjhs.edu.ph</div>
+      </div>
+    </div>
+    <div class="foot-form">
+      <label for="fname">Full name of applicant</label>
+      <input id="fname" type="text" placeholder="Juan Dela Cruz">
+      <label for="fgrade">Applying for grade</label>
+      <select id="fgrade">
+        <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option>
+      </select>
+      <label for="fcontact">Contact number</label>
+      <input id="fcontact" type="text" placeholder="09xx xxx xxxx">
+      <a class="btn-primary" href="#" style="display:block;text-align:center;">Send inquiry</a>
+    </div>
+  </div>
+  <div class="wrap foot-bottom">
+    <span>© 2026 TRAC Junior High School. Laboratory school of Tawi-Tawi Regional Agricultural College.</span>
+    <a href="#staff" id="staff" style="color:var(--gold-400);">Staff sign in →</a>
+  </div>
+</footer>
+
+<script>
+  const steps = document.querySelectorAll('.step');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:0.3});
+  steps.forEach(s=>io.observe(s));
+</script>
+
+</body>
+</html>
