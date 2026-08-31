@@ -26,6 +26,19 @@ require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../functions.php';
 require_once __DIR__ . '/../auth.php';
 
+// Security headers — emitted from PHP because Apache's mod_headers isn't
+// always loaded (e.g., Render's stock PHP image). The .htaccess also sets
+// these for environments that DO have mod_headers — they are harmless to
+// duplicate and Apache will override any duplicates with the latest value.
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('Referrer-Policy: same-origin');
+if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
+header_remove('X-Powered-By');
+
 $page_title        = $page_title        ?? 'TRAC JHS';
 $page_description  = $page_description  ?? 'TRAC JHS — Junior High School of Tawi-Tawi Regional Agricultural College, Bongao, Tawi-Tawi.';
 $active_nav        = $active_nav        ?? '';

@@ -7,8 +7,17 @@ Options -Indexes
     RewriteRule ^(?:config|includes|database|backups)/ - [F,L]
 </IfModule>
 
+# Security headers — emit unconditionally. mod_headers on Apache 2.4 sets
+# these via "Header always set"; on Render + Cloudflare (no mod_headers),
+# falls back to PHP's header() in includes/partials/header.php.
 <IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set Referrer-Policy "same-origin"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "same-origin"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header unset X-Powered-By
 </IfModule>
+
+# If mod_headers is NOT loaded (e.g., Render with stock Apache config),
+# these rules do nothing — PHP-side headers in includes/partials/header.php
+# cover the same directives.

@@ -27,6 +27,24 @@ define('APP_BASE_PATH', rtrim($basePath, '/'));
 date_default_timezone_set(APP_TIMEZONE);
 
 /**
+ * Emit baseline security headers from PHP for every page. Apache's mod_headers
+ * is not always available (Render's stock php image doesn't enable it), so we
+ * set these in PHP before any output is sent. The .htaccess also sets them via
+ * "Header always set" for environments that DO have mod_headers — duplicates are
+ * harmless; the latest value wins.
+ */
+if (!headers_sent()) {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: same-origin');
+    if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+    header_remove('X-Powered-By');
+}
+
+/**
  * Ensure a writable directory exists at $path. Handles three cases:
  *   1. Path is a real directory — do nothing.
  *   2. Path is a symlink (Render persistent-disk pattern) — mkdir the target if missing.
@@ -68,7 +86,13 @@ if (session_status() === PHP_SESSION_NONE) {
         'path' => APP_BASE_PATH === '' ? '/' : APP_BASE_PATH . '/',
         'httponly' => true,
         'samesite' => 'Lax',
-        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+        // Treat the cookie as Secure when the request was HTTPS, either by direct
+        // TLS termination (HTTPS server var) or by a trusted proxy that forwards the
+        // original scheme via X-Forwarded-Proto (Render behind Cloudflare).
+        'secure' => (
+            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+        ),
     ]);
     session_start();
 }

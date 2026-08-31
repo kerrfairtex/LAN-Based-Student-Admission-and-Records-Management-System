@@ -193,9 +193,27 @@
   }
 
 /* ----- responsive breakpoint (kept from original landing.css) ----- */
+.mobile-nav {
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    padding: 12px 24px 18px;
+    border-top: 1px solid var(--line);
+    background: rgba(10, 36, 24, 0.92);
+}
+.mobile-nav a {
+    padding: 12px 0;
+    color: var(--cream-200);
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+}
+.mobile-nav a:last-child { border-bottom: 0; }
+.mobile-nav[hidden] { display: none; }
+
 @media (max-width: 860px) {
     nav.links { display: none; }
     .menu-btn { display: block; }
+    .mobile-nav:not([hidden]) { display: flex; }
     .hero { padding: 72px 0 56px; }
     .hero-grid { grid-template-columns: 1fr; }
     .emblem-wrap { order: -1; width: 180px; margin: 0 auto 8px; }
