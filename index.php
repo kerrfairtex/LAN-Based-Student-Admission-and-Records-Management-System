@@ -72,27 +72,28 @@ $html = str_replace(
     $html
 );
 
-/* Surgical modification 3+4+5: turn the foot-form <div> into a real CSRF-protected <form>. */
+/* Surgical modification 3+4+5: inject CSRF + flash + value persistence into the
+   inquiry form (already a <form> in the template, just needs server plumbing). */
 $csrfField = csrf_field();
 $flashHtml = '';
 if ($page_inquiry_success) {
-    $flashHtml = '<div style="margin-bottom:14px;padding:10px 12px;border:1px solid rgba(183,225,176,0.3);border-radius:3px;font-size:13.5px;color:#B7E1B0;">Your inquiry has been received. The registrar\'s office will follow up by email.</div>';
+    $flashHtml = '<div style="margin-bottom:14px;padding:10px 12px;border:1px solid rgba(183,225,176,0.3);border-radius:3px;font-size:13.5px;color:#B7E1B0;">Your admission inquiry has been received. The registrar\'s office will follow up with you.</div>';
 } elseif ($page_inquiry_error !== '') {
     $flashHtml = '<div style="margin-bottom:14px;padding:10px 12px;border:1px solid rgba(232,183,183,0.3);border-radius:3px;font-size:13.5px;color:#E8B7B7;">' . e($page_inquiry_error) . '</div>';
 }
 
 $oldForm = <<<'HTML'
-    <div class="foot-form">
-      <label for="fname">Full name of applicant</label>
-      <input id="fname" type="text" placeholder="Juan Dela Cruz">
-      <label for="fgrade">Applying for grade</label>
-      <select id="fgrade">
+    <form class="foot-form" method="post" action="/index.php#contact">
+      <label for="fname">Applicant's full name</label>
+      <input id="fname" name="inquiry_name" type="text" placeholder="Juan Dela Cruz">
+      <label for="fgrade">Grade level applying for</label>
+      <select id="fgrade" name="inquiry_grade">
         <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option>
       </select>
       <label for="fcontact">Contact number</label>
-      <input id="fcontact" type="text" placeholder="09xx xxx xxxx">
-      <a class="btn-primary" href="#" style="display:block;text-align:center;">Send inquiry</a>
-    </div>
+      <input id="fcontact" name="inquiry_contact" type="text" placeholder="09xx xxx xxxx">
+      <button class="btn-primary" type="submit" name="inquiry_submit" value="1" style="display:block;text-align:center;border:0;cursor:pointer;font:inherit;color:inherit;">Send Admission Inquiry</button>
+    </form>
 HTML;
 
 $gradeOptions = '';
@@ -108,15 +109,15 @@ $newForm =
     "    <form class=\"foot-form\" method=\"post\" action=\"/index.php#contact\">\n"
   . "      {$csrfField}\n"
   . "      {$flashHtml}\n"
-  . "      <label for=\"fname\">Full name of applicant</label>\n"
+  . "      <label for=\"fname\">Applicant's full name</label>\n"
   . "      <input id=\"fname\" name=\"inquiry_name\" type=\"text\" placeholder=\"Juan Dela Cruz\" value=\"{$nameValue}\">\n"
-  . "      <label for=\"fgrade\">Applying for grade</label>\n"
+  . "      <label for=\"fgrade\">Grade level applying for</label>\n"
   . "      <select id=\"fgrade\" name=\"inquiry_grade\">\n"
   . "{$gradeOptions}"
   . "      </select>\n"
   . "      <label for=\"fcontact\">Contact number</label>\n"
   . "      <input id=\"fcontact\" name=\"inquiry_contact\" type=\"text\" placeholder=\"09xx xxx xxxx\" value=\"{$contactValue}\">\n"
-  . "      <button class=\"btn-primary\" type=\"submit\" name=\"inquiry_submit\" value=\"1\" style=\"display:block;width:100%;text-align:center;border:0;cursor:pointer;font:inherit;color:inherit;\">Send inquiry</button>\n"
+  . "      <button class=\"btn-primary\" type=\"submit\" name=\"inquiry_submit\" value=\"1\" style=\"display:block;width:100%;text-align:center;border:0;cursor:pointer;font:inherit;color:inherit;\">Send Admission Inquiry</button>\n"
   . "    </form>\n";
 
 $html = str_replace($oldForm, $newForm, $html);

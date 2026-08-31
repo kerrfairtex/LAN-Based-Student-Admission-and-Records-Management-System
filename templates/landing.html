@@ -209,18 +209,25 @@
         <circle cx="20" cy="20" r="8" fill="none" stroke="#D4A72C" stroke-width="1"/>
         <path d="M20 8 L20 12 M20 28 L20 32 M8 20 L12 20 M28 20 L32 20 M11.5 11.5 L14.3 14.3 M25.7 25.7 L28.5 28.5 M11.5 28.5 L14.3 25.7 M25.7 14.3 L28.5 11.5" stroke="#D4A72C" stroke-width="1"/>
       </svg>
-      <span class="brand-text"><strong>TRAC JHS</strong><span>Bongao, Tawi-Tawi</span></span>
+      <span class="brand-text"><strong>TRAC JHS</strong><span>Student Admission &amp; Records</span></span>
     </a>
     <nav class="links">
-      <a href="#about">About</a>
-      <a href="#programs">Academics</a>
+      <a href="#about">System</a>
+      <a href="#programs">Features</a>
       <a href="#admissions">Admissions</a>
-      <a href="#campus">Campus</a>
+      <a href="#network">Network</a>
       <a href="#contact">Contact</a>
     </nav>
     <a class="btn-portal" href="#staff">Staff Sign In</a>
-    <button class="menu-btn" aria-label="Menu">☰</button>
+    <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav">☰</button>
   </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Sections (mobile)" hidden>
+    <a href="#about">System</a>
+    <a href="#programs">Features</a>
+    <a href="#admissions">Admissions</a>
+    <a href="#network">Network</a>
+    <a href="#contact">Contact</a>
+  </nav>
 </header>
 
 <main id="top">
@@ -229,17 +236,17 @@
   <section class="hero" style="padding-top:88px;">
     <div class="wrap hero-grid">
       <div>
-        <div class="eyebrow-row"><span class="dot"></span> Laboratory High School · Tawi-Tawi Regional Agricultural College</div>
-        <h1>Junior high education, <em>rooted</em> in the land and the community it serves.</h1>
-        <p class="lede">TRAC JHS prepares students in Bongao for senior high and beyond, pairing the DepEd junior high curriculum with hands-on agricultural science and Bangsamoro values — inside a working college campus.</p>
+        <div class="eyebrow-row"><span class="dot"></span> STUDENT ADMISSION · ENROLLMENT · RECORDS</div>
+        <h1>Student Admission and Records Management</h1>
+        <p class="lede">A system for managing student applications, admission records, enrollment information, and student records through the school's local area network.</p>
         <div class="hero-ctas">
-          <a class="btn-primary" href="#admissions">Start an application</a>
-          <a class="btn-ghost" href="#about">About the school</a>
+          <a class="btn-primary" href="#admissions">Admission Inquiry</a>
+          <a class="btn-ghost" href="#about">System Overview</a>
         </div>
         <div class="hero-meta">
-          <div><strong>Grades 7–10</strong><span>Junior high program</span></div>
-          <div><strong>1:28</strong><span>Teacher to student ratio</span></div>
-          <div><strong>BARMM</strong><span>Basic education dept.</span></div>
+          <div><strong>Admission</strong><span>Applicant registration &amp; review</span></div>
+          <div><strong>Records</strong><span>Student profiles &amp; academic history</span></div>
+          <div><strong>LAN-based</strong><span>School network deployment</span></div>
         </div>
       </div>
 
@@ -265,43 +272,59 @@
   <section class="about" id="about">
     <div class="wrap about-grid">
       <div>
-        <span class="section-head kicker">About the school</span>
-        <h2 style="margin-bottom:20px;font-size:clamp(24px,3vw,32px);">A campus built for learning by doing.</h2>
-        <p>TRAC JHS operates as the laboratory high school of Tawi-Tawi Regional Agricultural College, sharing its grounds, farm facilities, and faculty expertise. Students move between standard classroom instruction and applied sessions on the college's working fields.</p>
-        <p>The school follows the DepEd Basic Education curriculum under the Bangsamoro Autonomous Region, with an exploratory track in agricultural technology and integrated instruction in Bangsamoro history, values, and Arabic language.</p>
+        <span class="section-head kicker">About the system</span>
+        <h2 style="margin-bottom:20px;font-size:clamp(24px,3vw,32px);">What this system does.</h2>
+        <p>This is the Student Admission and Records Management System used by the TRAC Junior High School registrar's office. It is the institution's administrative system for handling student admission, enrollment, and academic records.</p>
+        <p>Authorized school personnel — the registrar and data encoders — sign in to record applicant information, process admission, manage student profiles, record enrollment for the active school year, and maintain academic and transfer records.</p>
+        <p>The system is intended for school administrative use. It is not a public-facing admission portal: admission is finalized through the registrar's office on campus.</p>
       </div>
       <ul class="credential-list">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M5 10v6c0 1.5 3 3 7 3s7-1.5 7-3v-6"/></svg> DepEd-recognized junior high curriculum, Grades 7–10</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M8 4v5"/></svg> Shared campus and faculty with Tawi-Tawi Regional Agricultural College</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z"/></svg> Bangsamoro values and Arabic language integrated into daily instruction</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Weekly applied sessions on the college's agricultural fields and labs</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M5 10v6c0 1.5 3 3 7 3s7-1.5 7-3v-6"/></svg> Records applicant information and admission requirements submitted to the registrar.</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M8 4v5"/></svg> Maintains student profiles, enrollment history, and academic records (Form 138 / SF10 data).</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.5-9 9-9 9z"/></svg> Generates reports required by the school and by the Department of Education (Learner Information System).</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Keeps an audit log of every sign-in, record change, export, and backup.</li>
       </ul>
     </div>
   </section>
 
-  <!-- PROGRAMS -->
+  <!-- FEATURES -->
   <section id="programs">
     <div class="wrap">
       <div class="section-head">
-        <span class="kicker">Academics</span>
-        <h2>What students study</h2>
-        <p>Core subjects follow the national curriculum; the school's exploratory and applied tracks reflect its setting inside an agricultural college.</p>
+        <span class="kicker">System functions</span>
+        <h2>What the system does</h2>
+        <p>The functions below are the actual administrative tasks the registrar's office performs in this system. Each corresponds to a section of the application used after sign-in.</p>
       </div>
       <div class="programs-grid">
         <div class="program-card">
-          <div class="num">Core</div>
-          <h3>General junior high curriculum</h3>
-          <p>Filipino, English, mathematics, science, Araling Panlipunan, MAPEH, and TLE, taught to DepEd Grades 7–10 standards.</p>
+          <div class="num">Admission</div>
+          <h3>Applicant &amp; admission records</h3>
+          <p>Record applicant information, review submitted documents, and process admission records. Includes an admission index, create/edit forms, and a printable applicant view.</p>
         </div>
         <div class="program-card">
-          <div class="num">Applied</div>
-          <h3>Agricultural technology track</h3>
-          <p>Rotating fieldwork in crop production, poultry, and small-scale fisheries alongside the college's agriculture students.</p>
+          <div class="num">Records</div>
+          <h3>Student records</h3>
+          <p>Maintain student profiles, edit personal and family information, view academic history, and print School Form 10 (SF10) records as needed.</p>
         </div>
         <div class="program-card">
-          <div class="num">Cultural</div>
-          <h3>Bangsamoro studies & Arabic</h3>
-          <p>Regional history, Islamic values education, and Arabic language instruction integrated across grade levels.</p>
+          <div class="num">Enrollment</div>
+          <h3>Enrollment</h3>
+          <p>Record enrollment for the active school year, assign students to sections, and track unenrolled or unassigned students.</p>
+        </div>
+        <div class="program-card">
+          <div class="num">Search</div>
+          <h3>Records search</h3>
+          <p>Search by student name, Learner Reference Number, or admission reference to retrieve an existing record quickly.</p>
+        </div>
+        <div class="program-card">
+          <div class="num">Reports</div>
+          <h3>Reports</h3>
+          <p>Generate admission status, enrollment summary, SF10, and student masterlist reports. Export Learner Information System (LIS) CSV files for DepEd reporting.</p>
+        </div>
+        <div class="program-card">
+          <div class="num">Audit</div>
+          <h3>Audit log &amp; backups</h3>
+          <p>Review who changed what, and when. The registrar can export database backups and restore from a previous backup when needed.</p>
         </div>
       </div>
     </div>
@@ -314,65 +337,66 @@
         <span class="section-head kicker" style="display:block;margin-bottom:12px;">Admissions</span>
         <h2 style="font-size:clamp(24px,3vw,32px);margin-bottom:36px;">How to apply</h2>
         <div class="timeline">
-          <div class="step"><div class="step-dot">1</div><div><h3>Register interest</h3><p>Submit the inquiry form below or visit the registrar's office on campus with a valid ID for the parent or guardian.</p></div></div>
-          <div class="step"><div class="step-dot">2</div><div><h3>Submit documents</h3><p>Bring the completed enrollment form, PSA birth certificate, and Form 138 (report card) from the previous school.</p></div></div>
-          <div class="step"><div class="step-dot">3</div><div><h3>Placement assessment</h3><p>Incoming Grade 7 students sit a short placement check; transferees are assessed against their previous grade level.</p></div></div>
-          <div class="step"><div class="step-dot">4</div><div><h3>Confirm enrollment</h3><p>Once accepted, families confirm the slot with the registrar and receive the student's section and schedule.</p></div></div>
+          <div class="step"><div class="step-dot">1</div><div><h3>Applicant Registration</h3><p>Provide the applicant's basic information and contact details to the registrar's office, or submit them through the inquiry form at the bottom of this page.</p></div></div>
+          <div class="step"><div class="step-dot">2</div><div><h3>Submit Requirements</h3><p>Submit the required admission and supporting documents to the registrar's office on campus.</p></div></div>
+          <div class="step"><div class="step-dot">3</div><div><h3>Admission Review</h3><p>The registrar reviews the submitted information and requirements, and records the admission decision in the system.</p></div></div>
+          <div class="step"><div class="step-dot">4</div><div><h3>Enrollment</h3><p>Once admission is confirmed, the student is registered and enrollment information is recorded in the system.</p></div></div>
         </div>
       </div>
       <div class="admissions-side">
-        <h3>Requirements checklist</h3>
-        <p>What to prepare before your visit to the registrar.</p>
+        <h3>Admission Requirements</h3>
+        <p>Prepare the required documents before submitting your application or visiting the registrar's office.</p>
         <ul class="req-list">
           <li>PSA birth certificate (original + photocopy)</li>
           <li>Form 138 / report card from previous school</li>
           <li>Certificate of Good Moral Character</li>
-          <li>2 pcs 1x1 ID photo</li>
+          <li>1×1 ID photos</li>
           <li>Barangay residency certificate</li>
         </ul>
-        <a class="btn-primary" href="#contact" style="display:inline-block;width:100%;text-align:center;">Contact the registrar</a>
+        <p style="font-size:12.5px;opacity:0.7;margin-top:-8px;">Confirm the full list with the registrar's office before submission.</p>
+        <a class="btn-primary" href="#contact" style="display:inline-block;width:100%;text-align:center;">Contact the Registrar</a>
       </div>
     </div>
   </section>
 
-  <!-- CAMPUS -->
+  <!-- SCHOOL INFORMATION -->
   <section id="campus">
     <div class="wrap">
       <div class="section-head">
-        <span class="kicker">Campus</span>
-        <h2>Where students learn</h2>
+        <span class="kicker">School information</span>
+        <h2>About TRAC Junior High School</h2>
       </div>
       <div class="campus-grid">
         <div class="campus-card">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h18M5 12v7h14v-7M9 19v-5h6v5"/></svg>
-          <h3>Classrooms</h3>
-          <p>Sectioned by grade level, shared within the college's academic building.</p>
+          <h3>School identity</h3>
+          <p>The laboratory junior high school of Tawi-Tawi Regional Agricultural College, located in Bongao, Tawi-Tawi, BARMM.</p>
         </div>
         <div class="campus-card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V7l8-4 8 4v12M12 3v18M4 7l8 4 8-4"/></svg>
-          <h3>Agricultural labs</h3>
-          <p>Working fields and greenhouses used for applied TLE and science sessions.</p>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M8 4v5"/></svg>
+          <h3>Grade levels</h3>
+          <p>DepEd-recognized junior high school offering Grades 7 to 10.</p>
         </div>
         <div class="campus-card">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 4.5A2.5 2.5 0 016.5 2H20v18H6.5A2.5 2.5 0 014 17.5v-13z"/></svg>
-          <h3>Library</h3>
-          <p>Reference materials and reading space shared with the college.</p>
+          <h3>Curriculum</h3>
+          <p>DepEd Basic Education curriculum, delivered under the Bangsamoro Autonomous Region in Muslim Mindanao.</p>
         </div>
         <div class="campus-card">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="14" rx="1"/><path d="M8 21h8M12 18v3"/></svg>
-          <h3>Computer room</h3>
-          <p>Used for TLE instruction and the registrar's records system.</p>
+          <h3>Registrar's office</h3>
+          <p>Maintains student admission, enrollment, and academic records through this system.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- QUOTE -->
-  <section class="quote-section">
+  <!-- LAN-BASED OPERATION -->
+  <section id="network" class="quote-section">
     <div class="wrap">
       <div class="quote-box">
-        <p class="q">"Being on a working agricultural campus means our students see the science before they read it in a textbook."</p>
-        <p class="quote-attr">Office of the Registrar<span>TRAC Junior High School</span></p>
+        <p class="q">Designed for the School Local Network</p>
+        <p style="font-family:var(--font-ui);font-size:15.5px;line-height:1.7;font-style:normal;margin-top:14px;">The system is designed to operate within the school's Local Area Network, allowing connected administrative computers to access centralized admission and student records. It is not a cloud service and is not reachable from the public internet.</p>
       </div>
     </div>
   </section>
@@ -382,29 +406,32 @@
 <footer id="contact">
   <div class="wrap contact-grid">
     <div>
-      <h2>Visit or reach the registrar</h2>
-      <p>Have a question about enrollment, records, or the campus? The registrar's office handles all student and admission records.</p>
+      <h2>Contact the Registrar</h2>
+      <p>For questions about admission, enrollment, or student records, contact the registrar's office. Office hours and direct contact details below are placeholders to be confirmed by the institution before publication.</p>
       <div class="contact-list">
-        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> TRAC campus, Bongao, Tawi-Tawi, BARMM</div>
-        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.7A2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .3 2 .6 2.9a2 2 0 01-.4 2.1L8 10a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.9.5 2.9.6a2 2 0 011.7 2z"/></svg> Registrar's office · Mon–Fri, 8am–5pm</div>
-        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 6 10-6"/></svg> registrar@tracjhs.edu.ph</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> TRAC campus, Bongao, Tawi-Tawi, BARMM <span style="opacity:0.65;">(to be confirmed)</span></div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.7A2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .3 2 .6 2.9a2 2 0 01-.4 2.1L8 10a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.9.5 2.9.6a2 2 0 011.7 2z"/></svg> Office hours <span style="opacity:0.65;">(placeholder — to be confirmed)</span></div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 6 10-6"/></svg> <span>registrar@tracjhs.edu.ph</span> <span style="opacity:0.65;">(placeholder email — to be confirmed)</span></div>
       </div>
     </div>
-    <div class="foot-form">
-      <label for="fname">Full name of applicant</label>
-      <input id="fname" type="text" placeholder="Juan Dela Cruz">
-      <label for="fgrade">Applying for grade</label>
-      <select id="fgrade">
+    <form class="foot-form" method="post" action="/index.php#contact">
+      <label for="fname">Applicant's full name</label>
+      <input id="fname" name="inquiry_name" type="text" placeholder="Juan Dela Cruz">
+      <label for="fgrade">Grade level applying for</label>
+      <select id="fgrade" name="inquiry_grade">
         <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option>
       </select>
       <label for="fcontact">Contact number</label>
-      <input id="fcontact" type="text" placeholder="09xx xxx xxxx">
-      <a class="btn-primary" href="#" style="display:block;text-align:center;">Send inquiry</a>
-    </div>
+      <input id="fcontact" name="inquiry_contact" type="text" placeholder="09xx xxx xxxx">
+      <button class="btn-primary" type="submit" name="inquiry_submit" value="1" style="display:block;text-align:center;border:0;cursor:pointer;font:inherit;color:inherit;">Send Admission Inquiry</button>
+    </form>
   </div>
   <div class="wrap foot-bottom">
-    <span>© 2026 TRAC Junior High School. Laboratory school of Tawi-Tawi Regional Agricultural College.</span>
+    <span>LAN-Based Student Admission and Records Management System &middot; © 2026 TRAC Junior High School.</span>
     <a href="#staff" id="staff" style="color:var(--gold-400);">Staff sign in →</a>
+  </div>
+  <div class="wrap foot-bottom" style="padding-top:0;padding-bottom:24px;border-top:0;">
+    <span style="opacity:0.65;">Student admission, enrollment, and records management for authorized school personnel.</span>
   </div>
 </footer>
 
