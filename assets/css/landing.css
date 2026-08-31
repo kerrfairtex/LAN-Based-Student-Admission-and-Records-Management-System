@@ -192,6 +192,24 @@
     .campus-grid{grid-template-columns:1fr 1fr;}
   }
 
+/* ----- Skip-to-main link (a11y) ----- */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 999;
+    background: var(--green-800);
+    color: var(--cream-100);
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.skip-link:focus {
+    left: 16px;
+    top: 16px;
+}
+
 /* ----- responsive breakpoint (kept from original landing.css) ----- */
 .mobile-nav {
     display: none;
