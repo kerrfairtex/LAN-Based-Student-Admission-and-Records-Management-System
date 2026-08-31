@@ -1,0 +1,82 @@
+/* TRAC JHS shared design tokens.
+   Loaded by every page that renders the public landing shell
+   (index.php, auth/login.php, about.php, privacy.php, terms.php, contact.php).
+   Page-specific selectors belong in landing.css or site.css, NOT here. */
+
+:root {
+    /* Palette — TRAC JHS school identity */
+    --green-950: #0A2418;
+    --green-900: #0F3120;
+    --green-800: #173D29;
+    --green-700: #215136;
+    --gold-500:  #D4A72C;
+    --gold-400:  #E3BE52;
+    --bronze-600:#B96A2C;
+    --cream-100: #F5EEDC;
+    --cream-200: #EDE3C8;
+    --ink-900:   #141B14;
+    --line:      rgba(245, 238, 220, 0.14);
+
+    /* Legacy aliases kept for site.css compatibility */
+    --brand-green:        var(--green-700);
+    --brand-green-deep:   var(--green-950);
+    --brand-green-banner: var(--green-800);
+    --brand-gold:         var(--gold-500);
+    --brand-gold-bright:  var(--gold-400);
+    --cream:              var(--cream-100);
+    --ink:                var(--ink-900);
+
+    /* Typography */
+    --font-display: "Fraunces", "Source Serif 4", Georgia, serif;
+    --font-ui:      "Inter", "Source Sans 3", "Segoe UI", Roboto, sans-serif;
+
+    /* Layout */
+    --site-max: 1120px;
+    --site-pad: clamp(1rem, 3vw, 1.75rem);
+}
+
+* { box-sizing: border-box; }
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: var(--green-950);
+    color: var(--cream-100);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+}
+
+h1, h2, h3, .display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img, svg {
+    display: block;
+    max-width: 100%;
+}
+
+.wrap {
+    max-width: var(--site-max);
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+}

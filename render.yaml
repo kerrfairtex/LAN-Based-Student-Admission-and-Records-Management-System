@@ -1,0 +1,48 @@
+# Render Blueprint — TRAC JHS SARMS
+#
+# Provisions the live service at https://trac-jhs-sarms.onrender.com
+# One Render Web Service (PHP/Apache) + a persistent disk mounted at /var/www/html/storage
+# that survives container restarts and redeploys. Database is a managed Postgres
+# instance provided via env vars; this file does NOT create the DB itself — create it
+# in the Render dashboard and paste its DATABASE_URL components into the env vars below.
+
+services:
+  - type: web
+    name: trac-jhs-sarms
+    runtime: docker
+    plan: free
+    autoDeploy: false                 # explicit deploys only via GitHub Actions / dashboard
+    healthCheckPath: /healthcheck.php
+    envVars:
+      # --- Database (paste values from Render Postgres dashboard) ---
+      - key: DB_HOST
+        sync: false                   # set manually
+      - key: DB_PORT
+        value: "5432"                 # Render Postgres listens on 5432 (not Supabase's 6543)
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: DB_SCHEMA
+        value: trac_jhs_sarms
+      - key: DB_SSLMODE
+        value: require                # Render managed Postgres requires TLS
+
+      # --- Storage layout ---
+      # The PHP code already writes to APP_ROOT-relative .sessions/, uploads/, backups/.
+      # We symlink those into /var/www/html/storage so they live on the persistent disk.
+      - key: STORAGE_DIR
+        value: /var/www/html/storage
+
+      # --- Security / session ---
+      - key: APP_ENV
+        value: production
+      - key: SESSION_TIMEOUT
+        value: "1800"
+
+    disk:
+      name: trac-jhs-storage
+      mountPath: /var/www/html/storage
+      sizeGB: 1

@@ -1,4 +1,12 @@
 backups/*.sql
+backups/trac_jhs_backup_*.sql
+uploads/
+.sessions/
+.pgdata/
+.pglogs/
+.pgrun/
+.server.log
+node_modules/
 .DS_Store
 Thumbs.db
 .env

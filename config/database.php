@@ -21,11 +21,20 @@ function db(): PDO
         return $pdo;
     }
 
+    // sslmode: local Postgres (incl. the in-project .pgdata instance) does not need TLS,
+    // but Render's managed Postgres requires sslmode=require. DB_SSLMODE overrides.
+    $sslmode = getenv('DB_SSLMODE');
+    if ($sslmode === false || $sslmode === '') {
+        // Heuristic: Supabase / Render / non-localhost defaults to require.
+        $sslmode = (DB_HOST === 'localhost' || DB_HOST === '127.0.0.1') ? 'disable' : 'require';
+    }
+
     $dsn = sprintf(
-        'pgsql:host=%s;port=%s;dbname=%s',
+        'pgsql:host=%s;port=%s;dbname=%s;sslmode=%s',
         DB_HOST,
         getenv('DB_PORT') ?: '6543',
-        DB_NAME
+        DB_NAME,
+        $sslmode
     );
 
     try {
@@ -33,6 +42,7 @@ function db(): PDO
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
+        $pdo->exec('SET search_path TO ' . DB_SCHEMA . ', public');
     } catch (PDOException $e) {
         if (PHP_SAPI === 'cli') {
             throw $e;

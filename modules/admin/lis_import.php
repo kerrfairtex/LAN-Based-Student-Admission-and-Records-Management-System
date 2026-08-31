@@ -29,7 +29,18 @@ if (!isset($_FILES['lis_csv']) || $_FILES['lis_csv']['error'] !== UPLOAD_ERR_OK)
 $filename = basename($_FILES['lis_csv']['name']);
 $tmpPath = $_FILES['lis_csv']['tmp_name'];
 
-$handle = fopen($tmpPath, 'r');
+// Move uploaded file inside the project dir (so it stops leaking to /tmp).
+$uploadDir = dirname(__DIR__, 2) . '/uploads';
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0750, true);
+}
+$storedPath = $uploadDir . '/' . date('Ymd_His') . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $filename);
+if (!move_uploaded_file($tmpPath, $storedPath)) {
+    flash('danger', 'Unable to stage uploaded file.');
+    redirect('/modules/admin/lis.php');
+}
+
+$handle = fopen($storedPath, 'r');
 if (!$handle) {
     flash('danger', 'Unable to read uploaded file.');
     redirect('/modules/admin/lis.php');

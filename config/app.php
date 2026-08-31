@@ -29,6 +29,13 @@ date_default_timezone_set(APP_TIMEZONE);
 require_once __DIR__ . '/constants.php';
 
 if (session_status() === PHP_SESSION_NONE) {
+    // Keep session storage inside the project dir (no leaks to /tmp).
+    $savePath = APP_ROOT . '/.sessions';
+    if (!is_dir($savePath)) {
+        mkdir($savePath, 0750, true);
+    }
+    session_save_path($savePath);
+
     session_name('TRAC_JHS_SARMS');
     session_set_cookie_params([
         'lifetime' => 0,

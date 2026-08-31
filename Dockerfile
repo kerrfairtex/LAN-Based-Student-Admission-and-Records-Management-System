@@ -15,6 +15,17 @@ RUN sed -ri 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 WORKDIR /var/www/html
 COPY . .
 
+# Persistent disk is mounted at /var/www/html/storage on Render.
+# Symlink the runtime write paths the PHP code uses (.sessions/, uploads/, backups/)
+# into the persistent disk so they survive container restarts and redeploys.
+# In local dev (no /var/www/html/storage mount), the symlinks fall back to the
+# in-project directories, which already exist or are auto-created by the app.
+RUN mkdir -p /var/www/html/storage && \
+    for d in .sessions backups uploads; do \
+      rm -rf /var/www/html/$d && \
+      ln -s /var/www/html/storage/$d /var/www/html/$d; \
+    done
+
 # Disable PHP opcache to prevent stale compiled bytecode
 RUN echo "opcache.enable=0" > /usr/local/etc/php/conf.d/opcache-disable.ini
 
