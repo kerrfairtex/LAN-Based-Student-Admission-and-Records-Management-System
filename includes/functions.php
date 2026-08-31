@@ -34,6 +34,30 @@ function flash(string $type, string $message): void
     $_SESSION['flash'] = ['type' => $type, 'message' => $message];
 }
 
+/**
+ * Ensure a writable directory exists at $path. Handles three cases:
+ *   1. Path is a real directory — do nothing.
+ *   2. Path is a symlink (Render persistent-disk pattern) — mkdir the target if missing.
+ *   3. Path is missing — mkdir recursively.
+ * Suppresses the "File exists" warning when the path is a dangling symlink.
+ */
+function ensure_dir(string $path, int $mode = 0750): void
+{
+    if (is_dir($path)) {
+        return;
+    }
+
+    if (is_link($path)) {
+        $target = readlink($path);
+        if ($target !== false && !is_dir($target)) {
+            @mkdir($target, $mode, true);
+        }
+        return;
+    }
+
+    @mkdir($path, $mode, true);
+}
+
 function get_flash(): ?array
 {
     if (!isset($_SESSION['flash'])) {

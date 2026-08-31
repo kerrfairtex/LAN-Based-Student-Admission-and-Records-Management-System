@@ -30,11 +30,12 @@ require_once __DIR__ . '/constants.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     // Keep session storage inside the project dir (no leaks to /tmp).
-    $savePath = APP_ROOT . '/.sessions';
-    if (!is_dir($savePath)) {
-        mkdir($savePath, 0750, true);
-    }
-    session_save_path($savePath);
+    // On Render this is a symlink into the persistent disk; on local dev it's
+    // a real directory. ensure_dir() handles both (including the dangling-symlink
+    // case that the persistent disk hits on first deploy).
+    ensure_dir(APP_ROOT . '/.sessions');
+
+    session_save_path(APP_ROOT . '/.sessions');
 
     session_name('TRAC_JHS_SARMS');
     session_set_cookie_params([

@@ -8,9 +8,7 @@ require_once __DIR__ . '/../../includes/layout.php';
 require_registrar();
 
 $backupDir = __DIR__ . '/../../backups';
-if (!is_dir($backupDir)) {
-    mkdir($backupDir, 0750, true);
-}
+ensure_dir($backupDir);
 
 $existingBackups = array_values(array_filter(
     scandir($backupDir) ?: [],

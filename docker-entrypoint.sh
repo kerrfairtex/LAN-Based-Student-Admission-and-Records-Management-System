@@ -13,8 +13,20 @@ set -e
 
 PORT="${PORT:-10000}"
 
-# Point PHP's pgsql connections to the correct schema on Supabase
+# Point PHP's pgsql connections to the correct schema on on Supabase
 export PGOPTIONS="-c search_path=${DB_SCHEMA:-trac_jhs_sarms},public"
+
+# Persistent disk (Render) is mounted at /var/www/html/storage.
+# The image ships symlinks at .sessions, backups, uploads → storage/*, but the
+# disk itself is empty on first deploy. Pre-create the target subdirs so the
+# very first request can write without the ensure_dir() race.
+if [ -d /var/www/html/storage ]; then
+    for d in .sessions backups uploads; do
+        if [ -L "/var/www/html/$d" ] && [ ! -d "/var/www/html/$d" ]; then
+            mkdir -p "/var/www/html/storage/$d"
+        fi
+    done
+fi
 
 # Point Apache at the runtime port
 sed -ri "s/^Listen 80$/Listen ${PORT}/" /etc/apache2/ports.conf
