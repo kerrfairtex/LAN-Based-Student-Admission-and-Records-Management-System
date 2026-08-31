@@ -18,13 +18,19 @@ export PGOPTIONS="-c search_path=${DB_SCHEMA:-trac_jhs_sarms},public"
 
 # Persistent disk (Render) is mounted at /var/www/html/storage.
 # The image ships symlinks at .sessions, backups, uploads → storage/*, but the
-# disk itself is empty on first deploy. Pre-create the target subdirs so the
-# very first request can write without the ensure_dir() race.
+# disk itself is empty on first deploy. Pre-create the target subdirs and
+# chown them so Apache's www-data process can read/write session files.
 if [ -d /var/www/html/storage ]; then
     for d in .sessions backups uploads; do
         if [ -L "/var/www/html/$d" ] && [ ! -d "/var/www/html/$d" ]; then
             mkdir -p "/var/www/html/storage/$d"
         fi
+    done
+    # Apache inside php:8.3-apache runs as www-data (uid 33).
+    chown -R www-data:www-data /var/www/html/storage
+    chmod 750 /var/www/html/storage
+    for d in .sessions backups uploads; do
+        chmod 750 "/var/www/html/storage/$d" 2>/dev/null || true
     done
 fi
 
