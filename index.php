@@ -77,10 +77,16 @@ $html = str_replace(
 $csrfField = csrf_field();
 $flashHtml = '';
 if ($page_inquiry_success) {
-    $flashHtml = '<div style="margin-bottom:14px;padding:10px 12px;border:1px solid rgba(183,225,176,0.3);border-radius:3px;font-size:13.5px;color:#B7E1B0;">Your admission inquiry has been received. The registrar\'s office will follow up with you.</div>';
+    $flashHtml = '<div class="form-flash form-flash--success" role="status">Your admission inquiry has been received. The registrar\'s office will follow up with you.</div>';
 } elseif ($page_inquiry_error !== '') {
-    $flashHtml = '<div style="margin-bottom:14px;padding:10px 12px;border:1px solid rgba(232,183,183,0.3);border-radius:3px;font-size:13.5px;color:#E8B7B7;">' . e($page_inquiry_error) . '</div>';
+    $flashHtml = '<div class="form-flash form-flash--danger" role="alert">' . e($page_inquiry_error) . '</div>';
 }
+
+/* Surgical modification 3A: inject the CSRF hidden field and any flash message
+   into the modernized form (data-inquiry-form, spinner wrapper, novalidate removed). */
+$newFormMarker = '<form class="foot-form" method="post" action="/index.php#contact" data-inquiry-form>';
+$newFormInject = $newFormMarker . "\n      " . $csrfField . "\n      " . $flashHtml;
+$html = str_replace($newFormMarker, $newFormInject, $html, $newFormReplaced);
 
 $oldForm = <<<'HTML'
     <form class="foot-form" method="post" action="/index.php#contact">

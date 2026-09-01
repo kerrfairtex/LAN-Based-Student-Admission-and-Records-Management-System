@@ -169,9 +169,13 @@
                 });
             }, { threshold: 0.1 });
             heroTargets.forEach(function (el) { heroIO.observe(el); });
-            // Safety: if IO never fires (e.g. layout 0-height), reveal after 1.2s
+            // Safety: if IO never fires (e.g. layout 0-height, very old WebView),
+            // reveal whatever is still hidden after 1.2s. This is the only path
+            // that can re-trigger is-in redundantly, but it's idempotent.
             setTimeout(function () {
-                heroTargets.forEach(function (el) { el.classList.add('is-in'); });
+                heroTargets.forEach(function (el) {
+                    if (!el.classList.contains('is-in')) el.classList.add('is-in');
+                });
             }, 1200);
         } else {
             heroTargets.forEach(function (el) { el.classList.add('is-in'); });
