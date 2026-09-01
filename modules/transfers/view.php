@@ -123,6 +123,9 @@ render_header('Transfer Request', 'transfers');
                         <?php if ($transfer['direction'] === 'incoming' && in_array($transfer['status'], ['pending', 'documents_sent'], true)): ?>
                             <button type="submit" name="action" value="mark_received" class="btn btn-outline-light">Mark SF10 Received</button>
                         <?php endif; ?>
+                        <?php if ($transfer['status'] === 'escalated'): ?>
+                            <p class="text-muted small mb-0">This request was escalated to SGOD. Resolve by marking completed, or wait for SGOD response and use the counterpart-school actions below.</p>
+                        <?php endif; ?>
                         <button type="submit" name="action" value="complete" class="btn btn-primary">Mark Completed</button>
                         <?php if (is_registrar() && $overdue): ?>
                             <button type="submit" name="action" value="escalate" class="btn btn-outline-danger">Escalate to SGOD</button>
