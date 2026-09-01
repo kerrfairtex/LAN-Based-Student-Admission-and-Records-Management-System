@@ -18,6 +18,26 @@ if (!$student) {
     redirect('/modules/records/index.php');
 }
 
+// Rate-limited audit log of print access (5-min window per user/student).
+// Print is a separate DPA-relevant event from "view" — keep the action
+// distinct so audit filters can surface them differently.
+$recent = db()->prepare(
+    'SELECT 1 FROM audit_logs
+      WHERE user_id = :user_id
+        AND entity_type = \'students\'
+        AND entity_id = :entity_id
+        AND action = \'print\'
+        AND created_at > NOW() - INTERVAL \'5 minutes\'
+      LIMIT 1'
+);
+$recent->execute([
+    'user_id'    => (int) $_SESSION['user']['id'],
+    'entity_id'  => $id,
+]);
+if (!$recent->fetch()) {
+    audit_log('print', 'students', $id, 'Printed student record');
+}
+
 $enrollments = db()->prepare(
     'SELECT e.*, sy.label AS school_year, g.name AS grade_name, sec.name AS section_name
      FROM enrollments e

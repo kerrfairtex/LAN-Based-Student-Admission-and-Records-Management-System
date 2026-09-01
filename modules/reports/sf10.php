@@ -26,6 +26,30 @@ if ($gradeLevelId <= 0) {
     redirect('/modules/reports/index.php');
 }
 
+// Rate-limited audit log of SF10 generation (5-min window per user/student).
+// Reports containing PII and grades must be auditable per DPA compliance.
+$recent = db()->prepare(
+    'SELECT 1 FROM audit_logs
+      WHERE user_id = :user_id
+        AND entity_type = \'students\'
+        AND entity_id = :entity_id
+        AND action = \'report_sf10\'
+        AND created_at > NOW() - INTERVAL \'5 minutes\'
+      LIMIT 1'
+);
+$recent->execute([
+    'user_id'    => (int) $_SESSION['user']['id'],
+    'entity_id'  => $studentId,
+]);
+if (!$recent->fetch()) {
+    audit_log(
+        'report_sf10',
+        'students',
+        $studentId,
+        "Generated SF10 report (sy={$schoolYearId}, grade={$gradeLevelId})"
+    );
+}
+
 $sy = db()->prepare('SELECT label FROM school_years WHERE id = :id');
 $sy->execute(['id' => $schoolYearId]);
 $schoolYear = $sy->fetch()['label'] ?? '';
