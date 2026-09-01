@@ -21,3 +21,41 @@ Options -Indexes
 # If mod_headers is NOT loaded (e.g., Render with stock Apache config),
 # these rules do nothing — PHP-side headers in includes/partials/header.php
 # cover the same directives.
+
+# Cache-Control / Expires — make static assets cacheable. mod_expires emits
+# both Expires and Cache-Control: max-age; mod_headers below adds the
+# Cache-Control directive for cases where mod_expires isn't loaded.
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Default: 1 hour (HTML pages, dynamic responses).
+    ExpiresDefault "access plus 1 hour"
+
+    # Long-cache assets (1 year). Versioned via query string for cache-bust.
+    ExpiresByType image/png     "access plus 1 year"
+    ExpiresByType image/jpeg    "access plus 1 year"
+    ExpiresByType image/gif     "access plus 1 year"
+    ExpiresByType image/webp    "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon  "access plus 1 year"
+    ExpiresByType text/css      "access plus 1 year"
+    ExpiresByType text/javascript    "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType application/x-font-ttf    "access plus 1 year"
+    ExpiresByType application/x-font-woff   "access plus 1 year"
+    ExpiresByType application/x-font-woff2  "access plus 1 year"
+    ExpiresByType font/woff2     "access plus 1 year"
+    ExpiresByType image/vnd.microsoft.icon "access plus 1 year"
+</IfModule>
+
+# Cache-Control directive — fallback for environments without mod_expires
+# (e.g., Render with stock Apache config). The PHP-side fallback in
+# includes/partials/header.php covers PHP-built-in dev server.
+<IfModule mod_headers.c>
+    <FilesMatch "\.(png|jpe?g|gif|webp|svg|ico|css|js|woff2?|ttf)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    <FilesMatch "\.(html|php)$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+</IfModule>

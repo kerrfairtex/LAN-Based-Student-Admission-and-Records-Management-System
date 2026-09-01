@@ -10,6 +10,16 @@ require_login();
 $stats = dashboard_stats();
 $activeYear = active_school_year();
 
+// Recent activity feed (audit_logs, latest 10 across the system).
+$recentActivity = db()->query(
+    'SELECT a.action, a.entity_type, a.entity_id, a.details, a.created_at,
+            u.full_name AS user_name, u.username
+     FROM audit_logs a
+     JOIN users u ON u.id = a.user_id
+     ORDER BY a.created_at DESC
+     LIMIT 10'
+)->fetchAll();
+
 render_header('Dashboard', 'dashboard');
 ?>
 <div class="stat-grid">
@@ -75,10 +85,10 @@ render_header('Dashboard', 'dashboard');
                 uninterrupted access during internet outages.
             </p>
             <ul class="text-muted mb-0">
-                <li>Three-tier architecture: Presentation, PHP Logic, and MySQL Data layers</li>
+                <li>Three-tier architecture: Presentation, PHP Logic, and PostgreSQL data layers</li>
                 <li>Role-based access for School Registrar and Data Encoders</li>
                 <li>Real-time validation during admission encoding</li>
-                <li>Registrar-controlled database backup exports</li>
+                <li>Registrar-controlled database backup exports (logical dump + pg_dump-compatible)</li>
             </ul>
         </div>
     </div>
@@ -98,6 +108,45 @@ render_header('Dashboard', 'dashboard');
             </div>
         </div>
     </div>
+
+    <?php if (is_registrar()): ?>
+        <div class="col-12">
+            <div class="panel-card glass-panel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="mb-0">Recent Activity</h3>
+                    <a href="<?= e(url('/modules/admin/audit.php')) ?>" class="btn btn-sm btn-outline-light">View full audit log</a>
+                </div>
+                <?php if (!$recentActivity): ?>
+                    <p class="text-muted mb-0">No activity yet.</p>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>When</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Entity</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($recentActivity as $a): ?>
+                                    <tr>
+                                        <td><small><?= e($a['created_at']) ?></small></td>
+                                        <td><?= e($a['user_name']) ?></td>
+                                        <td><?= e($a['action']) ?></td>
+                                        <td><?= e($a['entity_type']) ?><?= $a['entity_id'] !== null ? ' #' . (int) $a['entity_id'] : '' ?></td>
+                                        <td><small><?= e($a['details'] ?? '') ?></small></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 <?php
 render_footer();

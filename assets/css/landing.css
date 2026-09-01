@@ -69,8 +69,19 @@
     border-bottom:1px solid var(--line);
     background:
       radial-gradient(ellipse at 78% 20%, rgba(212,167,44,0.10), transparent 55%),
-      linear-gradient(180deg, var(--green-950), #0C2A1C 60%, var(--green-950));
+      linear-gradient(180deg, var(--green-950), #0C2A1C 60%, var(--green-950)),
+      url('/assets/img/lanbase.jpeg') center/cover no-repeat;
+    background-color: var(--green-950);
   }
+  .hero::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(180deg, rgba(10,36,24,0.55) 0%, rgba(10,36,24,0.75) 50%, rgba(10,36,24,0.90) 100%);
+    pointer-events:none;
+  }
+  .hero > *{position:relative;z-index:1;}
   .hero-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;align-items:center;}
   .eyebrow-row{display:flex;align-items:center;gap:10px;margin-bottom:22px;color:var(--gold-400);font-size:13.5px;font-weight:600;}
   .eyebrow-row .dot{width:6px;height:6px;border-radius:50%;background:var(--gold-500);}
@@ -192,23 +203,7 @@
     .campus-grid{grid-template-columns:1fr 1fr;}
   }
 
-/* ----- Skip-to-main link (a11y) ----- */
-.skip-link {
-    position: absolute;
-    left: -9999px;
-    top: 0;
-    z-index: 999;
-    background: var(--green-800);
-    color: var(--cream-100);
-    padding: 10px 14px;
-    border-radius: 3px;
-    font-size: 13px;
-    font-weight: 600;
-}
-.skip-link:focus {
-    left: 16px;
-    top: 16px;
-}
+
 
 /* ----- responsive breakpoint (kept from original landing.css) ----- */
 .mobile-nav {

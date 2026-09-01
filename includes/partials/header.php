@@ -39,6 +39,14 @@ if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
 }
 header_remove('X-Powered-By');
 
+// Cache-Control for the public landing HTML. Static assets (.css/.js/images
+// /fonts) get long-cache headers via .htaccess mod_expires / mod_headers in
+// production; the PHP-built-in dev server ignores .htaccess so static-asset
+// caching is a no-op locally (acceptable). Here we set a moderate cache for
+// the public page itself — short enough that content updates show up quickly,
+// long enough to absorb traffic spikes.
+header('Cache-Control: public, max-age=3600, must-revalidate');
+
 $page_title        = $page_title        ?? 'TRAC JHS';
 $page_description  = $page_description  ?? 'TRAC JHS — Junior High School of Tawi-Tawi Regional Agricultural College, Bongao, Tawi-Tawi.';
 $active_nav        = $active_nav        ?? '';
@@ -60,16 +68,12 @@ $is_authed         = is_logged_in();
     <link href="<?= e(url('/assets/css/landing.css')) ?>" rel="stylesheet">
 </head>
 <body class="<?= e($body_class) ?>">
-<a class="skip-link" href="#main">Skip to main content</a>
+
 
 <header class="site-header" role="banner">
     <div class="wrap site-header__row">
         <a class="brand" href="<?= e(url('/')) ?>">
-            <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-                <circle cx="20" cy="20" r="19" stroke="#D4A72C" stroke-width="1"/>
-                <circle cx="20" cy="20" r="8" fill="none" stroke="#D4A72C" stroke-width="1"/>
-                <path d="M20 8 L20 12 M20 28 L20 32 M8 20 L12 20 M28 20 L32 20 M11.5 11.5 L14.3 14.3 M25.7 25.7 L28.5 28.5 M11.5 28.5 L14.3 25.7 M25.7 14.3 L28.5 11.5" stroke="#D4A72C" stroke-width="1"/>
-            </svg>
+            <img class="brand-mark" src="/assets/img/lanbaselogo.jpeg" alt="TRAC seal" width="38" height="38">
             <span class="brand-text">
                 <strong>TRAC JHS</strong>
                 <span>Bongao, Tawi-Tawi</span>
@@ -92,7 +96,13 @@ $is_authed         = is_logged_in();
             <?php else: ?>
                 <a class="btn-portal" href="<?= e(url('/auth/login.php')) ?>">Staff Sign In</a>
             <?php endif; ?>
-            <button class="menu-btn" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-nav">☰</button>
+            <button class="menu-btn" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-nav">
+                <svg class="menu-btn-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <line x1="3" y1="6"  x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
         </div>
     </div>
 

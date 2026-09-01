@@ -13,6 +13,14 @@ function render_header(string $title, string $active = ''): void
     $notifications = fetch_notifications();
     $overdueCount = count($notifications['overdue']);
 
+    // App-shell HTML contains session-dependent PII and audit-relevant
+    // data — never let a downstream cache serve a stale copy. The
+    // .htaccess mod_headers block also emits this for environments that
+    // do not load mod_headers; harmless if duplicated.
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
     $sidebarGroups = [
         [
             'label' => '',
@@ -21,19 +29,20 @@ function render_header(string $title, string $active = ''): void
             ],
         ],
         [
-            'label' => 'Admission & Records',
+            'label' => 'Admissions',
             'items' => [
-                ['label' => 'Admission', 'href' => '/modules/admission/index.php', 'active' => $active === 'admission', 'icon' => 'bi-person-plus'],
-                ['label' => 'Enrollment', 'href' => '/modules/enrollment/index.php', 'active' => $active === 'enrollment', 'icon' => 'bi-people'],
-                ['label' => 'Records', 'href' => '/modules/records/index.php', 'active' => $active === 'records', 'icon' => 'bi-folder2-open'],
-                ['label' => 'Search & Inquiry', 'href' => '/modules/search/index.php', 'active' => $active === 'search', 'icon' => 'bi-search'],
+                ['label' => 'Admissions',    'href' => '/modules/admission/index.php',   'active' => $active === 'admission',    'icon' => 'bi-person-plus'],
+                ['label' => 'Students',      'href' => '/modules/records/index.php',     'active' => $active === 'records',      'icon' => 'bi-people'],
+                ['label' => 'Enrollments',   'href' => '/modules/enrollment/index.php',  'active' => $active === 'enrollment',   'icon' => 'bi-person-check'],
+                ['label' => 'Records',       'href' => '/modules/records/academic.php',  'active' => $active === 'academic',     'icon' => 'bi-journal'],
             ],
         ],
         [
-            'label' => 'Transfers & Reports',
+            'label' => 'Reports',
             'items' => [
+                ['label' => 'Reports',   'href' => '/modules/reports/index.php',  'active' => $active === 'reports',  'icon' => 'bi-file-earmark-text'],
                 ['label' => 'Transfers', 'href' => '/modules/transfers/index.php', 'active' => $active === 'transfers', 'icon' => 'bi-arrow-left-right'],
-                ['label' => 'Reporting', 'href' => '/modules/reports/index.php', 'active' => $active === 'reports', 'icon' => 'bi-file-earmark-text'],
+                ['label' => 'Search',    'href' => '/modules/search/index.php',   'active' => $active === 'search',   'icon' => 'bi-search'],
             ],
         ],
     ];
@@ -42,12 +51,12 @@ function render_header(string $title, string $active = ''): void
         $sidebarGroups[] = [
             'label' => 'Administration',
             'items' => [
-                ['label' => 'Users', 'href' => '/modules/admin/users.php', 'active' => $active === 'users', 'icon' => 'bi-person-gear'],
-                ['label' => 'Settings', 'href' => '/modules/admin/settings.php', 'active' => $active === 'settings', 'icon' => 'bi-gear'],
-                ['label' => 'Audit Log', 'href' => '/modules/admin/audit.php', 'active' => $active === 'audit', 'icon' => 'bi-journal-text'],
-                ['label' => 'LIS CSV', 'href' => '/modules/admin/lis.php', 'active' => $active === 'lis', 'icon' => 'bi-file-earmark-spreadsheet'],
-                ['label' => 'Database Backup', 'href' => '/modules/admin/backup.php', 'active' => $active === 'backup', 'icon' => 'bi-hdd-network'],
-                ['label' => 'Database Restore', 'href' => '/modules/admin/restore.php', 'active' => $active === 'restore', 'icon' => 'bi-arrow-counterclockwise'],
+                ['label' => 'Users',  'href' => '/modules/admin/users.php',     'active' => $active === 'users',     'icon' => 'bi-person-gear'],
+                ['label' => 'Settings','href' => '/modules/admin/settings.php',  'active' => $active === 'settings',  'icon' => 'bi-gear'],
+                ['label' => 'Audit',   'href' => '/modules/admin/audit.php',     'active' => $active === 'audit',     'icon' => 'bi-journal-text'],
+                ['label' => 'LIS',     'href' => '/modules/admin/lis.php',       'active' => $active === 'lis',       'icon' => 'bi-file-earmark-spreadsheet'],
+                ['label' => 'Backup',  'href' => '/modules/admin/backup.php',    'active' => $active === 'backup',    'icon' => 'bi-hdd-network'],
+                ['label' => 'Restore', 'href' => '/modules/admin/restore.php',   'active' => $active === 'restore',   'icon' => 'bi-arrow-counterclockwise'],
             ],
         ];
     }
