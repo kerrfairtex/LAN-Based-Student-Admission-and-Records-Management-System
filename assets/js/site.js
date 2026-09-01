@@ -131,6 +131,27 @@
     });
 
     /* =====================================================================
+     * 2b. Login form: same lock + label swap (no spinner overlay; just disable)
+     * ===================================================================== */
+    var loginForms = document.querySelectorAll('[data-login-form]');
+    loginForms.forEach(function (form) {
+        form.addEventListener('submit', function () {
+            var submit = form.querySelector('button[type="submit"]');
+            if (submit && !submit.disabled) {
+                submit.disabled = true;
+                form.setAttribute('data-state', 'sending');
+                // Safety net: re-enable after 8s
+                setTimeout(function () {
+                    if (form.getAttribute('data-state') === 'sending') {
+                        submit.disabled = false;
+                        form.removeAttribute('data-state');
+                    }
+                }, 8000);
+            }
+        });
+    });
+
+    /* =====================================================================
      * 3. Timeline scroll reveal (admissions section)
      * ===================================================================== */
     var steps = document.querySelectorAll('.step');

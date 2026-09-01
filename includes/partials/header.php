@@ -94,9 +94,10 @@ $is_authed         = is_logged_in();
         <div class="site-header__actions">
             <?php if ($is_authed): ?>
                 <a class="btn-portal" href="<?= e(url('/dashboard.php')) ?>">Dashboard</a>
-            <?php else: ?>
+            <?php elseif (!$hide_nav_links): ?>
                 <a class="btn-portal" href="<?= e(url('/auth/login.php')) ?>">Staff Sign In</a>
             <?php endif; ?>
+            <?php if (!$hide_nav_links): ?>
             <button class="menu-btn" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-nav">
                 <svg class="menu-btn-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                     <line x1="3" y1="6"  x2="21" y2="6"/>
@@ -104,6 +105,7 @@ $is_authed         = is_logged_in();
                     <line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
             </button>
+            <?php endif; ?>
         </div>
     </div>
 

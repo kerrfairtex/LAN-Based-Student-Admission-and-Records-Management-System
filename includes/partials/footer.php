@@ -8,10 +8,18 @@ declare(strict_types=1);
  *
  * Caller may set $page_inquiry_success / $page_inquiry_error
  * (booleans) to surface inquiry-form feedback inside the foot-form.
+ *
+ * Caller may set $minimal_footer (bool, default false): when true,
+ * the "Visit or reach the registrar" + inquiry form block is omitted.
+ * Used by auth/login.php where the full contact + inquiry form is
+ * redundant and forces a 600-800px scroll past the login card on mobile.
+ * The legal links + copyright + attribution are still rendered.
  */
+$minimal_footer = $minimal_footer ?? false;
 ?>
 </main>
 
+<?php if (!$minimal_footer): ?>
 <footer class="site-footer" id="contact" role="contentinfo">
     <div class="wrap contact-grid">
         <div>
@@ -72,6 +80,7 @@ declare(strict_types=1);
             </button>
         </form>
     </div>
+<?php endif; ?>
 
     <div class="wrap foot-bottom">
         <span>&copy; <?= date('Y') ?> TRAC Junior High School. Laboratory school of Tawi-Tawi Regional Agricultural College.</span>
@@ -81,7 +90,7 @@ declare(strict_types=1);
             <a href="<?= e(url('/about.php')) ?>">About</a>
             <?php if ($is_authed ?? false): ?>
                 <a href="<?= e(url('/auth/logout.php')) ?>">Sign out</a>
-            <?php else: ?>
+            <?php elseif (!$minimal_footer): ?>
                 <a href="<?= e(url('/auth/login.php')) ?>">Staff sign in &rarr;</a>
             <?php endif; ?>
         </nav>
