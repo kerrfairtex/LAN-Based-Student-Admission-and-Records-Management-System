@@ -87,6 +87,50 @@ $entityTypesPresent = db()->query(
 
 $hasFilters = $filterUserId > 0 || $entityTypeValid !== '' || $fromValid !== '' || $toValid !== '';
 
+// Current retention window (for display + button copy).
+$retentionDays = 1825;
+try {
+    $stmt = db()->prepare(
+        "SELECT setting_value FROM trac_jhs_sarms.app_settings WHERE setting_key = 'audit_retention_days'"
+    );
+    $stmt->execute();
+    $val = $stmt->fetchColumn();
+    if ($val !== false && ctype_digit($val) && (int) $val > 0) {
+        $retentionDays = (int) $val;
+    }
+} catch (PDOException $e) {
+    // app_settings table may not have the row yet (migration not applied) —
+    // fall back to the function's built-in default.
+}
+
+// Manual retention trigger (registrar only — already gated by require_registrar above).
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'run_retention') {
+    require_csrf();
+    try {
+        $deleted = (int) db()->query(
+            'SELECT trac_jhs_sarms.purge_old_audit_logs()'
+        )->fetchColumn();
+
+        audit_log(
+            'maintenance',
+            'audit_logs',
+            null,
+            "Manual retention purge: deleted {$deleted} rows (window={$retentionDays}d)"
+        );
+
+        flash(
+            'success',
+            "Retention purge complete. {$deleted} audit-log row(s) older than {$retentionDays} days removed."
+        );
+    } catch (PDOException $e) {
+        flash(
+            'danger',
+            'Retention purge failed. Is database/migrations/004_audit_retention.sql applied? Error: ' . $e->getMessage()
+        );
+    }
+    redirect('/modules/admin/audit.php');
+}
+
 render_header('Audit Log', 'audit');
 ?>
 <p class="text-muted">Tracks sensitive actions for institutional accountability (Data Privacy Act compliance).</p>
@@ -132,6 +176,24 @@ render_header('Audit Log', 'audit');
             </div>
         <?php endif; ?>
     </form>
+</div>
+
+<div class="panel-card glass-panel mb-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="small text-muted">
+            Retention policy: <strong><?= (int) $retentionDays ?></strong> days
+            (<?= (int) ($retentionDays / 365) ?> year<?= $retentionDays >= 730 ? 's' : '' ?>).
+            Rows older than this are purged from <code>trac_jhs_sarms.audit_logs</code>.
+        </div>
+        <form method="post" class="m-0"
+              onsubmit="return confirm('Permanently delete all audit-log rows older than <?= (int) $retentionDays ?> days? This cannot be undone.');">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="run_retention">
+            <button type="submit" class="btn btn-outline-warning btn-sm">
+                <i class="bi bi-archive"></i> Run Retention Now
+            </button>
+        </form>
+    </div>
 </div>
 
 <div class="table-card glass-panel">
