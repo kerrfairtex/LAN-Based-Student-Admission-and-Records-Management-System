@@ -44,14 +44,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new RuntimeException('Backup file is empty or unreadable.');
             }
 
-            db()->exec('SET FOREIGN_KEY_CHECKS = 0');
+            // PostgreSQL restore: the dump is wrapped in BEGIN/COMMIT with
+            // TRUNCATE ... CASCADE statements, so FK ordering is handled by
+            // the CASCADE option. We do not need (and PG does not support)
+            // MySQL's SET FOREIGN_KEY_CHECKS toggle.
+            db()->beginTransaction();
             db()->exec($sql);
-            db()->exec('SET FOREIGN_KEY_CHECKS = 1');
+            db()->commit();
 
             audit_log('restore', 'database', 0, 'Database restored from ' . $safeName);
             flash('success', "Database restored from {$safeName}. Any current data was replaced.");
         } catch (Throwable $e) {
-            db()->exec('SET FOREIGN_KEY_CHECKS = 1');
+            if (db()->inTransaction()) {
+                db()->rollBack();
+            }
             flash('danger', 'Restore failed: ' . $e->getMessage());
         }
     }

@@ -21,6 +21,11 @@ if (!$student) {
     redirect('/modules/reports/index.php');
 }
 
+if ($gradeLevelId <= 0) {
+    flash('danger', 'Please select a student, school year, and grade level.');
+    redirect('/modules/reports/index.php');
+}
+
 $sy = db()->prepare('SELECT label FROM school_years WHERE id = :id');
 $sy->execute(['id' => $schoolYearId]);
 $schoolYear = $sy->fetch()['label'] ?? '';

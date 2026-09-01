@@ -19,7 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = $_POST['role'] ?? 'encoder';
         $password = $_POST['password'] ?? '';
 
-        if ($username && $fullName && strlen($password) >= 8 && in_array($role, ['registrar', 'encoder'], true)) {
+        // Username: 3-32 chars, alphanumerics + . _ - only.
+        $usernameValid = (bool) preg_match('/^[A-Za-z0-9._-]{3,32}$/', $username);
+
+        // Password length in characters (not bytes), to handle unicode sanely.
+        $passwordLengthOk = function_exists('mb_strlen')
+            ? mb_strlen($password) >= 8
+            : strlen($password) >= 8;
+
+        if ($username && $fullName && $usernameValid && $passwordLengthOk && in_array($role, ['registrar', 'encoder'], true)) {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             try {
                 db()->prepare(
@@ -27,11 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 )->execute(['username' => $username, 'hash' => $hash, 'full_name' => $fullName, 'role' => $role]);
                 audit_log('create', 'users', (int) db()->lastInsertId(), "Created user {$username}");
                 flash('success', "User {$username} created.");
-            } catch (PDOException) {
+            } catch (PDOException $e) {
                 flash('danger', 'Username already exists.');
             }
         } else {
-            flash('danger', 'Please fill all fields. Password must be at least 8 characters.');
+            $messages = [];
+            if (!$username) $messages[] = 'username is required';
+            if (!$fullName) $messages[] = 'full name is required';
+            if (!$usernameValid) $messages[] = 'username must be 3-32 chars, letters/digits/._- only';
+            if (!$passwordLengthOk) $messages[] = 'password must be at least 8 characters';
+            flash('danger', 'Cannot create user: ' . implode('; ', $messages) . '.');
         }
         redirect('/modules/admin/users.php');
     }
@@ -39,9 +52,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'toggle' && isset($_POST['user_id'])) {
         $uid = (int) $_POST['user_id'];
         if ($uid !== (int) $_SESSION['user']['id']) {
-            db()->prepare('UPDATE users SET is_active = NOT is_active WHERE id = :id')->execute(['id' => $uid]);
-            audit_log('update', 'users', $uid, 'Toggled user active status');
-            flash('success', 'User status updated.');
+            // Read current state for the audit log so the change is auditable.
+            $current = db()->prepare('SELECT is_active, username FROM users WHERE id = :id');
+            $current->execute(['id' => $uid]);
+            $row = $current->fetch();
+            if ($row) {
+                $newState = $row['is_active'] ? 0 : 1;
+                db()->prepare('UPDATE users SET is_active = :s WHERE id = :id')
+                    ->execute(['s' => $newState, 'id' => $uid]);
+                audit_log(
+                    'update',
+                    'users',
+                    $uid,
+                    "User {$row['username']} set to " . ($newState ? 'active' : 'disabled')
+                );
+                flash('success', 'User status updated.');
+            }
         }
         redirect('/modules/admin/users.php');
     }
@@ -54,6 +80,7 @@ render_header('User Management', 'users');
         <div class="panel-card glass-panel">
             <h3>Create User</h3>
             <form method="post">
+                <?= csrf_field() ?>
                 <input type="hidden" name="action" value="create">
                 <div class="mb-3">
                     <label class="form-label">Username</label>
@@ -104,6 +131,7 @@ render_header('User Management', 'users');
                                 <td>
                                     <?php if ((int) $user['id'] !== (int) $_SESSION['user']['id']): ?>
                                         <form method="post" class="d-inline">
+                                            <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="toggle">
                                             <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-light"><?= $user['is_active'] ? 'Disable' : 'Enable' ?></button>
