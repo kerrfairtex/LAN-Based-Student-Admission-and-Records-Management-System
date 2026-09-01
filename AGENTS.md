@@ -2,7 +2,7 @@
 
 ## Cursor Cloud specific instructions
 
-TRAC JHS SARMS is a single PHP 8 + MySQL (MariaDB) app (no Composer/npm/build step). It is served
+TRAC JHS SARMS is a single PHP 8 + PostgreSQL app (no Composer/npm/build step). It is served
 directly from the repo root. Standard setup/run steps live in `README.md`; the notes below cover
 only the non-obvious, cloud-VM specific details.
 
@@ -10,36 +10,58 @@ only the non-obvious, cloud-VM specific details.
 
 | Service | Required | Start command | Notes |
 |---------|----------|---------------|-------|
-| MariaDB (MySQL) | Yes | `sudo service mariadb start` | Not started on boot; start it each session. |
+| PostgreSQL | Yes | `sudo service postgresql start` (or use the in-repo `.pgdata` embedded cluster — see Gotchas) | Not started on boot; start it each session. |
 | PHP dev server | Yes | `php -S 0.0.0.0:8000` (run from repo root) | App at http://localhost:8000/ . Use instead of Apache/XAMPP. |
 
-PHP 8.3 (`pdo_mysql`, `mbstring`, `xml`) and `mariadb-server` are provided by the VM snapshot — do
-not reinstall them.
+PHP 8.3 (`pdo_pgsql`, `mbstring`, `xml`) and PostgreSQL are provided by the VM snapshot — do
+not reinstall them. There is **no MariaDB** in this project despite what older revisions of
+this file claimed; the actual stack is Postgres + Supabase/Render.
 
 ### Database
 
-- DB name `trac_jhs_sarms`, schema + seed data in `database/schema.sql` (already includes Phase 2/3
-  tables; the files under `database/migrations/` are only for upgrading older installs).
-- The app connects with the README default `root` / empty password. To make that work for the PHP
-  process (which runs as the `ubuntu` user, not `root`), two non-obvious changes were baked into the
-  snapshot: `root@localhost` was switched to `mysql_native_password` with an empty password, and a
-  PHP drop-in (`/etc/php/8.3/cli/conf.d/99-mariadb-socket.ini`) points the default MySQL socket to
-  MariaDB's real socket at `/run/mysqld/mysqld.sock` (PHP's compiled default `/var/run/mysqld/...`
-  does not exist here). Because of this, `host=localhost` works out of the box — no `DB_*` env vars
-  needed. `config/database.php` still honors `DB_HOST`/`DB_NAME`/`DB_USER`/`DB_PASS` overrides.
-- If the data dir is ever empty (no `trac_jhs_sarms` database after starting MariaDB), re-import:
-  `sudo mysql < database/schema.sql`.
+- Driver: PostgreSQL (PHP DSN uses `pgsql:`). Connection is centralized in `config/database.php`
+  and reads `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASS` / `DB_SCHEMA` / `DB_SSLMODE`
+  from env, with these defaults baked in:
+  - `DB_HOST=localhost`, `DB_PORT=6543`, `DB_NAME=postgres`, `DB_USER=postgres`, `DB_PASS=`
+    (empty), `DB_SCHEMA=trac_jhs_sarms`
+  - `DB_SSLMODE` auto-resolves to `disable` for local connections and `require` for non-local
+    (Supabase / Render managed Postgres).
+- Schema + seed data live in `database/schema.sql`. Tables are namespaced under
+  `trac_jhs_sarms.<table>`; the connection sets `search_path` so unqualified names resolve there.
+- The files under `database/migrations/` are for upgrading older deployments. Note: `002_phase2.sql`
+  and `003_lis_csv.sql` were authored against MySQL (`ENGINE=InnoDB`, `TIMESTAMP`, `USE`) and are
+  **stale** relative to the current PostgreSQL schema. Don't run them on a fresh Postgres database
+  — they will error. Only apply them to legacy MySQL installs that predate the pgsql migration.
+  New migrations (`004_audit_retention.sql` onward) are written in PostgreSQL syntax.
+- `render.yaml` provisions the production deploy target (https://trac-jhs-sarms.onrender.com)
+  with `DB_PORT=5432` and `DB_SSLMODE=require` against a Render-managed Postgres instance; the
+  schema is created in `trac_jhs_sarms` and `search_path` is set accordingly.
 - Default app logins: `registrar` / `Registrar@2026` (admin) and `encoder` / `Encoder@2026` (staff).
+
+### Database maintenance
+
+- **Audit retention** — `trac_jhs_sarms.purge_old_audit_logs()` deletes `audit_logs` rows older
+  than `app_settings.audit_retention_days` (default 1825 = 5 years). Invoke manually from `psql`,
+  via cron, or wire it into a Render scheduled job. Each run logs a NOTICE with the deleted count.
+  To override the window per institution: `UPDATE app_settings SET setting_value = '3650' WHERE
+  setting_key = 'audit_retention_days';`
 
 ### Lint / test
 
 - No automated test suite exists. Lint PHP with `php -l <file>` (e.g. loop over `*.php`).
-- Known pre-existing issue: `modules/admin/settings.php` has a syntax error (a stray `</div>` at
-  the end with no page body) and fails `php -l`. This is a bug in the committed code, unrelated to
-  environment setup — leave it unless you are explicitly fixing that file.
+- All committed PHP files currently pass `php -l`. Earlier revisions flagged
+  `modules/admin/settings.php` as broken; that was stale and the file is clean now.
 
 ### Gotchas
 
 - The PHP built-in server does **not** enforce `.htaccess`, so the deny rules for `config/`,
   `includes/`, `database/`, and `backups/` are inactive in local dev. Fine for development; do not
   rely on them locally.
+- The repo root contains `.pgdata/`, `.pglogs/`, `.pgrun/` — these are an embedded Postgres
+  dev cluster. If `database/schema.sql` hasn't been imported there yet, run
+  `sudo -u postgres psql < database/schema.sql` (or against whatever Postgres `DB_HOST` points to).
+- `DB_PORT=6543` is the **Supabase pooler** port. Direct Postgres connections (Render, local
+  `postgresql` service) use 5432. `render.yaml` already sets 5432 for production.
+- The branch `audit-fixes-enrollment-transfers` (PR #12) is open and contains input-validation
+  fixes for `modules/enrollment/assign.php` and `modules/transfers/{create,view}.php`, plus the
+  audit-log filters in `modules/admin/audit.php` and the new `004_audit_retention.sql` migration.
