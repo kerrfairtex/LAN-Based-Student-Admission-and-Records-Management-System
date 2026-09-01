@@ -1,0 +1,166 @@
+/* TRAC JHS — Login page styles.
+   Single source: auth/login.php.
+   Loaded only on pages with body class "login-body". */
+
+.login-body {
+    background: var(--green-950, #0A2418);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+}
+
+.login-shell {
+    width: 100%;
+    max-width: 460px;
+    padding: 24px 16px;
+}
+
+.login-card {
+    background: rgba(15, 49, 32, 0.92);
+    border: 1px solid var(--line, #D4A72C33);
+    border-radius: 8px;
+    padding: 40px 32px 32px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.login-card__title {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--cream-100, #F5F0E1);
+    margin: 0 0 8px;
+    text-align: center;
+}
+
+.login-card__hint {
+    color: var(--cream-200, #C4B896);
+    font-size: 14px;
+    text-align: center;
+    margin: 0 0 28px;
+    opacity: 0.8;
+}
+
+/* ----- Form fields ----- */
+.field {
+    margin-bottom: 20px;
+}
+
+.field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cream-200, #C4B896);
+    margin-bottom: 6px;
+}
+
+.input-shell {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-shell input {
+    width: 100%;
+    background: rgba(10, 36, 24, 0.8);
+    border: 1px solid var(--line, #D4A72C33);
+    border-radius: 6px;
+    color: var(--cream-100, #F5F0E1);
+    padding: 12px 44px 12px 14px;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-shell input:focus {
+    outline: none;
+    border-color: var(--gold-500, #D4A72C);
+    box-shadow: 0 0 0 3px rgba(212, 167, 44, 0.15);
+}
+
+.input-shell input::placeholder {
+    color: var(--cream-200, #C4B896);
+    opacity: 0.5;
+}
+
+.input-shell__toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--cream-200, #C4B896);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s ease;
+}
+
+.input-shell__toggle:hover {
+    color: var(--gold-500, #D4A72C);
+}
+
+/* ----- Submit button ----- */
+.btn-signin {
+    width: 100%;
+    background: var(--gold-500, #D4A72C);
+    color: var(--green-950, #0A2418);
+    border: none;
+    border-radius: 6px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+    margin-top: 4px;
+}
+
+.btn-signin:hover {
+    background: #E3BE52;
+}
+
+.btn-signin:active {
+    transform: scale(0.98);
+}
+
+.btn-signin:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ----- Footer link ----- */
+.login-card__footnote {
+    text-align: center;
+    margin-top: 24px;
+}
+
+.login-card__footnote a {
+    color: var(--gold-400, #E3BE52);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+
+.login-card__footnote a:hover {
+    color: var(--gold-500, #D4A72C);
+    text-decoration: underline;
+}
+
+/* ----- Alert ----- */
+.login-alert {
+    background: rgba(212, 167, 44, 0.12);
+    border: 1px solid var(--gold-500, #D4A72C);
+    border-radius: 6px;
+    color: var(--cream-100, #F5F0E1);
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+/* Hide the "Staff Sign In" link in the header when on the login page */
+.login-body .site-header__actions .btn-portal[href*="login.php"] {
+    display: none;
+}

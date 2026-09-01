@@ -66,6 +66,7 @@ $is_authed         = is_logged_in();
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="<?= e(url('/assets/css/tokens.css')) ?>" rel="stylesheet">
     <link href="<?= e(url('/assets/css/landing.css')) ?>" rel="stylesheet">
+    <?php if (strpos($body_class, 'login-body') !== false): ?><link href="<?= e(url('/assets/css/login.css')) ?>" rel="stylesheet"><?php endif; ?>
 </head>
 <body class="<?= e($body_class) ?>">
 
