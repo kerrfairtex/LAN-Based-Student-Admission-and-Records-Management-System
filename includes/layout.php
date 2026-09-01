@@ -138,13 +138,17 @@ function render_header(string $title, string $active = ''): void
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
                             <?php foreach ($schoolYears as $year): ?>
-                                <a href="<?= e(url('/modules/admin/set_year.php?year_id=' . (int) $year['id'])) ?>"
-                                   class="dropdown-item <?= ($activeYear['id'] ?? 0) === (int) $year['id'] ? 'active' : '' ?>">
-                                    <?= e($year['label']) ?>
-                                    <?php if ($year['is_active']): ?>
-                                        <span class="badge bg-primary ms-1">Active</span>
-                                    <?php endif; ?>
-                                </a>
+                                <form method="post" action="<?= e(url('/modules/admin/set_year.php')) ?>" class="m-0">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="year_id" value="<?= (int) $year['id'] ?>">
+                                    <button type="submit"
+                                            class="dropdown-item w-100 text-start <?= ($activeYear['id'] ?? 0) === (int) $year['id'] ? 'active' : '' ?>">
+                                        <?= e($year['label']) ?>
+                                        <?php if ($year['is_active']): ?>
+                                            <span class="badge bg-primary ms-1">Active</span>
+                                        <?php endif; ?>
+                                    </button>
+                                </form>
                             <?php endforeach; ?>
                         </div>
                     </div>
