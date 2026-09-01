@@ -227,24 +227,64 @@
     var pwd = document.getElementById('password');
     if (toggle && pwd) {
         toggle.addEventListener('click', function () {
-            var hidden = pwd.type === 'password';
-            pwd.type = hidden ? 'text' : 'password';
-            toggle.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
-            toggle.setAttribute('aria-pressed', hidden ? 'true' : 'false');
-            toggle.innerHTML = hidden
-                ? '<i class="bi bi-eye-slash" aria-hidden="true"></i>'
-                : '<i class="bi bi-eye" aria-hidden="true"></i>';
+            var isHidden = pwd.type === 'password';
+            pwd.type = isHidden ? 'text' : 'password';
+            toggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+            toggle.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+            // For the new card-based markup, the .eye--closed / .eye--open SVGs
+            // are siblings in the DOM; CSS toggles visibility via aria-pressed.
+            // For legacy markup that uses a single <i> with bi-* classes, fall
+            // back to swapping the icon HTML.
+            if (!toggle.querySelector('.eye')) {
+                toggle.innerHTML = isHidden
+                    ? '<i class="bi bi-eye-slash" aria-hidden="true"></i>'
+                    : '<i class="bi bi-eye" aria-hidden="true"></i>';
+            }
         });
     }
 
-    var loginForm = document.querySelector('.login-panel form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function () {
-            var btn = loginForm.querySelector('.btn-signin');
+    // Legacy (non-data-login-form) login form button lock
+    var legacyLoginForm = document.querySelector('.login-panel form');
+    if (legacyLoginForm && !legacyLoginForm.hasAttribute('data-login-form')) {
+        legacyLoginForm.addEventListener('submit', function () {
+            var btn = legacyLoginForm.querySelector('.btn-signin');
             if (btn && !btn.disabled) {
                 btn.disabled = true;
                 btn.textContent = 'Signing in…';
             }
+        });
+    }
+
+    /* =====================================================================
+     * 6. Login card: staggered entrance + click ripple
+     * ===================================================================== */
+    var loginCard = document.querySelector('.login-card');
+    if (loginCard) {
+        // Reveal on next frame so the entrance animation runs.
+        requestAnimationFrame(function () {
+            // Tiny beat so the user perceives the page first, then the card arrives.
+            setTimeout(function () { loginCard.classList.add('is-in'); }, 80);
+        });
+    }
+
+    var loginSubmit = document.querySelector('[data-login-form] .btn-signin');
+    if (loginSubmit) {
+        loginSubmit.addEventListener('click', function (e) {
+            // Skip the ripple when the form is already in flight (sending state)
+            if (loginSubmit.disabled) return;
+            // Spawn a ripple at the click point
+            var ripple = loginSubmit.querySelector('.btn-signin__ripple');
+            if (!ripple) return;
+            var rect = loginSubmit.getBoundingClientRect();
+            var x = (e.clientX || rect.left + rect.width / 2) - rect.left;
+            var y = (e.clientY || rect.top + rect.height / 2) - rect.top;
+            ripple.style.left = x + 'px';
+            ripple.style.top  = y + 'px';
+            ripple.classList.remove('is-active');
+            // Force reflow so the animation re-triggers
+            // eslint-disable-next-line no-unused-expressions
+            ripple.offsetWidth;
+            ripple.classList.add('is-active');
         });
     }
 })();

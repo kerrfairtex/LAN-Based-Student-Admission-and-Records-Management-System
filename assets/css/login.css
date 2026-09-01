@@ -1,321 +1,685 @@
-/* TRAC JHS — Login page styles.
+/* TRAC JHS — Login page ("secure systems terminal, 2030").
    Single source: auth/login.php.
-   Loaded only on pages with body class "login-body". */
+   Loaded only on pages with body class "login-body".
+
+   The body.login-terminal is the page shell (no header, no card-on-canvas).
+   The .login-terminal__atmosphere provides the background grid + orbs.
+   The .login-card is a glassmorphic panel that uses a SVG-stroked border
+   (the .login-card__trace) for the animated gold circuit outline.
+
+   All animations are disabled under prefers-reduced-motion: reduce. */
 
 :root {
-    --login-pad-x: 24px;
+    --login-pad-x: 28px;
     --login-pad-y: 32px;
+    --gold-1: #E3BE52;   /* lighter */
+    --gold-2: #D4A72C;   /* base */
+    --gold-3: #B98A1F;   /* deeper */
+    --glass-bg:    rgba(15, 49, 32, 0.62);
+    --glass-bg-2:  rgba(10, 36, 24, 0.55);
+    --glass-edge:  rgba(212, 167, 44, 0.18);
+    --glass-edge-strong: rgba(212, 167, 44, 0.42);
 }
 
 @media (max-width: 480px) {
     :root {
-        --login-pad-x: 20px;
-        --login-pad-y: 24px;
+        --login-pad-x: 22px;
+        --login-pad-y: 26px;
     }
 }
 
-.login-body {
+/* ============================================================
+   PAGE SHELL
+   ============================================================ */
+
+.login-terminal {
     background:
-        radial-gradient(ellipse at 50% 0%, rgba(212,167,44,0.10), transparent 60%),
-        var(--green-950, #0A2418);
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(212, 167, 44, 0.07), transparent 70%),
+        radial-gradient(ellipse 60% 50% at 50% 100%, rgba(33, 83, 54, 0.30), transparent 70%),
+        linear-gradient(180deg, #081A11 0%, var(--green-950, #0A2418) 50%, #06150D 100%);
     min-height: 100vh;
+    color: var(--cream-100, #F5F0E1);
+    font-family: 'Inter', system-ui, sans-serif;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Inter', sans-serif;
     padding: 24px 16px;
 }
 
-.login-shell {
-    width: 100%;
-    max-width: 460px;
+/* ----- Atmosphere: grid + soft orbs ----- */
+.login-terminal__atmosphere {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
 }
+.login-terminal__atmosphere .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(212, 167, 44, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212, 167, 44, 0.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-position: -1px -1px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 35%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 35%, transparent 80%);
+}
+.login-terminal__atmosphere .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.55;
+}
+.login-terminal__atmosphere .orb--gold {
+    width: 480px; height: 480px;
+    top: -120px; right: -120px;
+    background: radial-gradient(circle, rgba(212, 167, 44, 0.45), transparent 65%);
+    animation: orb-drift-a 22s ease-in-out infinite;
+}
+.login-terminal__atmosphere .orb--green {
+    width: 560px; height: 560px;
+    bottom: -180px; left: -160px;
+    background: radial-gradient(circle, rgba(33, 83, 54, 0.55), transparent 65%);
+    animation: orb-drift-b 28s ease-in-out infinite;
+}
+@keyframes orb-drift-a { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-30px, 40px); } }
+@keyframes orb-drift-b { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(40px, -30px); } }
+
+/* ============================================================
+   CARD (glassmorphic panel)
+   ============================================================ */
 
 .login-card {
-    background: rgba(15, 49, 32, 0.92);
-    border: 1px solid var(--line, #D4A72C33);
-    border-radius: 8px;
-    padding: var(--login-pad-y) var(--login-pad-x) 28px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background:
+        linear-gradient(180deg, var(--glass-bg) 0%, var(--glass-bg-2) 100%);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-radius: 14px;
+    padding: var(--login-pad-y) var(--login-pad-x) 26px;
+    box-shadow:
+        0 0 0 1px var(--glass-edge) inset,                          /* inner hairline */
+        0 0 0 1px rgba(212, 167, 44, 0.10),                        /* outer hairline */
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,                   /* top inner highlight */
+        0 24px 64px rgba(0, 0, 0, 0.55),                           /* drop shadow */
+        0 0 80px rgba(212, 167, 44, 0.06);                        /* ambient gold glow */
+    overflow: hidden;
+    isolation: isolate;
 }
 
-/* ----- Emblem (large seal at top of card) ----- */
-.login-card__emblem {
+/* ----- Circuit-trace animated border (SVG mask technique) -----
+   The SVG is sized 100% of the card; the rect is stroked with a
+   gold gradient and we animate stroke-dashoffset to "trace" it. */
+.login-card__trace {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
+    overflow: hidden;
+}
+.login-card__trace svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.login-card__trace .trace-rect {
+    stroke-dasharray: 8 4;       /* dashed circuit-trace pattern */
+    stroke-dashoffset: 0;
+    animation: trace-pulse 4.5s linear infinite;
+    filter: drop-shadow(0 0 3px rgba(212, 167, 44, 0.55));
+}
+@keyframes trace-pulse {
+    0%   { stroke-dashoffset: 0;    opacity: 0.55; }
+    50%  { stroke-dashoffset: -24;  opacity: 0.95; }
+    100% { stroke-dashoffset: -48;  opacity: 0.55; }
+}
+
+/* ============================================================
+   AUTHENTICATION NODE (seal + glow + rings + status)
+   ============================================================ */
+
+.login-card__node {
     position: relative;
-    width: 120px;
-    height: 120px;
-    margin: 0 auto 18px;
+    width: 132px;
+    height: 132px;
+    margin: 6px auto 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     isolation: isolate;
 }
-.login-card__emblem-img {
-    width: 80px;
-    height: 80px;
+
+.node-glow {
+    position: absolute;
+    inset: -12%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212, 167, 44, 0.32), rgba(212, 167, 44, 0) 65%);
+    filter: blur(8px);
+    animation: node-pulse 4.2s ease-in-out infinite;
+    z-index: 0;
+}
+@keyframes node-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50%      { opacity: 0.95; transform: scale(1.08); }
+}
+
+.node-rings {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+.node-ring {
+    position: absolute;
+    border-radius: 50%;
+}
+.node-ring--outer {
+    inset: 0;
+    border: 1px solid rgba(212, 167, 44, 0.35);
+    animation: node-spin 36s linear infinite;
+}
+.node-ring--mid {
+    inset: 10%;
+    border: 1px dashed rgba(212, 167, 44, 0.25);
+    animation: node-spin 56s linear infinite reverse;
+}
+.node-ring--inner {
+    inset: 22%;
+    border: 1px solid rgba(245, 238, 220, 0.10);
+    animation: node-spin 80s linear infinite;
+}
+@keyframes node-spin { to { transform: rotate(360deg); } }
+
+.node-seal {
+    position: relative;
+    z-index: 2;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--green-900, #0F3120);
+    box-shadow:
+        0 0 0 2px rgba(212, 167, 44, 0.55),
+        0 0 0 4px rgba(10, 36, 24, 1),
+        0 0 24px rgba(212, 167, 44, 0.30);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.node-seal__img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     border-radius: 50%;
     display: block;
-    position: relative;
-    z-index: 2;
-    box-shadow: 0 0 0 2px rgba(212, 167, 44, 0.4), 0 0 24px rgba(212, 167, 44, 0.18);
-    animation: login-emblem-pulse 4s ease-in-out infinite;
 }
-.login-card__emblem-fallback {
+.node-seal__fallback {
     display: none;
-    position: absolute;
-    inset: 0;
-    align-items: center;
-    justify-content: center;
     font-family: 'Fraunces', serif;
     font-size: 22px;
     font-weight: 600;
     color: var(--gold-400, #E3BE52);
-    background: radial-gradient(circle at 50% 35%, var(--green-800, #173D29), var(--green-950, #0A2418) 75%);
-    border-radius: 50%;
-    z-index: 2;
-    box-shadow: 0 0 0 2px rgba(212, 167, 44, 0.4);
 }
-.login-card__emblem--fallback .login-card__emblem-img { display: none; }
-.login-card__emblem--fallback .login-card__emblem-fallback { display: flex; }
+.node-seal--fallback .node-seal__img { display: none; }
+.node-seal--fallback .node-seal__fallback { display: inline; }
 
-.login-card__emblem-rings {
+.node-status {
     position: absolute;
-    inset: 0;
-    pointer-events: none;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px 3px 8px;
+    background: rgba(10, 36, 24, 0.92);
+    border: 1px solid rgba(212, 167, 44, 0.45);
+    border-radius: 999px;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    color: var(--gold-400, #E3BE52);
+    z-index: 3;
+    white-space: nowrap;
 }
-.login-card__emblem-rings .ring {
-    position: absolute;
-    border-radius: 50%;
+.node-status__dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #6FCF7F;
+    box-shadow: 0 0 6px #6FCF7F;
+    animation: node-blink 1.6s ease-in-out infinite;
 }
-.login-card__emblem-rings .ring--outer {
-    inset: 0;
-    border: 1px solid rgba(212,167,44,0.30);
-    animation: login-emblem-spin 38s linear infinite;
+@keyframes node-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.45; }
 }
-.login-card__emblem-rings .ring--mid {
-    inset: 12%;
-    border: 1px dashed rgba(212,167,44,0.22);
-    animation: login-emblem-spin 60s linear infinite reverse;
-}
-.login-card__emblem-rings .ring--inner {
-    inset: 24%;
-    border: 1px solid rgba(245,238,220,0.10);
-    animation: login-emblem-spin 90s linear infinite;
-}
-@keyframes login-emblem-spin { to { transform: rotate(360deg); } }
-@keyframes login-emblem-pulse {
-    0%, 100% { box-shadow: 0 0 0 2px rgba(212,167,44,0.30), 0 0 18px rgba(212,167,44,0.14); }
-    50%      { box-shadow: 0 0 0 2px rgba(212,167,44,0.55), 0 0 32px rgba(212,167,44,0.28); }
-}
-@media (prefers-reduced-motion: reduce) {
-    .login-card__emblem-img { animation: none; }
-    .login-card__emblem-rings .ring { animation: none; }
+
+/* ============================================================
+   HEADING
+   ============================================================ */
+
+.login-card__heading {
+    text-align: center;
+    margin-top: 14px;
+    margin-bottom: 22px;
 }
 
 .login-card__title {
-    font-family: 'Fraunces', serif;
-    font-size: 26px;
+    font-family: 'Fraunces', 'Times New Roman', serif;
+    font-size: 30px;
     font-weight: 600;
-    color: var(--cream-100, #F5F0E1);
+    line-height: 1.1;
     margin: 0 0 8px;
-    text-align: center;
+    letter-spacing: -0.01em;
+    background: linear-gradient(180deg, #F4D987 0%, #E3BE52 45%, #B98A1F 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(212, 167, 44, 0.18);
 }
 
 .login-card__hint {
     color: var(--cream-200, #C4B896);
-    font-size: 14px;
-    text-align: center;
-    margin: 0 0 24px;
-    opacity: 0.8;
-}
-
-/* ----- Form fields ----- */
-.field {
-    margin-bottom: 18px;
-}
-
-.field label {
-    display: block;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 500;
-    color: var(--cream-200, #C4B896);
-    margin-bottom: 6px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin: 0;
+    opacity: 0.75;
 }
 
-.input-shell {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
+/* ============================================================
+   ALERTS
+   ============================================================ */
 
-.input-shell input {
-    width: 100%;
-    background: rgba(10, 36, 24, 0.8);
-    border: 1px solid var(--line, #D4A72C33);
-    border-radius: 6px;
-    color: var(--cream-100, #F5F0E1);
-    padding: 13px 52px 13px 14px; /* extra right padding for the 44px tap target */
-    font-size: 15px;
-    font-family: 'Inter', sans-serif;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    min-height: 48px;
-}
-
-.input-shell input:focus {
-    outline: none;
-    border-color: var(--gold-500, #D4A72C);
-    box-shadow: 0 0 0 3px rgba(212, 167, 44, 0.15);
-}
-
-.input-shell input::placeholder {
-    color: var(--cream-200, #C4B896);
-    opacity: 0.5;
-}
-
-.input-shell__toggle {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 44px;
-    height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    color: var(--cream-200, #C4B896);
-    cursor: pointer;
-    font-size: 18px;
-    border-radius: 6px;
-    transition: color 0.2s ease, background 0.2s ease;
-}
-
-.input-shell__toggle:hover {
-    color: var(--gold-500, #D4A72C);
-    background: rgba(212, 167, 44, 0.08);
-}
-
-.input-shell__toggle:focus-visible {
-    outline: 2px solid var(--gold-500, #D4A72C);
-    outline-offset: 2px;
-}
-
-/* ----- Submit button ----- */
-.btn-signin {
-    width: 100%;
-    background: var(--gold-500, #D4A72C);
-    color: var(--green-950, #0A2418);
-    border: none;
-    border-radius: 6px;
-    padding: 14px;
-    font-size: 15px;
-    font-weight: 700;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.15s ease;
-    margin-top: 4px;
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.btn-signin:hover {
-    background: #E3BE52;
-}
-
-.btn-signin:active {
-    transform: scale(0.98);
-}
-
-.btn-signin:disabled,
-[data-login-form][data-state="sending"] .btn-signin {
-    opacity: 0.7;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-.btn-signin__sending { display: none; }
-[data-login-form][data-state="sending"] .btn-signin__label    { display: none; }
-[data-login-form][data-state="sending"] .btn-signin__sending { display: inline; }
-
-/* ----- Inline rows inside the card ----- */
-.login-card__row {
-    margin: 14px 0 0;
-    text-align: right;
-}
-
-.login-card__help {
-    color: var(--gold-400, #E3BE52);
-    text-decoration: none;
-    font-size: 13.5px;
-    transition: color 0.2s ease;
-}
-.login-card__help:hover {
-    color: var(--gold-500, #D4A72C);
-    text-decoration: underline;
-}
-.login-card__help:focus-visible {
-    outline: 2px solid var(--gold-500, #D4A72C);
-    outline-offset: 2px;
-    border-radius: 2px;
-}
-
-/* ----- Footer link ----- */
-.login-card__footnote {
-    text-align: center;
-    margin-top: 22px;
-    padding-top: 18px;
-    border-top: 1px solid rgba(212, 167, 44, 0.12);
-}
-
-.login-card__footnote a {
-    color: var(--gold-400, #E3BE52);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: color 0.2s ease;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    padding: 0 6px;
-}
-
-.login-card__footnote a:hover {
-    color: var(--gold-500, #D4A72C);
-    text-decoration: underline;
-}
-
-.login-card__footnote a:focus-visible {
-    outline: 2px solid var(--gold-500, #D4A72C);
-    outline-offset: 2px;
-    border-radius: 2px;
-}
-
-/* ----- Alerts ----- */
 .login-alert {
-    background: rgba(212, 167, 44, 0.12);
-    border: 1px solid var(--gold-500, #D4A72C);
-    border-radius: 6px;
+    background: rgba(212, 167, 44, 0.10);
+    border: 1px solid rgba(212, 167, 44, 0.45);
+    border-radius: 8px;
     color: var(--cream-100, #F5F0E1);
-    padding: 12px 16px;
-    font-size: 14px;
-    margin-bottom: 20px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    margin-bottom: 18px;
     text-align: center;
-    line-height: 1.5;
+    line-height: 1.45;
 }
-
 .login-alert--error {
     background: rgba(232, 183, 183, 0.10);
     border-color: rgba(232, 183, 183, 0.4);
     color: #F2C9C9;
 }
-
 .login-alert--notice {
     background: rgba(183, 225, 176, 0.10);
     border-color: rgba(183, 225, 176, 0.35);
     color: #CCE3C8;
+}
+
+/* ============================================================
+   FLOATING-LABEL FIELDS WITH ICONS
+   ============================================================ */
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+}
+
+.field--floating {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(8, 22, 15, 0.55);
+    border: 1px solid rgba(212, 167, 44, 0.22);
+    border-radius: 10px;
+    height: 56px;
+    padding: 0 14px 0 46px;
+    transition:
+        border-color 0.25s ease,
+        background 0.25s ease,
+        box-shadow 0.25s ease;
+}
+.field--floating:hover {
+    border-color: rgba(212, 167, 44, 0.40);
+}
+.field--floating:focus-within {
+    border-color: var(--gold-2);
+    background: rgba(8, 22, 15, 0.78);
+    box-shadow:
+        0 0 0 1px var(--gold-2),
+        0 0 0 4px rgba(212, 167, 44, 0.18),
+        0 0 26px rgba(212, 167, 44, 0.22);
+}
+
+.field__icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px; height: 20px;
+    color: var(--cream-200, #C4B896);
+    opacity: 0.7;
+    transition: color 0.25s ease, opacity 0.25s ease;
+    pointer-events: none;
+}
+.field--floating:focus-within .field__icon {
+    color: var(--gold-2);
+    opacity: 1;
+}
+.field__icon svg { width: 100%; height: 100%; display: block; }
+
+.field__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    color: var(--cream-100, #F5F0E1);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    height: 100%;
+    width: 100%;
+    padding: 18px 0 4px;
+    letter-spacing: 0.01em;
+}
+.field__input::placeholder { color: transparent; }    /* hide native placeholder; we use a real label */
+.field__input:-webkit-autofill,
+.field__input:-webkit-autofill:hover,
+.field__input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--cream-100, #F5F0E1);
+    -webkit-box-shadow: 0 0 0 1000px rgba(8, 22, 15, 0.55) inset;
+    caret-color: var(--cream-100, #F5F0E1);
+}
+
+.field__label {
+    position: absolute;
+    left: 46px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--cream-200, #C4B896);
+    font-size: 15px;
+    font-weight: 500;
+    pointer-events: none;
+    opacity: 0.85;
+    transition: transform 0.2s ease, font-size 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+    transform-origin: left center;
+    letter-spacing: 0.01em;
+}
+.field__input:focus + .field__label,
+.field__input:not(:placeholder-shown) + .field__label {
+    transform: translateY(-22px) scale(0.78);
+    color: var(--gold-1, #E3BE52);
+    opacity: 1;
+}
+
+/* ----- Password eye toggle (eye / eye-slash morph) ----- */
+.field__toggle {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    margin-right: -6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    color: var(--cream-200, #C4B896);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+.field__toggle:hover {
+    color: var(--gold-2);
+    background: rgba(212, 167, 44, 0.10);
+}
+.field__toggle:focus-visible {
+    outline: 2px solid var(--gold-2);
+    outline-offset: 2px;
+}
+.field__toggle .eye {
+    display: block;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+}
+/* Default: closed (show-password state). The button says "Show password". */
+.field__toggle .eye--open {
+    display: none;
+}
+/* When aria-pressed="true" (password IS shown), reveal the open-eye */
+.field__toggle[aria-pressed="true"] .eye--closed {
+    display: none;
+}
+.field__toggle[aria-pressed="true"] .eye--open {
+    display: block;
+    animation: eye-pop 0.32s cubic-bezier(.4, 1.6, .5, 1);
+}
+@keyframes eye-pop {
+    0%   { transform: scale(0.6); opacity: 0; }
+    60%  { transform: scale(1.10); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ============================================================
+   SIGN-IN BUTTON (gold fill, shine sweep, ripple, spinner)
+   ============================================================ */
+
+.btn-signin {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    width: 100%;
+    height: 52px;
+    margin-top: 6px;
+    background: linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 50%, var(--gold-3) 100%);
+    color: var(--green-950, #0A2418);
+    border: 0;
+    border-radius: 10px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.10) inset,
+        0 1px 0 rgba(255, 255, 255, 0.25) inset,
+        0 8px 20px rgba(212, 167, 44, 0.25),
+        0 0 0 0 rgba(212, 167, 44, 0.0);
+    transition: transform 0.15s ease, box-shadow 0.25s ease, filter 0.2s ease;
+}
+.btn-signin:hover {
+    filter: brightness(1.05);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+        0 1px 0 rgba(255, 255, 255, 0.30) inset,
+        0 10px 28px rgba(212, 167, 44, 0.40),
+        0 0 24px rgba(212, 167, 44, 0.22);
+}
+.btn-signin:active { transform: scale(0.985); }
+.btn-signin:focus-visible {
+    outline: 2px solid var(--gold-1);
+    outline-offset: 3px;
+}
+
+/* ----- Shine sweep on hover ----- */
+.btn-signin__shine {
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(100deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.0) 35%,
+        rgba(255, 255, 255, 0.45) 50%,
+        rgba(255, 255, 255, 0.0) 65%,
+        transparent 100%);
+    transform: skewX(-18deg);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 1;
+}
+.btn-signin:hover .btn-signin__shine {
+    animation: shine-sweep 0.9s ease forwards;
+}
+@keyframes shine-sweep {
+    0%   { left: -60%; opacity: 0; }
+    20%  { opacity: 1; }
+    100% { left: 130%; opacity: 0; }
+}
+
+/* ----- Ripple on click ----- */
+.btn-signin__ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    background: rgba(255, 255, 255, 0.45);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 2;
+    left: 50%;
+    top: 50%;
+    width: 12px; height: 12px;
+    margin: -6px 0 0 -6px;
+}
+.btn-signin__ripple.is-active {
+    animation: ripple 0.55s ease-out;
+}
+@keyframes ripple {
+    0%   { transform: scale(0);   opacity: 0.6; }
+    100% { transform: scale(28); opacity: 0;   }
+}
+
+/* ----- Label / sending state ----- */
+.btn-signin__label,
+.btn-signin__sending {
+    position: relative;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+.btn-signin__sending { display: none; }
+[data-login-form][data-state="sending"] .btn-signin__label    { display: none; }
+[data-login-form][data-state="sending"] .btn-signin__sending { display: inline-flex; }
+[data-login-form][data-state="sending"] .btn-signin {
+    pointer-events: none;
+    opacity: 0.92;
+}
+.btn-signin__spinner {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(10, 36, 24, 0.30);
+    border-top-color: var(--green-950, #0A2418);
+    animation: btn-spin 0.7s linear infinite;
+}
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   SECONDARY LINKS (underline-grow on hover)
+   ============================================================ */
+
+.login-card__links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(212, 167, 44, 0.12);
+    font-size: 13.5px;
+}
+.link-underline {
+    position: relative;
+    color: var(--gold-400, #E3BE52);
+    text-decoration: none;
+    padding: 4px 0;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+.link-underline::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 1px;
+    width: 0;
+    background: currentColor;
+    transition: width 0.28s ease;
+}
+.link-underline:hover {
+    color: var(--gold-1, #E3BE52);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after {
+    width: 100%;
+}
+.link-underline:focus-visible {
+    outline: 2px solid var(--gold-2);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+.link-sep {
+    color: var(--cream-200, #C4B896);
+    opacity: 0.5;
+}
+
+/* ============================================================
+   STAGGERED ENTRANCE
+   Each .data-stagger gets opacity:0 + small Y offset, then a JS
+   toggle (added by site.js on DOMContentLoaded) removes the hidden
+   state after a beat so the entrance feels alive but not jumpy.
+
+   The CSS honors [data-stagger] to compute its own delay; JS just
+   adds .is-in to .login-card when ready, and inner items inherit
+   the cascade via the index attribute.
+   ============================================================ */
+
+.login-card {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.55s ease, transform 0.55s cubic-bezier(.22,.61,.36,1);
+}
+.login-card.is-in { opacity: 1; transform: none; }
+
+[data-stagger] {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.22,.61,.36,1);
+    transition-delay: var(--stagger-delay, 0ms);
+}
+.login-card.is-in [data-stagger] { opacity: 1; transform: none; }
+
+/* Per-index delay: 1=node, 2=heading/alert, 3=form, 4=button, 5=links */
+.login-card.is-in [data-stagger="1"] { transition-delay: 100ms; }
+.login-card.is-in [data-stagger="2"] { transition-delay: 240ms; }
+.login-card.is-in [data-stagger="3"] { transition-delay: 360ms; }
+.login-card.is-in [data-stagger="4"] { transition-delay: 480ms; }
+.login-card.is-in [data-stagger="5"] { transition-delay: 600ms; }
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .login-card,
+    [data-stagger] { opacity: 1; transform: none; transition: none; }
+    .login-card__trace .trace-rect { animation: none; opacity: 0.75; }
+    .node-glow, .node-status__dot { animation: none; }
+    .node-ring--outer, .node-ring--mid, .node-ring--inner { animation: none; }
+    .login-terminal__atmosphere .orb--gold,
+    .login-terminal__atmosphere .orb--green { animation: none; }
+    .btn-signin__shine { display: none; }
+    .btn-signin__spinner { animation: none; }
+    .link-underline::after { transition: none; }
 }

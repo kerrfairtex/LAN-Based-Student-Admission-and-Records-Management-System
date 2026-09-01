@@ -24,10 +24,7 @@ $error    = '';
 $username = '';
 $reason   = isset($_GET['reason']) ? (string) $_GET['reason'] : '';
 
-/* Detect "session expired" / "auth required" redirect targets.
-   Other pages redirect here with ?reason=expired or ?reason=required
-   when the user must re-authenticate. We surface a friendly notice
-   instead of leaving the user wondering why they're here. */
+/* Detect "session expired" / "auth required" redirect targets. */
 $notice = '';
 if ($reason === 'expired') {
     $notice = 'Your session has expired. Please sign in again to continue.';
@@ -54,8 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $page_title        = 'Staff Sign In';
 $page_description  = 'TRAC JHS staff sign-in — registrar and data encoder portal.';
-$body_class        = 'login-body';
+$body_class        = 'login-body login-terminal';
 $hide_nav_links    = true;
+$hide_header       = true;          /* the brand moves into the card itself */
 $minimal_footer    = true;
 $active_nav        = 'login';
 
@@ -64,87 +62,152 @@ require __DIR__ . '/../includes/site_header.php';
 $flash = get_flash();
 ?>
 
-<section class="login-shell">
-    <div class="wrap" style="max-width:460px;">
-        <div class="login-card">
-            <div class="login-card__emblem" aria-hidden="true">
-                <div class="login-card__emblem-rings">
-                    <span class="ring ring--outer"></span>
-                    <span class="ring ring--mid"></span>
-                    <span class="ring ring--inner"></span>
-                </div>
-                <img class="login-card__emblem-img" src="/assets/img/lanbaselogo.jpeg" alt="" width="96" height="96" loading="eager" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentNode.classList.add('login-card__emblem--fallback');">
-                <span class="login-card__emblem-fallback" aria-hidden="true">TRAC</span>
+<!-- Background atmosphere: grid + glow orbs, behind the card -->
+<div class="login-terminal__atmosphere" aria-hidden="true">
+    <span class="orb orb--gold"></span>
+    <span class="orb orb--green"></span>
+    <span class="grid-overlay"></span>
+</div>
+
+<main class="login-terminal" id="main">
+    <section class="login-card" aria-labelledby="login-title">
+        <!-- Circuit-trace animated border (SVG mask technique) -->
+        <div class="login-card__trace" aria-hidden="true">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <rect x="0.5" y="0.5" width="99" height="99" rx="2.4" ry="2.4"
+                      fill="none" stroke="url(#traceGrad)" stroke-width="1"
+                      pathLength="100" class="trace-rect"/>
+                <defs>
+                    <linearGradient id="traceGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%"   stop-color="#D4A72C" stop-opacity="0.10"/>
+                        <stop offset="40%"  stop-color="#E3BE52" stop-opacity="0.95"/>
+                        <stop offset="60%"  stop-color="#D4A72C" stop-opacity="0.95"/>
+                        <stop offset="100%" stop-color="#D4A72C" stop-opacity="0.10"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+
+        <!-- Top: authentication node emblem -->
+        <div class="login-card__node" data-stagger="1" aria-hidden="true">
+            <div class="node-glow"></div>
+            <div class="node-rings">
+                <span class="node-ring node-ring--outer"></span>
+                <span class="node-ring node-ring--mid"></span>
+                <span class="node-ring node-ring--inner"></span>
+            </div>
+            <div class="node-seal">
+                <img class="node-seal__img"
+                     src="/assets/img/lanbaselogo.jpeg" alt=""
+                     width="84" height="84" loading="eager" decoding="async"
+                     onerror="this.onerror=null;this.style.display='none';this.parentNode.classList.add('node-seal--fallback');">
+                <span class="node-seal__fallback" aria-hidden="true">TRAC</span>
+            </div>
+            <span class="node-status" aria-hidden="true">
+                <span class="node-status__dot"></span>
+                <span class="node-status__label">SECURE NODE</span>
+            </span>
+        </div>
+
+        <!-- Heading block -->
+        <div class="login-card__heading" data-stagger="2">
+            <h1 class="login-card__title" id="login-title">Staff Sign In</h1>
+            <p class="login-card__hint">Authorized Registrar and Data Encoder accounts only.</p>
+        </div>
+
+        <!-- Alerts -->
+        <?php if ($flash): ?>
+            <div class="login-alert" data-stagger="2" role="alert"><?= e($flash['message']) ?></div>
+        <?php elseif ($notice !== ''): ?>
+            <div class="login-alert login-alert--notice" data-stagger="2" role="status"><?= e($notice) ?></div>
+        <?php elseif ($error !== ''): ?>
+            <div class="login-alert login-alert--error" data-stagger="2" role="alert"><?= e($error) ?></div>
+        <?php endif; ?>
+
+        <!-- Form -->
+        <form class="login-form" method="post" action="<?= e(url('/auth/login.php')) ?>" data-login-form data-stagger="3" autocomplete="on">
+            <?= csrf_field() ?>
+
+            <!-- Username -->
+            <div class="field field--floating">
+                <span class="field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+                    </svg>
+                </span>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    class="field__input"
+                    autocomplete="username"
+                    required
+                    autofocus
+                    value="<?= e($username) ?>"
+                    placeholder=" "
+                >
+                <label for="username" class="field__label">Username</label>
             </div>
 
-            <h1 class="login-card__title">Staff Sign In</h1>
-            <p class="login-card__hint">Authorized Registrar and Data Encoder accounts only.</p>
+            <!-- Password -->
+            <div class="field field--floating">
+                <span class="field__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="11" width="16" height="10" rx="2"/>
+                        <path d="M8 11V7a4 4 0 018 0v4"/>
+                    </svg>
+                </span>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="field__input"
+                    autocomplete="current-password"
+                    required
+                    placeholder=" "
+                >
+                <label for="password" class="field__label">Password</label>
 
-            <?php if ($flash): ?>
-                <div class="login-alert" role="alert"><?= e($flash['message']) ?></div>
-            <?php elseif ($notice !== ''): ?>
-                <div class="login-alert login-alert--notice" role="status"><?= e($notice) ?></div>
-            <?php elseif ($error !== ''): ?>
-                <div class="login-alert login-alert--error" role="alert"><?= e($error) ?></div>
-            <?php endif; ?>
-
-            <form method="post" action="<?= e(url('/auth/login.php')) ?>" data-login-form>
-                <?= csrf_field() ?>
-
-                <div class="field">
-                    <label for="username">Username</label>
-                    <div class="input-shell">
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            autocomplete="username"
-                            required
-                            autofocus
-                            value="<?= e($username) ?>"
-                            placeholder="Enter your username"
-                        >
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="password">Password</label>
-                    <div class="input-shell">
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            autocomplete="current-password"
-                            required
-                            placeholder="Enter your password"
-                        >
-                        <button
-                            type="button"
-                            class="input-shell__toggle"
-                            data-password-toggle
-                            aria-label="Show password"
-                            aria-pressed="false"
-                        >
-                            <span aria-hidden="true">&#128065;</span>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-signin">
-                    <span class="btn-signin__label">Sign In</span>
-                    <span class="btn-signin__sending" aria-hidden="true">Signing in&hellip;</span>
+                <!-- Eye / Eye-slash morph -->
+                <button
+                    type="button"
+                    class="field__toggle"
+                    data-password-toggle
+                    aria-label="Show password"
+                    aria-pressed="false"
+                >
+                    <svg class="eye eye--closed" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="eye eye--open" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                        <line x1="3" y1="3" x2="21" y2="21"/>
+                    </svg>
                 </button>
+            </div>
 
-                <p class="login-card__row">
-                    <a class="login-card__help" href="mailto:registrar@tracjhs.edu.ph?subject=Password%20reset%20request">Forgot password?</a>
-                </p>
-            </form>
+            <!-- Sign In -->
+            <button type="submit" class="btn-signin" data-stagger="4">
+                <span class="btn-signin__label">Sign In</span>
+                <span class="btn-signin__sending" aria-hidden="true">
+                    <span class="btn-signin__spinner" aria-hidden="true"></span>
+                    <span>Signing in&hellip;</span>
+                </span>
+                <span class="btn-signin__shine" aria-hidden="true"></span>
+                <span class="btn-signin__ripple" aria-hidden="true"></span>
+            </button>
+        </form>
 
-            <p class="login-card__footnote">
-                <a href="<?= e(url('/')) ?>">&larr; Back to landing page</a>
-            </p>
+        <!-- Secondary links -->
+        <div class="login-card__links" data-stagger="5">
+            <a class="link-underline" href="mailto:registrar@tracjhs.edu.ph?subject=Password%20reset%20request">Forgot password?</a>
+            <span class="link-sep" aria-hidden="true">·</span>
+            <a class="link-underline" href="<?= e(url('/')) ?>">&larr; Back to landing page</a>
         </div>
-    </div>
-</section>
+    </section>
+</main>
 
 <?php require __DIR__ . '/../includes/site_footer.php'; ?>

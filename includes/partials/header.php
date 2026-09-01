@@ -20,6 +20,9 @@ declare(strict_types=1);
  *   $body_class        — string added to <body class="…">
  *   $hide_nav_links    — bool (default false): hide the in-page anchor nav
  *                        (used by auth/login.php where the menu doesn't apply)
+ *   $hide_header       — bool (default false): suppress the entire <header>
+ *                        (used by auth/login.php where the brand lives inside
+ *                        the card itself)
  */
 
 require_once __DIR__ . '/../../config/app.php';
@@ -52,6 +55,7 @@ $page_description  = $page_description  ?? 'TRAC JHS — Junior High School of T
 $active_nav        = $active_nav        ?? '';
 $body_class        = $body_class        ?? '';
 $hide_nav_links    = $hide_nav_links    ?? false;
+$hide_header       = $hide_header       ?? false;
 $is_authed         = is_logged_in();
 ?>
 <!DOCTYPE html>
@@ -70,7 +74,7 @@ $is_authed         = is_logged_in();
 </head>
 <body class="<?= e($body_class) ?>">
 
-
+<?php if (!$hide_header): ?>
 <header class="site-header" role="banner">
     <div class="wrap site-header__row">
         <a class="brand" href="<?= e(url('/')) ?>">
@@ -124,5 +128,6 @@ $is_authed         = is_logged_in();
     </nav>
     <?php endif; ?>
 </header>
+<?php endif; ?>
 
 <main id="main">
