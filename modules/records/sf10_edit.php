@@ -32,6 +32,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input['grade_level_id'] = trim($_POST['grade_level_id'] ?? '');
 
     $grades = $_POST['grades'] ?? [];
+
+    // Server-side range check: every quarter + final must be numeric and in [0,100].
+    // Empty string (cleared cell) is allowed and stored as NULL by save_sf10_entries.
+    $sf10Errors = [];
+    foreach ($grades as $area => $row) {
+        foreach (['q1', 'q2', 'q3', 'q4', 'final'] as $field) {
+            $val = $row[$field] ?? '';
+            if ($val === '' || $val === null) {
+                continue;
+            }
+            if (!is_numeric($val) || (float) $val < 0 || (float) $val > 100) {
+                $sf10Errors[] = "{$area} / {$field} must be a number between 0 and 100.";
+            }
+        }
+    }
+
+    if ($sf10Errors) {
+        flash('danger', 'Grade validation failed: ' . implode(' ', $sf10Errors));
+        redirect('/modules/records/sf10_edit.php?student_id=' . $studentId . '&school_year_id=' . $input['school_year_id'] . '&grade_level_id=' . $input['grade_level_id']);
+    }
+
     save_sf10_entries(
         $studentId,
         (int) $input['school_year_id'],

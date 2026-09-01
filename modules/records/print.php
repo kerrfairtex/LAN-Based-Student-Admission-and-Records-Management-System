@@ -197,14 +197,18 @@ $sf10Rows = $sf10->fetchAll();
         <?php endif; ?>
 
         <!-- Footer -->
-        <div class="mt-4 pt-3 border-top text-muted small">
-            <div class="d-flex justify-content-between">
+        <div class="mt-4 pt-3 border-top text-muted small no-print">
+            <div class="d-flex justify-content-between align-items-center">
                 <span>TRAC JHS SARMS — Official Record</span>
                 <span>Generated on <?= date('F j, Y g:i A') ?></span>
             </div>
+            <div class="text-center mt-3">
+                <button type="button" onclick="window.print()" class="btn btn-primary">
+                    <i class="bi bi-printer"></i> Print this page
+                </button>
+            </div>
         </div>
     </div>
-    <script>window.print();</script>
 </body>
 </html>
 <?php

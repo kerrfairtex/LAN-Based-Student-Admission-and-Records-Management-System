@@ -37,9 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'mark_received' => 'documents_received',
         'complete' => 'completed',
         'escalate' => 'escalated',
+        'reopen' => 'pending',
     ];
 
     if (isset($statusMap[$action])) {
+        // Reopen is a registrar-only override that resets a request back to pending
+        // (e.g. after SGOD resolves an escalation). Refuse for everyone else.
+        if ($action === 'reopen' && !is_registrar()) {
+            flash('danger', 'Only the School Registrar can reopen a transfer request.');
+            redirect('/modules/transfers/view.php?id=' . $id);
+        }
+
         $newStatus = $statusMap[$action];
         $completedAt = $newStatus === 'completed' ? date('Y-m-d H:i:s') : null;
         $escalatedAt = $newStatus === 'escalated' ? date('Y-m-d H:i:s') : null;
@@ -129,6 +137,12 @@ render_header('Transfer Request', 'transfers');
                         <button type="submit" name="action" value="complete" class="btn btn-primary">Mark Completed</button>
                         <?php if (is_registrar() && $overdue): ?>
                             <button type="submit" name="action" value="escalate" class="btn btn-outline-danger">Escalate to SGOD</button>
+                        <?php endif; ?>
+                        <?php if (is_registrar() && $transfer['status'] === 'escalated'): ?>
+                            <button type="submit" name="action" value="reopen" class="btn btn-outline-warning"
+                                    onclick="return confirm('Reopen this request and reset status to pending? This should only be done after SGOD has responded.');">
+                                Reopen (back to pending)
+                            </button>
                         <?php endif; ?>
                     </div>
                 </form>

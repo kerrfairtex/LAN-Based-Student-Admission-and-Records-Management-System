@@ -41,7 +41,25 @@ $records = db()->prepare(
 $records->execute(['student_id' => $id]);
 $academicRecords = $records->fetchAll();
 
-audit_log('view', 'students', $id, 'Viewed student record');
+// Audit-log the view only if the same user has not viewed this student
+// in the last 5 minutes. Otherwise every page refresh floods audit_logs
+// and works against the retention policy added in migration 004.
+$recent = db()->prepare(
+    'SELECT 1 FROM audit_logs
+      WHERE user_id = :user_id
+        AND entity_type = \'students\'
+        AND entity_id = :entity_id
+        AND action = \'view\'
+        AND created_at > NOW() - INTERVAL \'5 minutes\'
+      LIMIT 1'
+);
+$recent->execute([
+    'user_id'    => (int) $_SESSION['user']['id'],
+    'entity_id'  => $id,
+]);
+if (!$recent->fetch()) {
+    audit_log('view', 'students', $id, 'Viewed student record');
+}
 
 render_header('Student Record', 'records');
 ?>
