@@ -92,6 +92,50 @@ function generate_application_no(): string
     return sprintf('ADM-%s-%04d', $year, $count);
 }
 
+/**
+ * Retry-on-unique-violation wrapper for INSERT statements that derive a unique
+ * identifier from generate_student_id() / generate_application_no(). Both helpers
+ * use COUNT(*)+1 which can race under concurrent inserts; this wrapper catches
+ * the SQLSTATE 23505 unique-violation exception and retries up to N times with
+ * a freshly-generated id before giving up.
+ *
+ * Usage:
+ *   insert_with_unique_retry(function () use ($stmt, $params) {
+ *       $stmt->execute($params);
+ *   });
+ *
+ * @param callable $fn    The insert closure (no args, no return).
+ * @param int      $maxAttempts
+ * @return int             Last inserted id (or 0 on final failure).
+ */
+function insert_with_unique_retry(callable $fn, int $maxAttempts = 5): int
+{
+    $attempt = 0;
+    while ($attempt < $maxAttempts) {
+        try {
+            $fn();
+            return (int) db()->lastInsertId();
+        } catch (PDOException $e) {
+            // 23505 = unique_violation in PostgreSQL. Also handle MySQL's 1062
+            // for environments that still use it.
+            $isUniqueViolation =
+                $e->getCode() === '23505' ||
+                (strpos($e->getMessage(), '23505') !== false) ||
+                $e->getCode() === '1062' ||
+                (strpos($e->getMessage(), '1062') !== false);
+
+            if (!$isUniqueViolation || ++$attempt >= $maxAttempts) {
+                throw $e;
+            }
+            // Loop continues: caller is expected to regenerate the id (e.g. via
+            // $params['application_no'] = generate_application_no()) before the
+            // next call. If your closure captures the id by value, capture by
+            // reference instead.
+        }
+    }
+    return 0;
+}
+
 function validate_lrn(?string $lrn): bool
 {
     if ($lrn === null || $lrn === '') {

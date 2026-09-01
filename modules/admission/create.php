@@ -64,6 +64,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'good_moral' => $input['good_moral'] === '1',
         ];
 
+        // LRN uniqueness check: if this LRN already corresponds to an existing
+        // student, reject. (Two concurrent applications for the same LRN would
+        // also collide at approval time on uq_students_lrn.)
+        if ($input['lrn'] !== '') {
+            $existingLrn = db()->prepare(
+                'SELECT 1 FROM admissions WHERE lrn = :lrn LIMIT 1'
+            );
+            $existingLrn->execute(['lrn' => $input['lrn']]);
+            if ($existingLrn->fetch()) {
+                $errors['lrn'] = 'An application with this LRN already exists.';
+            }
+        }
+
+        // Birthdate sanity.
+        if ($input['birthdate'] !== '') {
+            $bd = strtotime($input['birthdate']);
+            if ($bd === false || $bd > time()) {
+                $errors['birthdate'] = 'Birthdate cannot be in the future.';
+            } elseif ($bd < strtotime('-120 years')) {
+                $errors['birthdate'] = 'Birthdate is unrealistically old.';
+            }
+        }
+    }
+
+    if (!$errors) {
         $stmt = db()->prepare(
             'INSERT INTO admissions (
                 application_no, school_year_id, grade_level_id, enrollment_type,
@@ -78,10 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )'
         );
 
-        $applicationNo = generate_application_no();
-
-        $stmt->execute([
-            'application_no' => $applicationNo,
+        $params = [
+            'application_no' => generate_application_no(),
             'school_year_id' => (int) $input['school_year_id'],
             'grade_level_id' => (int) $input['grade_level_id'],
             'enrollment_type' => $input['enrollment_type'],
@@ -100,11 +123,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'previous_school' => $input['previous_school'] ?: null,
             'documents_submitted' => json_encode($documents),
             'created_by' => (int) $_SESSION['user']['id'],
-        ]);
+        ];
 
-        $admissionId = (int) db()->lastInsertId();
-        audit_log('create', 'admissions', $admissionId, "Created application {$applicationNo}");
-        flash('success', "Application {$applicationNo} encoded successfully.");
+        // Retry on unique-violation: regenerate_application_no is COUNT(*)+1
+        // and can race under concurrent submits. capture-by-reference on
+        // $params['application_no'] lets the closure regenerate it each try.
+        $admissionId = insert_with_unique_retry(function () use ($stmt, &$params) {
+            $params['application_no'] = generate_application_no();
+            $stmt->execute($params);
+        });
+
+        if ($admissionId <= 0) {
+            throw new RuntimeException('Could not allocate a unique application number after retries.');
+        }
+
+        audit_log('create', 'admissions', $admissionId, "Created application {$params['application_no']}");
+        flash('success', "Application {$params['application_no']} encoded successfully.");
         redirect('/modules/admission/view.php?id=' . $admissionId);
     }
 }
@@ -170,6 +204,7 @@ render_header('New Admission', 'admission');
             <div class="col-md-4">
                 <label class="form-label">Birthdate</label>
                 <input type="date" name="birthdate" class="form-control <?= isset($errors['birthdate']) ? 'is-invalid' : '' ?>" value="<?= e($input['birthdate']) ?>" required>
+                <?php if (isset($errors['birthdate'])): ?><div class="invalid-feedback"><?= e($errors['birthdate']) ?></div><?php endif; ?>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Sex</label>

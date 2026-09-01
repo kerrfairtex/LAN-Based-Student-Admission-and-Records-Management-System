@@ -36,107 +36,182 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
     if ($action === 'approve' && $admission['status'] === 'pending') {
         $sectionId = (int) ($_POST['section_id'] ?? 0) ?: null;
 
-        db()->beginTransaction();
-
-        try {
-            $studentIdNo = generate_student_id();
-
-            $insertStudent = db()->prepare(
-                'INSERT INTO students (
-                    student_id_no, lrn, first_name, middle_name, last_name, suffix,
-                    birthdate, sex, address, contact_number, guardian_name,
-                    guardian_relationship, guardian_contact, previous_school, created_by
-                ) VALUES (
-                    :student_id_no, :lrn, :first_name, :middle_name, :last_name, :suffix,
-                    :birthdate, :sex, :address, :contact_number, :guardian_name,
-                    :guardian_relationship, :guardian_contact, :previous_school, :created_by
-                )'
+        // Guardrail: if section_id was submitted, it must belong to the
+        // admission's grade level. The dropdown is pre-filtered, but a
+        // tampered POST could submit any section_id.
+        if ($sectionId !== null) {
+            $sectionCheck = db()->prepare(
+                'SELECT id FROM sections WHERE id = :id AND grade_level_id = :grade_level_id'
             );
-
-            $insertStudent->execute([
-                'student_id_no' => $studentIdNo,
-                'lrn' => $admission['lrn'],
-                'first_name' => $admission['first_name'],
-                'middle_name' => $admission['middle_name'],
-                'last_name' => $admission['last_name'],
-                'suffix' => $admission['suffix'],
-                'birthdate' => $admission['birthdate'],
-                'sex' => $admission['sex'],
-                'address' => $admission['address'],
-                'contact_number' => $admission['contact_number'],
-                'guardian_name' => $admission['guardian_name'],
-                'guardian_relationship' => $admission['guardian_relationship'],
-                'guardian_contact' => $admission['guardian_contact'],
-                'previous_school' => $admission['previous_school'],
-                'created_by' => (int) $_SESSION['user']['id'],
-            ]);
-
-            $studentId = (int) db()->lastInsertId();
-
-            $insertEnrollment = db()->prepare(
-                'INSERT INTO enrollments (
-                    student_id, school_year_id, grade_level_id, section_id, enrollment_type,
-                    enrolled_at, created_by
-                ) VALUES (
-                    :student_id, :school_year_id, :grade_level_id, :section_id, :enrollment_type,
-                    :enrolled_at, :created_by
-                )'
-            );
-
-            $insertEnrollment->execute([
-                'student_id' => $studentId,
-                'school_year_id' => (int) $admission['school_year_id'],
+            $sectionCheck->execute([
+                'id' => $sectionId,
                 'grade_level_id' => (int) $admission['grade_level_id'],
-                'section_id' => $sectionId,
-                'enrollment_type' => $admission['enrollment_type'],
-                'enrolled_at' => date('Y-m-d'),
-                'created_by' => (int) $_SESSION['user']['id'],
             ]);
+            if (!$sectionCheck->fetch()) {
+                flash('danger', 'Selected section does not belong to the application\'s grade level.');
+                redirect('/modules/admission/view.php?id=' . $id);
+            }
+        }
 
-            if ($admission['enrollment_type'] === 'transferee' && $admission['previous_school']) {
-                $dueDate = date('Y-m-d', strtotime('+30 days'));
-                $transfer = db()->prepare(
-                    'INSERT INTO transfer_requests (
-                        student_id, direction, counterpart_school, request_date,
-                        first_attendance_date, due_date, status, created_by
+        // LRN collision guard: if this LRN already belongs to a student, refuse
+        // rather than mid-transaction INSERT-failing on uq_students_lrn.
+        if (!empty($admission['lrn'])) {
+            $existingStudent = db()->prepare('SELECT 1 FROM students WHERE lrn = :lrn LIMIT 1');
+            $existingStudent->execute(['lrn' => $admission['lrn']]);
+            if ($existingStudent->fetch()) {
+                flash('danger', 'A student with this LRN already exists. Resolve the duplicate before approving.');
+                redirect('/modules/admission/view.php?id=' . $id);
+            }
+        }
+
+        // Duplicate-transfer guard: don't create a second open transfer for
+        // the same student + direction. (Belt-and-suspenders; the schema
+        // doesn't enforce this and we already guard in transfers/create.php.)
+        if ($admission['enrollment_type'] === 'transferee' && $admission['previous_school']) {
+            // Defer until after we know the student_id; check below.
+        }
+
+        $studentIdNo = generate_student_id();
+        $studentId = 0;
+        $committed = false;
+
+        // Retry the whole transaction on unique-violation. generate_student_id
+        // uses COUNT(*)+1 and can race under concurrent approvals.
+        $attempts = 0;
+        while ($attempts < 5 && !$committed) {
+            try {
+                db()->beginTransaction();
+
+                $insertStudent = db()->prepare(
+                    'INSERT INTO students (
+                        student_id_no, lrn, first_name, middle_name, last_name, suffix,
+                        birthdate, sex, address, contact_number, guardian_name,
+                        guardian_relationship, guardian_contact, previous_school, created_by
                     ) VALUES (
-                        :student_id, \'incoming\', :counterpart_school, :request_date,
-                        :first_attendance_date, :due_date, \'pending\', :created_by
+                        :student_id_no, :lrn, :first_name, :middle_name, :last_name, :suffix,
+                        :birthdate, :sex, :address, :contact_number, :guardian_name,
+                        :guardian_relationship, :guardian_contact, :previous_school, :created_by
                     )'
                 );
-                $transfer->execute([
-                    'student_id' => $studentId,
-                    'counterpart_school' => $admission['previous_school'],
-                    'request_date' => date('Y-m-d'),
-                    'first_attendance_date' => date('Y-m-d'),
-                    'due_date' => $dueDate,
+
+                $insertStudent->execute([
+                    'student_id_no' => $studentIdNo,
+                    'lrn' => $admission['lrn'],
+                    'first_name' => $admission['first_name'],
+                    'middle_name' => $admission['middle_name'],
+                    'last_name' => $admission['last_name'],
+                    'suffix' => $admission['suffix'],
+                    'birthdate' => $admission['birthdate'],
+                    'sex' => $admission['sex'],
+                    'address' => $admission['address'],
+                    'contact_number' => $admission['contact_number'],
+                    'guardian_name' => $admission['guardian_name'],
+                    'guardian_relationship' => $admission['guardian_relationship'],
+                    'guardian_contact' => $admission['guardian_contact'],
+                    'previous_school' => $admission['previous_school'],
                     'created_by' => (int) $_SESSION['user']['id'],
                 ]);
+
+                $studentId = (int) db()->lastInsertId();
+
+                $insertEnrollment = db()->prepare(
+                    'INSERT INTO enrollments (
+                        student_id, school_year_id, grade_level_id, section_id, enrollment_type,
+                        enrolled_at, created_by
+                    ) VALUES (
+                        :student_id, :school_year_id, :grade_level_id, :section_id, :enrollment_type,
+                        :enrolled_at, :created_by
+                    )'
+                );
+
+                $insertEnrollment->execute([
+                    'student_id' => $studentId,
+                    'school_year_id' => (int) $admission['school_year_id'],
+                    'grade_level_id' => (int) $admission['grade_level_id'],
+                    'section_id' => $sectionId,
+                    'enrollment_type' => $admission['enrollment_type'],
+                    'enrolled_at' => date('Y-m-d'),
+                    'created_by' => (int) $_SESSION['user']['id'],
+                ]);
+
+                if ($admission['enrollment_type'] === 'transferee' && $admission['previous_school']) {
+                    // Duplicate-transfer guard for this student.
+                    $existingTransfer = db()->prepare(
+                        "SELECT 1 FROM transfer_requests
+                          WHERE student_id = :student_id
+                            AND direction = 'incoming'
+                            AND status NOT IN ('completed', 'escalated')
+                          LIMIT 1"
+                    );
+                    $existingTransfer->execute(['student_id' => $studentId]);
+                    if ($existingTransfer->fetch()) {
+                        db()->rollBack();
+                        flash('danger', 'This student already has an open incoming transfer request.');
+                        redirect('/modules/admission/view.php?id=' . $id);
+                    }
+
+                    $dueDate = date('Y-m-d', strtotime('+30 days'));
+                    $transfer = db()->prepare(
+                        'INSERT INTO transfer_requests (
+                            student_id, direction, counterpart_school, request_date,
+                            first_attendance_date, due_date, status, created_by
+                        ) VALUES (
+                            :student_id, \'incoming\', :counterpart_school, :request_date,
+                            :first_attendance_date, :due_date, \'pending\', :created_by
+                        )'
+                    );
+                    $transfer->execute([
+                        'student_id' => $studentId,
+                        'counterpart_school' => $admission['previous_school'],
+                        'request_date' => date('Y-m-d'),
+                        'first_attendance_date' => date('Y-m-d'),
+                        'due_date' => $dueDate,
+                        'created_by' => (int) $_SESSION['user']['id'],
+                    ]);
+                }
+
+                $updateAdmission = db()->prepare(
+                    'UPDATE admissions
+                     SET status = \'approved\', student_id = :student_id, reviewed_by = :reviewed_by,
+                         reviewed_at = NOW(), review_notes = :review_notes
+                     WHERE id = :id'
+                );
+
+                $updateAdmission->execute([
+                    'student_id' => $studentId,
+                    'reviewed_by' => (int) $_SESSION['user']['id'],
+                    'review_notes' => $notes ?: null,
+                    'id' => $id,
+                ]);
+
+                db()->commit();
+                $committed = true;
+            } catch (PDOException $e) {
+                db()->rollBack();
+                $isUniqueViolation =
+                    $e->getCode() === '23505' ||
+                    (strpos($e->getMessage(), '23505') !== false) ||
+                    $e->getCode() === '1062' ||
+                    (strpos($e->getMessage(), '1062') !== false);
+
+                if (!$isUniqueViolation || ++$attempts >= 5) {
+                    flash('danger', 'Unable to approve application: ' . $e->getMessage());
+                    redirect('/modules/admission/view.php?id=' . $id);
+                }
+
+                // Regenerate student_id_no and retry.
+                $studentIdNo = generate_student_id();
             }
+        }
 
-            $updateAdmission = db()->prepare(
-                'UPDATE admissions
-                 SET status = \'approved\', student_id = :student_id, reviewed_by = :reviewed_by,
-                     reviewed_at = NOW(), review_notes = :review_notes
-                 WHERE id = :id'
-            );
-
-            $updateAdmission->execute([
-                'student_id' => $studentId,
-                'reviewed_by' => (int) $_SESSION['user']['id'],
-                'review_notes' => $notes ?: null,
-                'id' => $id,
-            ]);
-
-            db()->commit();
-            audit_log('approve', 'admissions', $id, "Approved and enrolled as {$studentIdNo}");
-            flash('success', "Application approved. Student ID: {$studentIdNo}");
-            redirect('/modules/records/view.php?id=' . $studentId);
-        } catch (Throwable $e) {
-            db()->rollBack();
-            flash('danger', 'Unable to approve application. Please try again.');
+        if (!$committed) {
+            flash('danger', 'Unable to approve application after multiple attempts. Please try again.');
             redirect('/modules/admission/view.php?id=' . $id);
         }
+
+        audit_log('approve', 'admissions', $id, "Approved and enrolled as {$studentIdNo}");
+        flash('success', "Application approved. Student ID: {$studentIdNo}");
+        redirect('/modules/records/view.php?id=' . $studentId);
     }
 
     if ($action === 'reject' && $admission['status'] === 'pending') {
@@ -156,6 +231,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
         flash('warning', 'Application has been rejected.');
         redirect('/modules/admission/view.php?id=' . $id);
     }
+}
+
+// Rate-limited audit-log of view access (5-minute window per user/admission).
+$recent = db()->prepare(
+    'SELECT 1 FROM audit_logs
+      WHERE user_id = :user_id
+        AND entity_type = \'admissions\'
+        AND entity_id = :entity_id
+        AND action = \'view\'
+        AND created_at > NOW() - INTERVAL \'5 minutes\'
+      LIMIT 1'
+);
+$recent->execute([
+    'user_id'    => (int) $_SESSION['user']['id'],
+    'entity_id'  => $id,
+]);
+if (!$recent->fetch()) {
+    audit_log('view', 'admissions', $id, 'Viewed admission application');
 }
 
 $documents = json_decode($admission['documents_submitted'] ?? '{}', true) ?: [];
