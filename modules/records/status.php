@@ -21,20 +21,48 @@ if (!$student) {
     redirect('/modules/records/index.php');
 }
 
+// Allowed transitions:
+//   active → transferred | graduated | dropped
+//   transferred | dropped | graduated → active (re-admit / revert — registrar only)
+$allowedTransitions = [
+    'active'      => ['transferred', 'graduated', 'dropped'],
+    'transferred' => ['active'],
+    'graduated'   => ['active'],
+    'dropped'     => ['active'],
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
     $newStatus = $_POST['status'] ?? '';
-    $validStatuses = ['active', 'transferred', 'graduated', 'dropped'];
+    $currentStatus = $student['status'];
 
-    if (in_array($newStatus, $validStatuses, true)) {
-        db()->prepare('UPDATE students SET status = :status, updated_at = NOW() WHERE id = :id')
-            ->execute(['status' => $newStatus, 'id' => $studentId]);
-        audit_log('status_change', 'students', $studentId, "Status changed to {$newStatus}");
-        flash('success', "Student status updated to {$newStatus}.");
-        redirect('/modules/records/view.php?id=' . $studentId);
-    } else {
-        flash('danger', 'Invalid status selected.');
+    // Resolve whether this transition is allowed at all.
+    $isRevert = in_array($currentStatus, ['transferred', 'graduated', 'dropped'], true)
+                && $newStatus === 'active';
+
+    if ($isRevert && !is_registrar()) {
+        flash('danger', 'Only the School Registrar can re-admit or revert a student status.');
+        redirect('/modules/records/status.php?id=' . $studentId);
     }
+
+    if (!isset($allowedTransitions[$currentStatus])
+        || !in_array($newStatus, $allowedTransitions[$currentStatus], true)) {
+        flash('danger', 'Invalid status transition for the current record state.');
+        redirect('/modules/records/status.php?id=' . $studentId);
+    }
+
+    // Defense-in-depth: still validate against the hard schema enum.
+    $validStatuses = ['active', 'transferred', 'graduated', 'dropped'];
+    if (!in_array($newStatus, $validStatuses, true)) {
+        flash('danger', 'Invalid status selected.');
+        redirect('/modules/records/status.php?id=' . $studentId);
+    }
+
+    db()->prepare('UPDATE students SET status = :status, updated_at = NOW() WHERE id = :id')
+        ->execute(['status' => $newStatus, 'id' => $studentId]);
+    audit_log('status_change', 'students', $studentId, "Status changed from {$currentStatus} to {$newStatus}");
+    flash('success', "Student status updated to {$newStatus}.");
+    redirect('/modules/records/view.php?id=' . $studentId);
 }
 
 render_header('Change Student Status', 'records');
@@ -56,23 +84,37 @@ render_header('Change Student Status', 'records');
     <div class="col-lg-6">
         <div class="panel-card glass-panel">
             <h3>Update Status</h3>
-            <form method="post">
-                <?= csrf_field() ?>
-                <div class="mb-3">
-                    <label class="form-label">New Status</label>
-                    <select name="status" class="form-select" required>
-                        <option value="">— Select —</option>
-                        <option value="active" <?= $student['status'] === 'active' ? 'selected' : '' ?>>Active</option>
-                        <option value="transferred" <?= $student['status'] === 'transferred' ? 'selected' : '' ?>>Transferred</option>
-                        <option value="graduated" <?= $student['status'] === 'graduated' ? 'selected' : '' ?>>Graduated</option>
-                        <option value="dropped" <?= $student['status'] === 'dropped' ? 'selected' : '' ?>>Dropped / Withdrawn</option>
-                    </select>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">Update Status</button>
-                    <a href="<?= e(url('/modules/records/view.php?id=' . $studentId)) ?>" class="btn btn-outline-light">Cancel</a>
-                </div>
-            </form>
+            <?php
+                $currentStatus = $student['status'];
+                $options = $allowedTransitions[$currentStatus] ?? [];
+                $registrarOnly = is_registrar();
+            ?>
+            <?php if (!$options): ?>
+                <p class="text-muted mb-0">No further status transitions are available for this student.</p>
+            <?php else: ?>
+                <form method="post">
+                    <?= csrf_field() ?>
+                    <div class="mb-3">
+                        <label class="form-label">New Status</label>
+                        <select name="status" class="form-select" required>
+                            <option value="">— Select —</option>
+                            <?php foreach ($options as $opt): ?>
+                                <?php $requiresRegistrar = $currentStatus !== 'active'; ?>
+                                <option value="<?= e($opt) ?>">
+                                    <?= e(ucfirst($opt)) ?><?= $requiresRegistrar && !$registrarOnly ? ' (registrar only)' : '' ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (!$registrarOnly && $currentStatus !== 'active'): ?>
+                            <small class="text-muted">Re-admitting or reverting a student's status requires the School Registrar.</small>
+                        <?php endif; ?>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                        <a href="<?= e(url('/modules/records/view.php?id=' . $studentId)) ?>" class="btn btn-outline-light">Cancel</a>
+                    </div>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 </div>

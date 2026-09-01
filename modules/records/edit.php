@@ -175,7 +175,7 @@ render_header('Edit Student Record', 'records');
 
         <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="<?= e(url('/modules/records/view.php?id=<?= $id ?>')) ?>" class="btn btn-outline-light">Cancel</a>
+            <a href="<?= e(url('/modules/records/view.php?id=' . (int) $id)) ?>" class="btn btn-outline-light">Cancel</a>
         </div>
     </form>
 </div>

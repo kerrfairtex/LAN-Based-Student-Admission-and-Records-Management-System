@@ -39,6 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'grade_level_id' => 'Grade level',
     ], $input);
 
+    if ($input['general_average'] !== '' && !is_numeric($input['general_average'])) {
+        $errors['general_average'] = 'General average must be a number.';
+    } elseif ($input['general_average'] !== '' && ((float) $input['general_average'] < 0 || (float) $input['general_average'] > 100)) {
+        $errors['general_average'] = 'General average must be between 0 and 100.';
+    }
+
+    if ($input['attendance_days'] !== '' && (!ctype_digit($input['attendance_days']) || (int) $input['attendance_days'] < 0)) {
+        $errors['attendance_days'] = 'Attendance days must be a non-negative integer.';
+    }
+
     if (!$errors) {
         $existing = db()->prepare(
             'SELECT id FROM academic_records WHERE student_id = :student_id AND school_year_id = :school_year_id'
@@ -131,7 +141,10 @@ render_header('Academic Record', 'records');
             </div>
             <div class="col-md-4">
                 <label class="form-label">General Average</label>
-                <input type="number" step="0.01" min="0" max="100" name="general_average" class="form-control">
+                <input type="number" step="0.01" min="0" max="100" name="general_average" class="form-control <?= isset($errors['general_average']) ? 'is-invalid' : '' ?>" value="<?= e($input['general_average']) ?>">
+                <?php if (isset($errors['general_average'])): ?>
+                    <div class="invalid-feedback"><?= e($errors['general_average']) ?></div>
+                <?php endif; ?>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Promotional Status</label>
@@ -157,7 +170,7 @@ render_header('Academic Record', 'records');
         </div>
         <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn btn-primary">Save Record</button>
-            <a href="<?= e(url('/modules/records/view.php?id=<?= $studentId ?>')) ?>" class="btn btn-outline-light">Cancel</a>
+            <a href="<?= e(url('/modules/records/view.php?id=' . (int) $studentId)) ?>" class="btn btn-outline-light">Cancel</a>
         </div>
     </form>
 </div>

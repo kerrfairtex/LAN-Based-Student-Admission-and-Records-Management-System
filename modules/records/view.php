@@ -115,7 +115,7 @@ render_header('Student Record', 'records');
 <div class="table-card glass-panel mt-3">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h3 class="mb-0">Academic Records</h3>
-        <a href="<?= e(url('/modules/records/academic.php?student_id=<?= (int) $student[\'id\'] ?>')) ?>" class="btn btn-sm btn-primary">Add / Update Record</a>
+        <a href="<?= e(url('/modules/records/academic.php?student_id=' . (int) $student['id'])) ?>" class="btn btn-sm btn-primary">Add / Update Record</a>
     </div>
     <div class="table-responsive">
         <table class="table">
