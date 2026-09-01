@@ -93,3 +93,76 @@ ROLLBACK;
 - Returns the deleted count, so the caller (cron, app, ops) gets a structured result
   for logging / alerting.
 - Pl/pgSQL makes future enhancements (e.g. archive-before-delete) a one-spot edit.
+
+## Related: full-database backup strategy
+
+The in-app `Database Backup` button (`modules/admin/backup.php`) produces a **logical dump**
+that is portable and re-importable across environments. It is intentionally simple (TRUNCATE +
+INSERT statements, no DDL) so it can be executed by the in-app restore flow without elevated
+privileges. For institutional-grade backups where byte-for-byte fidelity matters (e.g. timestamps
+with sub-second precision, bytea, custom domains), use `pg_dump` from the shell instead.
+
+### When to use which
+
+| Use case | Use in-app button | Use `pg_dump` |
+|----------|-------------------|---------------|
+| Quick on-site before risky change | yes | overkill |
+| Routine registrar backup | yes | no |
+| Sharing a sanitized copy for testing | yes (logical, easy to inspect) | no |
+| Disaster-recovery full restore | possible but slower | preferred |
+| Off-site / S3 archival | yes (smaller) | yes (binary is faster to restore) |
+| Pre-upgrade snapshot | acceptable | strongly preferred |
+| Compliance / audit trail | yes (human-readable) | yes |
+| Restoring into a different schema / DB engine | no | requires pg_restore |
+
+### `pg_dump` reference
+
+```bash
+# Plain-text logical dump (readable, re-importable via psql):
+pg_dump "$DATABASE_URL" \
+    --schema=trac_jhs_sarms \
+    --no-owner \
+    --no-privileges \
+    --file=trac_jhs_sarms-$(date +%Y%m%d).sql
+
+# Custom binary archive (smaller, faster restore, parallel-friendly):
+pg_dump "$DATABASE_URL" \
+    --schema=trac_jhs_sarms \
+    --format=custom \
+    --file=trac_jhs_sarms-$(date +%Y%m%d).dump
+
+# Schema-only dump (useful for tracking migrations vs the codebase):
+pg_dump "$DATABASE_URL" \
+    --schema=trac_jhs_sarms \
+    --schema-only \
+    --file=trac_jhs_sarms-schema.sql
+
+# Restore a custom-format archive (handles ordering, FKs, everything):
+pg_restore --clean --if-exists --dbname="$DATABASE_URL" \
+    trac_jhs_sarms-20260901.dump
+```
+
+### Render — manual backup before deploy
+
+Render's dashboard does not expose `pg_dump` directly. Two options:
+
+1. **From the Render Shell** (Settings → Shell): `pg_dump "$DATABASE_URL" --schema=trac_jhs_sarms -f /tmp/backup.sql`
+2. **From an external machine with psql installed**: connect using the same env vars (`DB_HOST`,
+   `DB_PORT=5432`, `DB_NAME`, `DB_USER`, `DB_PASS`, `DB_SSLMODE=require`) and run `pg_dump`
+   with the `connection_string` built from those values.
+
+For automated off-host backups, schedule a Render Cron Job (`psql` is available in the env) that
+runs `pg_dump ... | gzip | aws s3 cp` or similar. The in-app button does not replace this; it
+complements it.
+
+### Why the in-app dump uses `TRUNCATE ... CASCADE` + `INSERT VALUES`
+
+- Schema is version-controlled (`database/schema.sql`); re-importing DDL from a dump creates
+  drift between the schema file and the live DB.
+- `TRUNCATE ... RESTART IDENTITY CASCADE` handles FK ordering automatically — no need for the
+  MySQL-specific `SET FOREIGN_KEY_CHECKS=0` toggle.
+- `INSERT VALUES` is portable and human-readable, so a registrar can spot a corruption in a
+  backup file with a text editor if needed.
+
+Trade-off: timestamps with sub-second precision and `bytea` columns may round-trip with reduced
+fidelity. For those, use `pg_dump --format=custom` which preserves binary types exactly.
