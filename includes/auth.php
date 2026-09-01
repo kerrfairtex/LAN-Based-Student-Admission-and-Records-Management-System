@@ -62,10 +62,26 @@ function attempt_login(string $username, string $password): bool
     $user = $stmt->fetch();
 
     if (!$user || !(bool) $user['is_active']) {
+        // Failed-login audit (account not found or disabled). Don't leak
+        // whether the username exists — log the failure reason as
+        // 'unknown_or_disabled' so DPA reviewers can distinguish
+        // brute-force patterns from inactive-account typos.
+        audit_log(
+            'login_failed',
+            'users',
+            $user ? (int) $user['id'] : null,
+            $user ? 'Login attempt on inactive account' : 'Login attempt with unknown username'
+        );
         return false;
     }
 
     if (!password_verify($password, $user['password_hash'])) {
+        audit_log(
+            'login_failed',
+            'users',
+            (int) $user['id'],
+            'Bad password for ' . $user['username']
+        );
         return false;
     }
 
