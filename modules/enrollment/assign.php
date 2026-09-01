@@ -40,10 +40,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/modules/enrollment/assign.php?id=' . $id);
     }
 
-    $update = db()->prepare('UPDATE enrollments SET section_id = :section_id WHERE id = :id');
-    $update->execute(['section_id' => $sectionId, 'id' => $id]);
+    // Guardrail: the chosen section must belong to the enrollment's grade level.
+    // The dropdown is pre-filtered, but a tampered POST can submit any section_id.
+    $sectionCheck = db()->prepare(
+        'SELECT id FROM sections WHERE id = :id AND grade_level_id = :grade_level_id'
+    );
+    $sectionCheck->execute([
+        'id' => $sectionId,
+        'grade_level_id' => (int) $enrollment['grade_level_id'],
+    ]);
 
-    audit_log('update', 'enrollments', $id, 'Assigned section to enrollment');
+    if (!$sectionCheck->fetch()) {
+        flash('danger', 'Selected section does not belong to the student\'s grade level.');
+        redirect('/modules/enrollment/assign.php?id=' . $id);
+    }
+
+    try {
+        db()->beginTransaction();
+        $update = db()->prepare('UPDATE enrollments SET section_id = :section_id WHERE id = :id');
+        $update->execute(['section_id' => $sectionId, 'id' => $id]);
+
+        audit_log('update', 'enrollments', $id, 'Assigned section to enrollment');
+        db()->commit();
+    } catch (PDOException $e) {
+        db()->rollBack();
+        flash('danger', 'Failed to assign section: ' . $e->getMessage());
+        redirect('/modules/enrollment/assign.php?id=' . $id);
+    }
+
     flash('success', 'Section assigned successfully.');
     redirect('/modules/enrollment/index.php');
 }

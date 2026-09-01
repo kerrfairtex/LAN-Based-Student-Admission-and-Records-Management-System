@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         $update->execute([
             'status' => $newStatus,
-            'notes' => $notes ?: $transfer['notes'],
+            'notes' => $notes !== '' ? $notes : null,
             'updated_by' => (int) $_SESSION['user']['id'],
             'completed_at' => $completedAt,
             'escalated_at' => $escalatedAt,

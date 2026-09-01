@@ -41,6 +41,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
+        $studentId = (int) $input['student_id'];
+
+        // Guardrail: confirm the student exists and is active. The dropdown is
+        // pre-filtered to active students, but a tampered POST can submit any id.
+        $studentCheck = db()->prepare(
+            "SELECT id FROM students WHERE id = :id AND status = 'active'"
+        );
+        $studentCheck->execute(['id' => $studentId]);
+
+        if (!$studentCheck->fetch()) {
+            $errors['student_id'] = 'Selected student is not active.';
+        }
+
+        // Guardrail: prevent duplicate pending transfers for the same student + direction.
+        $duplicateCheck = db()->prepare(
+            "SELECT id FROM transfer_requests
+             WHERE student_id = :student_id
+               AND direction = :direction
+               AND status NOT IN ('completed', 'escalated')"
+        );
+        $duplicateCheck->execute([
+            'student_id' => $studentId,
+            'direction' => $input['direction'],
+        ]);
+
+        if ($duplicateCheck->fetch()) {
+            $errors['student_id'] = 'An open transfer request already exists for this student.';
+        }
+    }
+
+    if (!$errors) {
         $dueDate = transfer_sla_due_date($input['first_attendance_date']);
 
         $stmt = db()->prepare(
@@ -53,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )'
         );
         $stmt->execute([
-            'student_id' => (int) $input['student_id'],
+            'student_id' => $studentId,
             'direction' => $input['direction'],
             'counterpart_school' => $input['counterpart_school'],
             'request_date' => $input['request_date'],
