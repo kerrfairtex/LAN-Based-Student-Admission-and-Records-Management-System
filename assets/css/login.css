@@ -30,31 +30,60 @@
 
 /* ============================================================
    PAGE SHELL
+   The .login-terminal class lives on <body> (set via $body_class),
+   so the flex container is the body itself. The page wraps <main> via
+   includes/partials/header.php + footer.php, and the card is a
+   direct child of <main>. We style <main> to also be a flex
+   centering container so the card sits centered inside it.
    ============================================================ */
 
-.login-terminal {
+.login-terminal,
+.login-body {
     background:
         radial-gradient(ellipse 80% 50% at 50% 0%, rgba(212, 167, 44, 0.07), transparent 70%),
         radial-gradient(ellipse 60% 50% at 50% 100%, rgba(33, 83, 54, 0.30), transparent 70%),
         linear-gradient(180deg, #081A11 0%, var(--green-950, #0A2418) 50%, #06150D 100%);
+    background-color: var(--green-950, #0A2418);
     min-height: 100vh;
+    min-height: 100dvh;     /* dynamic viewport units — handles mobile address-bar collapse */
     color: var(--cream-100, #F5F0E1);
     font-family: 'Inter', system-ui, sans-serif;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
     isolation: isolate;
+}
+
+/* The body itself is the centering container */
+.login-terminal.login-body,
+body.login-terminal {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px 16px;
+    box-sizing: border-box;
 }
 
-/* ----- Atmosphere: grid + soft orbs ----- */
+/* <main> is a direct flex child of body. Make it stretch + center its
+   content so the card sits centered horizontally and vertically. */
+.login-terminal main,
+body.login-terminal > main {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 0;     /* allow main to shrink in flex parent */
+    position: relative;
+    z-index: 1;
+}
+
+/* ----- Atmosphere: fixed full-viewport so it always covers behind card ----- */
 .login-terminal__atmosphere {
-    position: absolute;
+    position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: -1;
+    overflow: hidden;
 }
 .login-terminal__atmosphere .grid-overlay {
     position: absolute;
