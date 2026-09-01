@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['inquiry_submit'])) {
 }
 
 $page_title        = 'Contact';
-$page_description  = 'How to reach the TRAC JHS registrar — office hours, location, and inquiry form.';
+$page_description  = 'How to reach the TRAC JHS registrar, including office hours, location, and inquiry form.';
 $active_nav        = 'contact';
 
 require __DIR__ . '/includes/site_header.php';

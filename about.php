@@ -11,7 +11,7 @@ require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/includes/functions.php';
 
 $page_title        = 'About';
-$page_description  = 'About TRAC JHS — the laboratory junior high school of Tawi-Tawi Regional Agricultural College in Bongao, Tawi-Tawi.';
+$page_description  = 'About TRAC JHS, the laboratory junior high school of Tawi-Tawi Regional Agricultural College in Bongao, Tawi-Tawi.';
 $active_nav        = 'about';
 
 require __DIR__ . '/includes/site_header.php';
@@ -26,7 +26,7 @@ require __DIR__ . '/includes/site_header.php';
             <div>
                 <p>TRAC JHS operates as the laboratory high school of Tawi-Tawi Regional Agricultural College, sharing its grounds, farm facilities, and faculty expertise. Students move between standard classroom instruction and applied sessions on the college's working fields.</p>
                 <p>The school follows the DepEd Basic Education curriculum under the Bangsamoro Autonomous Region, with an exploratory track in agricultural technology and integrated instruction in Bangsamoro history, values, and Arabic language.</p>
-                <p>The laboratory-school relationship gives TRAC JHS students early access to college-level resources — lecture halls, demonstration farms, and shared faculty appointments in agricultural science — while staying inside a junior-high setting appropriate to their age.</p>
+                <p>The laboratory-school relationship gives TRAC JHS students early access to college-level resources, including lecture halls, demonstration farms, and shared faculty appointments in agricultural science, while staying inside a junior-high setting appropriate to their age.</p>
             </div>
             <ul class="credential-list">
                 <li>

@@ -51,7 +51,7 @@ header_remove('X-Powered-By');
 header('Cache-Control: public, max-age=3600, must-revalidate');
 
 $page_title        = $page_title        ?? 'TRAC JHS';
-$page_description  = $page_description  ?? 'TRAC JHS — Junior High School of Tawi-Tawi Regional Agricultural College, Bongao, Tawi-Tawi.';
+$page_description  = $page_description  ?? 'TRAC JHS, Junior High School of Tawi-Tawi Regional Agricultural College, Bongao, Tawi-Tawi.';
 $active_nav        = $active_nav        ?? '';
 $body_class        = $body_class        ?? '';
 $hide_nav_links    = $hide_nav_links    ?? false;

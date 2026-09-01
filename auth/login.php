@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title        = 'Staff Sign In';
-$page_description  = 'TRAC JHS staff sign-in — registrar and data encoder portal.';
+$page_description  = 'TRAC JHS staff sign-in, registrar and data encoder portal.';
 $body_class        = 'login-body login-terminal';
 $hide_nav_links    = true;
 $hide_header       = true;          /* the brand moves into the card itself */
