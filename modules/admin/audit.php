@@ -9,27 +9,130 @@ require_registrar();
 
 $perPage = 20;
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
-$offset = ($currentPage - 1) * $perPage;
 
-// Count total
-$totalStmt = db()->query('SELECT COUNT(*) AS c FROM audit_logs');
-$total = (int) $totalStmt->fetch()['c'];
+// ---- Read filter inputs (defensive against tampered URLs) ----
+$filterUserId     = (int) ($_GET['user_id'] ?? 0);
+$filterEntityType = trim((string) ($_GET['entity_type'] ?? ''));
+$filterFrom       = trim((string) ($_GET['from'] ?? ''));
+$filterTo         = trim((string) ($_GET['to'] ?? ''));
+
+// Validate date inputs against YYYY-MM-DD. Empty stays empty; anything else
+// that doesn't parse is dropped silently (treated as no filter on that side).
+$dateRe = '/^\d{4}-\d{2}-\d{2}$/';
+$fromValid = ($filterFrom !== '' && preg_match($dateRe, $filterFrom)) ? $filterFrom : '';
+$toValid   = ($filterTo   !== '' && preg_match($dateRe, $filterTo))   ? $filterTo   : '';
+
+// Whitelist entity_type against known values from the codebase (audit_log
+// calls). Unknown values are ignored to avoid building a useless query.
+$allowedEntityTypes = [
+    'admissions', 'enrollments', 'students', 'student_records', 'sf10_records',
+    'transfer_requests', 'users', 'audit_logs', 'lis_imports', 'app_settings',
+];
+$entityTypeValid = in_array($filterEntityType, $allowedEntityTypes, true) ? $filterEntityType : '';
+
+// ---- Build dynamic WHERE ----
+$where = [];
+$params = [];
+if ($filterUserId > 0) {
+    $where[] = 'a.user_id = :user_id';
+    $params['user_id'] = $filterUserId;
+}
+if ($entityTypeValid !== '') {
+    $where[] = 'a.entity_type = :entity_type';
+    $params['entity_type'] = $entityTypeValid;
+}
+if ($fromValid !== '') {
+    $where[] = 'a.created_at >= :from_ts';
+    $params['from_ts'] = $fromValid . ' 00:00:00';
+}
+if ($toValid !== '') {
+    $where[] = 'a.created_at <= :to_ts';
+    $params['to_ts'] = $toValid . ' 23:59:59';
+}
+$whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+
+// ---- Count + paginate ----
+$countStmt = db()->prepare('SELECT COUNT(*) AS c FROM audit_logs a' . $whereSql);
+$countStmt->execute($params);
+$total = (int) $countStmt->fetch()['c'];
 
 $paginated = paginate($total, $perPage, $currentPage);
 
-$stmt = db()->prepare(
+// ---- Main query ----
+$listSql =
     'SELECT a.*, u.full_name, u.username
      FROM audit_logs a
-     JOIN users u ON u.id = a.user_id
-     ORDER BY a.created_at DESC
-     LIMIT :limit OFFSET :offset'
-);
-$stmt->execute(['limit' => $paginated['per_page'], 'offset' => $paginated['offset']]);
+     JOIN users u ON u.id = a.user_id'
+    . $whereSql
+    . ' ORDER BY a.created_at DESC
+         LIMIT :limit OFFSET :offset';
+
+$stmt = db()->prepare($listSql);
+foreach ($params as $k => $v) {
+    $stmt->bindValue($k, $v);
+}
+$stmt->bindValue('limit',  $paginated['per_page']);
+$stmt->bindValue('offset', $paginated['offset']);
+$stmt->execute();
 $logs = $stmt->fetchAll();
+
+// ---- Filter-form dropdown sources ----
+$users = db()->query('SELECT id, full_name, username FROM users ORDER BY full_name')->fetchAll();
+
+// Distinct entity_types actually present in audit_logs (so the dropdown
+// reflects real data rather than only the whitelist above).
+$entityTypesPresent = db()->query(
+    'SELECT DISTINCT entity_type FROM audit_logs ORDER BY entity_type'
+)->fetchAll(PDO::FETCH_COLUMN);
+
+$hasFilters = $filterUserId > 0 || $entityTypeValid !== '' || $fromValid !== '' || $toValid !== '';
 
 render_header('Audit Log', 'audit');
 ?>
 <p class="text-muted">Tracks sensitive actions for institutional accountability (Data Privacy Act compliance).</p>
+
+<div class="panel-card glass-panel mb-3">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small mb-1">From</label>
+            <input type="date" name="from" class="form-control form-control-sm" value="<?= e($fromValid) ?>">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small mb-1">To</label>
+            <input type="date" name="to" class="form-control form-control-sm" value="<?= e($toValid) ?>">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small mb-1">User</label>
+            <select name="user_id" class="form-select form-select-sm">
+                <option value="">All users</option>
+                <?php foreach ($users as $u): ?>
+                    <option value="<?= (int) $u['id'] ?>" <?= $filterUserId === (int) $u['id'] ? 'selected' : '' ?>>
+                        <?= e($u['full_name']) ?> (<?= e($u['username']) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small mb-1">Entity</label>
+            <select name="entity_type" class="form-select form-select-sm">
+                <option value="">All entities</option>
+                <?php foreach ($entityTypesPresent as $et): ?>
+                    <option value="<?= e($et) ?>" <?= $entityTypeValid === $et ? 'selected' : '' ?>>
+                        <?= e($et) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-1 d-flex gap-1">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+        </div>
+        <?php if ($hasFilters): ?>
+            <div class="col-12">
+                <a href="<?= e(url('/modules/admin/audit.php')) ?>" class="btn btn-outline-light btn-sm">Clear filters</a>
+            </div>
+        <?php endif; ?>
+    </form>
+</div>
 
 <div class="table-card glass-panel">
     <div class="table-responsive">
@@ -46,7 +149,7 @@ render_header('Audit Log', 'audit');
             </thead>
             <tbody>
                 <?php if (!$logs): ?>
-                    <tr><td colspan="6" class="text-muted">No audit log entries yet.</td></tr>
+                    <tr><td colspan="6" class="text-muted">No audit log entries<?= $hasFilters ? ' match the current filters' : ' yet' ?>.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($logs as $log): ?>
                     <tr>
