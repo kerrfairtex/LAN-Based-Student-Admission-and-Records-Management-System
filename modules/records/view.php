@@ -9,9 +9,25 @@ require_login();
 
 $id = (int) ($_GET['id'] ?? 0);
 
-$stmt = db()->prepare('SELECT * FROM students WHERE id = :id');
-$stmt->execute(['id' => $id]);
-$student = $stmt->fetch();
+// Reject malformed ids BEFORE any DB call so the user gets an in-context
+// 'record not found' redirect instead of bubbling up as an uncaught
+// PDOException (which the global handler in config/app.php would now turn
+// into a generic 500 — but the per-page message is friendlier and never
+// relies on the safety net).
+if ($id <= 0) {
+    flash('danger', 'Student record not found.');
+    redirect('/modules/records/index.php');
+}
+
+try {
+    $stmt = db()->prepare('SELECT * FROM students WHERE id = :id');
+    $stmt->execute(['id' => $id]);
+    $student = $stmt->fetch();
+} catch (Throwable $e) {
+    error_log('records view: student lookup failed: ' . $e->getMessage());
+    flash('danger', 'Student record not found.');
+    redirect('/modules/records/index.php');
+}
 
 if (!$student) {
     flash('danger', 'Student record not found.');

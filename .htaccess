@@ -5,6 +5,12 @@ Options -Indexes
 
     # Block direct access to sensitive directories
     RewriteRule ^(?:config|includes|database|backups)/ - [F,L]
+
+    # .user.ini is read by PHP at startup to set per-directory directives
+    # (display_errors, error_log, etc.) — exposing it to the web would let
+    # an attacker confirm those settings. 403 instead of 404 so the
+    # existence of the file is not leaked either way.
+    RewriteRule ^\.user\.ini$ - [F,L]
 </IfModule>
 
 # Security headers — emit unconditionally. mod_headers on Apache 2.4 sets
