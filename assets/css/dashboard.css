@@ -1,0 +1,121 @@
+/* ==========================================================================
+   dashboard.css — TRAC JHS SARMS authenticated-page components
+   Built against assets/css/tokens.css. Covers exactly the 13 classes
+   confirmed (via grep) to be used in markup with zero existing CSS rules:
+   glass-panel, panel-card, stat-grid, stat-card, stat-value, quick-actions,
+   quick-action-card, qa-icon, qa-label, qa-primary/success/warning/danger.
+
+   NOTE: --success and --danger below are NOT in tokens.css (no such
+   tokens exist there) — derived to stay in-family with green-700/bronze-600.
+   Swap these two hex values if you have brand-approved ones.
+   ========================================================================== */
+
+:root {
+    --qa-success: #3E7A57; /* derived: lighter step from --green-700 */
+    --qa-danger:  #C1443B; /* derived: warm red, no equivalent token exists */
+}
+
+/* Shared translucent "glass" surface used by stat-card and panel-card */
+.glass-panel {
+    background: rgba(23, 61, 41, 0.55); /* --green-800 @ 55% */
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* ---------- Stat cards ---------- */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    padding: 1.25rem 1.5rem;
+}
+
+.stat-card .text-muted {
+    color: var(--cream-200);
+    opacity: 0.7;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.stat-value {
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: 600;
+    color: var(--cream-100);
+    line-height: 1.1;
+}
+
+.stat-value.text-danger {
+    color: var(--qa-danger);
+}
+
+/* ---------- Quick actions ---------- */
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.quick-action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    min-width: 110px;
+    background: var(--green-800);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.quick-action-card:hover,
+.quick-action-card:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--gold-500);
+    background: var(--green-700);
+    text-decoration: none;
+}
+
+.qa-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.qa-primary { background: var(--gold-500); color: var(--ink-900); }
+.qa-success { background: var(--qa-success); color: var(--cream-100); }
+.qa-warning { background: var(--bronze-600); color: var(--cream-100); }
+.qa-danger  { background: var(--qa-danger); color: var(--cream-100); }
+
+.qa-label {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    color: var(--cream-200);
+    text-align: center;
+}
+
+/* ---------- General content panels ---------- */
+.panel-card {
+    padding: 1.5rem;
+}
+
+.panel-card h3 {
+    font-family: var(--font-display);
+    color: var(--cream-100);
+    margin-bottom: 0.75rem;
+}
