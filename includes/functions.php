@@ -29,6 +29,36 @@ function redirect(string $path): never
     exit;
 }
 
+/**
+ * Best-effort client IP for audit/inquiry logging.
+ *
+ * Render sits behind Cloudflare, so REMOTE_ADDR alone is the Cloudflare edge.
+ * Trust CF-Connecting-IP if present (single value, already validated by CF),
+ * else fall back to X-Forwarded-For first hop (stripped of whitespace/ports),
+ * else REMOTE_ADDR. Returns null if all sources are empty — the caller must
+ * treat null as "unknown" (do not insert an empty string into a NOT NULL
+ * column; use NULL).
+ *
+ * No trust beyond the first hop in XFF: subsequent hops could be spoofed by
+ * the client. Do not use this for rate-limiting or auth decisions.
+ */
+function client_ip(): ?string
+{
+    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+        return substr(trim((string) $_SERVER['HTTP_CF_CONNECTING_IP']), 0, 45);
+    }
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $first = trim(explode(',', (string) $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+        if ($first !== '') {
+            return substr($first, 0, 45);
+        }
+    }
+    if (!empty($_SERVER['REMOTE_ADDR'])) {
+        return substr((string) $_SERVER['REMOTE_ADDR'], 0, 45);
+    }
+    return null;
+}
+
 function flash(string $type, string $message): void
 {
     $_SESSION['flash'] = ['type' => $type, 'message' => $message];
@@ -53,23 +83,40 @@ require_once __DIR__ . '/csrf.php';
 
 function audit_log(string $action, string $entityType, ?int $entityId = null, ?string $details = null): void
 {
-    if (!isset($_SESSION['user'])) {
-        return;
+    // The previous version returned early when $_SESSION['user'] was unset,
+    // which silently dropped every login_failed event (those happen BEFORE a
+    // user is authenticated, by definition). Track them by attempt-time IP
+    // instead so failed-login rows actually land in audit_logs.
+    //
+    // Logged-in writes use $_SESSION['user']['id']; pre-auth events (currently
+    // only login_failed, but the door is open for future self-service flows
+    // like public inquiry logs if they ever need audit) use NULL.
+    $userId = $_SESSION['user']['id'] ?? null;
+
+    try {
+        $stmt = db()->prepare(
+            'INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details, ip_address)
+             VALUES (:user_id, :action, :entity_type, :entity_id, :details, :ip_address)'
+        );
+
+        $stmt->execute([
+            'user_id'     => $userId,
+            'action'      => $action,
+            'entity_type' => $entityType,
+            'entity_id'   => $entityId,
+            'details'     => $details,
+            // Use the shared client_ip() helper so we honor CF-Connecting-IP
+            // / X-Forwarded-For first hop instead of the immediate socket peer
+            // (which on Render is the platform's edge, not the actual visitor).
+            'ip_address'  => client_ip(),
+        ]);
+    } catch (Throwable $e) {
+        // Audit logging must never break the user-facing flow. If the
+        // audit_logs write fails (DB outage, schema drift, etc.), log the
+        // failure to PHP error log so operators see it in Render logs, and
+        // keep going. The action the user just performed still succeeds.
+        error_log('audit_log write failed: ' . $e->getMessage());
     }
-
-    $stmt = db()->prepare(
-        'INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details, ip_address)
-         VALUES (:user_id, :action, :entity_type, :entity_id, :details, :ip_address)'
-    );
-
-    $stmt->execute([
-        'user_id' => $_SESSION['user']['id'],
-        'action' => $action,
-        'entity_type' => $entityType,
-        'entity_id' => $entityId,
-        'details' => $details,
-        'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
-    ]);
 }
 
 function generate_student_id(): string
