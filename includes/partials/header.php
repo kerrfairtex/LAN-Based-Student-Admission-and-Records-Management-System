@@ -50,6 +50,23 @@ header_remove('X-Powered-By');
 // long enough to absorb traffic spikes.
 header('Cache-Control: public, max-age=3600, must-revalidate');
 
+// Authentication routes must NEVER be cached, regardless of platform.
+// The .htaccess rule covers Apache (mod_headers); this PHP fallback
+// covers the PHP built-in dev server, Cloudflare's edge cache, and any
+// other intermediary that doesn't honor per-file htaccess directives.
+// no-store is stricter than no-cache — prevents storage entirely
+// rather than just revalidation — and is the right call for pages
+// that carry CSRF tokens or post-logout state.
+$authPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '';
+if (in_array($authPath, ['/auth/login.php', '/auth/logout.php'], true)) {
+    header_remove('Cache-Control');
+    header_remove('Pragma');
+    header_remove('Expires');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+}
+
 $page_title        = $page_title        ?? 'TRAC JHS';
 $page_description  = $page_description  ?? 'TRAC JHS, Junior High School of Tawi-Tawi Regional Agricultural College, Bongao, Tawi-Tawi.';
 $active_nav        = $active_nav        ?? '';

@@ -64,4 +64,16 @@ Options -Indexes
     <FilesMatch "\.(html|php)$">
         Header set Cache-Control "no-cache, must-revalidate"
     </FilesMatch>
+
+    # Authentication routes must NEVER be cached, even by shared proxies.
+    # no-store is stricter than no-cache (prevents storage entirely, not just
+    # revalidation). Auth pages often contain CSRF tokens in the HTML or
+    # session-bound redirects — caching them leaks the token or replays the
+    # stale redirect. Also covers logout to prevent a back-button replay of
+    # a "you have been signed out" page after a subsequent sign-in.
+    <LocationMatch "^/(auth/(login|logout)\.php|index\.php)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </LocationMatch>
 </IfModule>
