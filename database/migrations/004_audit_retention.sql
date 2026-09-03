@@ -1,5 +1,9 @@
 -- Phase 4: Audit-log retention policy (Data Privacy Act compliance).
-USE trac_jhs_sarms;
+--
+-- NOTE: original draft used `USE trac_jhs_sarms;` (MySQL syntax). That will
+-- hard-error on Postgres. Replaced with an explicit `SET search_path` so the
+-- migration runs against any Postgres instance regardless of session defaults.
+SET search_path = trac_jhs_sarms, public;
 
 -- Retention window in days. Default 1825 = 5 years. Adjust via:
 --   UPDATE app_settings SET setting_value = '3650' WHERE setting_key = 'audit_retention_days';
