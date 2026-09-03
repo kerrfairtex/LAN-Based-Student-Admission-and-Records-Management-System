@@ -69,7 +69,23 @@ function render_header(string $title, string $active = ''): void
     <title><?= e($title) ?> | <?= e(APP_NAME) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="<?= e(url('/assets/css/style.css')) ?>" rel="stylesheet">
+    <link href="<?= e(url('/assets/css/tokens.css')) ?>" rel="stylesheet">
+    <link href="<?= e(url('/assets/css/dashboard.css')) ?>" rel="stylesheet">
+    <!-- tokens.css is the shared design-system source of truth (dark-green
+         palette, gold accents, Fraunces serif, spacing/typography tokens).
+         It was already loaded by includes/partials/header.php for the public
+         landing/login/legal pages, but the authenticated layout below never
+         referenced it. Result: dashboard/records/admissions etc. rendered
+         with only Bootstrap and zero project styling — Bootstrap grid
+         worked, but cards, panels, and the app shell had no design applied.
+
+         Loading tokens.css here is a wiring fix, not a design decision:
+         the tokens already exist and are the canonical source for this
+         app's visual language. Page-specific selectors (.stat-card,
+         .glass-panel, .app-shell, .avatar-sm, etc.) live in the page
+         markup's inline classes — they need a dedicated layout stylesheet
+         to actually paint, which is a separate, deliberate design task.
+    -->
     <!-- LAN-hosted — no external analytics -->
 </head>
 <body>
