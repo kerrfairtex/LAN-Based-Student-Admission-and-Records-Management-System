@@ -82,6 +82,15 @@ $minimal_footer = $minimal_footer ?? false;
     </div>
 <?php endif; ?>
 
+<?php
+/* $card_legal: when true, suppress the page-level footer entirely
+   (including the <footer> tag itself) because all the legal content
+   is rendered INSIDE the .login-card on the auth/login page.
+   Prevents an empty <footer> element from polluting the DOM. */
+$card_legal = $card_legal ?? false;
+?>
+<?php if (!$card_legal): ?>
+<footer class="site-footer" id="contact" role="contentinfo">
     <div class="wrap foot-bottom">
         <span>&copy; <?= date('Y') ?> TRAC Junior High School. Laboratory school of Tawi-Tawi Regional Agricultural College.</span>
         <nav class="legal-row" aria-label="Legal">
@@ -99,16 +108,20 @@ $minimal_footer = $minimal_footer ?? false;
     <div class="wrap foot-attribution">
         <p class="foot-attribution__system">LAN-Based Student Admission and Records Management System</p>
         <p class="foot-attribution__credits">
-            Developed by
+            <span class="foot-attribution__label">System Development Team</span>
             <span class="foot-attribution__names">
                 <span>Michael S. Giagales</span>
+                <span class="foot-attribution__sep" aria-hidden="true">&middot;</span>
                 <span>Omarkhan G. Sahisa</span>
+                <span class="foot-attribution__sep" aria-hidden="true">&middot;</span>
                 <span>Jeriko A. Binong</span>
+                <span class="foot-attribution__sep" aria-hidden="true">&middot;</span>
                 <span>Abumharwan Sabbaha</span>
             </span>
         </p>
     </div>
 </footer>
+<?php endif; ?>
 
 <script src="<?= e(url('/assets/js/site.js')) ?>" defer></script>
 </body>

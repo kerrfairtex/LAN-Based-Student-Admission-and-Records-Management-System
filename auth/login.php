@@ -55,6 +55,7 @@ $body_class        = 'login-body login-terminal';
 $hide_nav_links    = true;
 $hide_header       = true;          /* the brand moves into the card itself */
 $minimal_footer    = true;
+$card_legal        = true;          /* render copyright + legal + dev credit inside the card */
 $active_nav        = 'login';
 
 require __DIR__ . '/../includes/site_header.php';
@@ -210,6 +211,31 @@ $flash = get_flash();
         <a class="link-underline" href="mailto:registrar@tracjhs.edu.ph?subject=Password%20reset%20request">Forgot password?</a>
         <span class="link-sep" aria-hidden="true">·</span>
         <a class="link-underline" href="<?= e(url('/')) ?>">&larr; Back to landing page</a>
+    </div>
+
+    <!-- In-card legal strip: copyright, legal links, system name, dev credits -->
+    <div class="login-card__legal" aria-label="Site information">
+        <p class="login-card__legal-copy">&copy; <?= date('Y') ?> TRAC Junior High School. Laboratory school of Tawi-Tawi Regional Agricultural College.</p>
+        <nav class="login-card__legal-links" aria-label="Legal">
+            <a class="link-underline" href="<?= e(url('/privacy.php')) ?>">Privacy</a>
+            <span class="link-sep" aria-hidden="true">|</span>
+            <a class="link-underline" href="<?= e(url('/terms.php')) ?>">Terms</a>
+            <span class="link-sep" aria-hidden="true">|</span>
+            <a class="link-underline" href="<?= e(url('/about.php')) ?>">About</a>
+        </nav>
+        <p class="login-card__legal-system">LAN-Based Student Admission and Records Management System</p>
+        <p class="login-card__legal-devs">
+            <span class="login-card__legal-devs-label">System Development Team</span>
+            <span class="login-card__legal-devs-names">
+                <span>Michael S. Giagales</span>
+                <span class="login-card__legal-devs-sep" aria-hidden="true">|</span>
+                <span>Omarkhan G. Sahisa</span>
+                <span class="login-card__legal-devs-sep" aria-hidden="true">|</span>
+                <span>Jeriko A. Binong</span>
+                <span class="login-card__legal-devs-sep" aria-hidden="true">|</span>
+                <span>Abumharwan Sabbaha</span>
+            </span>
+        </p>
     </div>
 </section>
 
