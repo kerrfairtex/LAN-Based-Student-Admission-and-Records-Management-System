@@ -45,9 +45,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['inquiry_submit'])) {
         $page_inquiry_error = 'Invalid grade selection.';
     } elseif (!preg_match('/^[0-9 +()-]{7,20}$/', $contact)) {
         $page_inquiry_error = 'Please provide a valid contact number.';
+    } elseif (mb_strlen($name) > 150) {
+        $page_inquiry_error = 'Name is too long (max 150 characters).';
     } else {
-        $page_inquiry_success = true;
-        $_POST = [];
+        // Persist the inquiry. CSRF + field validation already passed; the
+        // only remaining failure modes are a DB outage or a programming bug,
+        // neither of which the applicant can act on — surface a generic
+        // message and do NOT claim success. Do NOT leak PDO error text.
+        // Scope: persist only what the form collected (full_name, grade,
+        // contact_number). No IP, no user agent — see 005_inquiries.sql
+        // header comment for the rationale.
+        try {
+            $stmt = db()->prepare(
+                'INSERT INTO inquiries (full_name, grade, contact_number)
+                 VALUES (:full_name, :grade, :contact_number)
+                 RETURNING id'
+            );
+            $stmt->execute([
+                'full_name'      => $name,
+                'grade'          => $grade,
+                'contact_number' => $contact,
+            ]);
+            $inquiryId = (int) $stmt->fetchColumn();
+
+            if ($inquiryId <= 0) {
+                throw new RuntimeException('INSERT returned no id');
+            }
+
+            $page_inquiry_success = true;
+            $_POST = [];
+        } catch (Throwable $e) {
+            // Log to PHP error log; do NOT leak internals to the user.
+            error_log('inquiry insert failed: ' . $e->getMessage());
+            $page_inquiry_error = 'We could not save your inquiry right now. '
+                . 'Please try again in a moment, or contact the registrar\'s office directly '
+                . 'at registrar@tracjhs.edu.ph.';
+        }
     }
 }
 
