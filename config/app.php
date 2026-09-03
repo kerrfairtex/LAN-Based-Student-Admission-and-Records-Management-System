@@ -41,6 +41,35 @@ if (!headers_sent()) {
         || (strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')) {
         header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
     }
+
+    // Content-Security-Policy. Mirrored in .htaccess mod_headers for the
+    // Apache path; this PHP fallback covers the PHP built-in dev server,
+    // any SAPI without mod_headers, and edge intermediaries that strip
+    // .htaccess-set headers.
+    //
+    // What's allowed:
+    //   default-src 'self'         — no external scripts/styles by default
+    //   script-src  +cdn.jsdelivr  — Bootstrap JS (no inline currently used
+    //                                  beyond Bootstrap's own bundle init,
+    //                                  but 'unsafe-inline' keeps the
+    //                                  existing inline mobile-sidebar
+    //                                  init block working without a
+    //                                  per-request nonce)
+    //   style-src   +fonts.googleapis +cdn.jsdelivr — Google Fonts CSS,
+    //                                  Bootstrap CSS, Bootstrap Icons
+    //                                  font CSS, plus inline style=""
+    //                                  attrs that the templates rely on
+    //   font-src    +cdn.jsdelivr +fonts.gstatic +data: — Bootstrap Icons
+    //                                  webfont + Google Fonts files +
+    //                                  inline data: URIs (favicons)
+    //   img-src     'self' data:    — local images + inline data: URIs only
+    //   connect-src 'self'         — no XHR/fetch to other origins
+    //   frame-ancestors 'self'     — no third-party iframe embedding
+    //   form-action 'self'         — forms can only POST to us
+    //   base-uri    'self'         — no <base href> hijack
+    //   object-src  'none'         — no <object>/<embed>/Flash legacy
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'");
+
     header_remove('X-Powered-By');
 }
 
