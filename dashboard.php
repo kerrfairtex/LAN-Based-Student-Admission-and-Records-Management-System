@@ -155,3 +155,5 @@ render_header('Dashboard', 'dashboard');
 </div>
 <?php
 render_footer();
+?>
+<script src="<?= e(url('/assets/js/dashboard.js')) ?>"></script>

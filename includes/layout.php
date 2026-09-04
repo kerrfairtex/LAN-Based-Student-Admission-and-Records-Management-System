@@ -70,7 +70,11 @@ function render_header(string $title, string $active = ''): void
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= e(url('/assets/css/tokens.css')) ?>" rel="stylesheet">
+    <link href="<?= e(url('/assets/css/app-shell.css')) ?>" rel="stylesheet">
     <link href="<?= e(url('/assets/css/dashboard.css')) ?>" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- tokens.css is the shared design-system source of truth (dark-green
          palette, gold accents, Fraunces serif, spacing/typography tokens).
          It was already loaded by includes/partials/header.php for the public
@@ -284,7 +288,7 @@ function render_header(string $title, string $active = ''): void
 
             <!-- LAN badge -->
             <div class="lan-badge-row">
-                <span class="lan-badge"><i class="bi bi-shield-lock"></i> Intranet Only</span>
+                <span class="lan-badge"><i class="bi bi-shield-lock"></i> Internet Access Only</span>
             </div>
 
             <!-- Flash messages -->
@@ -308,7 +312,6 @@ function render_footer(): void
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="<?= e(url('/assets/js/dashboard.js')) ?>"></script>
     <script>
         // Mobile sidebar toggle
         (function () {
