@@ -78,7 +78,7 @@ $is_authed         = is_logged_in();
 <header class="site-header" role="banner">
     <div class="wrap site-header__row">
         <a class="brand" href="<?= e(url('/')) ?>">
-            <img class="brand-mark" src="/assets/img/lanbaselogo.jpeg" alt="TRAC seal" width="38" height="38">
+            <img class="brand-mark" src="/assets/img/trac-jhs-seal.jpeg" alt="TRAC seal" width="38" height="38">
             <span class="brand-text">
                 <strong>TRAC JHS</strong>
                 <span>Bongao, Tawi-Tawi</span>

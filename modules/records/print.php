@@ -103,7 +103,7 @@ $sf10Rows = $sf10->fetchAll();
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <div class="print-title">TRAC JHS — Student Record</div>
-                    <div class="print-subtitle">LAN-Based Student Admission and Records Management System</div>
+                    <div class="print-subtitle">TRAC JHS Student Admission and Records Management System</div>
                 </div>
                 <div class="text-end">
                     <div><strong>Student ID:</strong> <?= e($student['student_id_no']) ?></div>

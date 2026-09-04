@@ -1,6 +1,6 @@
 # TRAC JHS SARMS — Development Roadmap
 
-**System:** LAN-Based Student Admission and Records Management System  
+**System:** TRAC JHS Student Admission and Records Management System  
 **Institution:** Tawi-Tawi Regional Agricultural College Junior High School (TRAC JHS)  
 **Stack:** PHP 8 + MySQL + XAMPP (three-tier, intranet-only)
 

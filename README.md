@@ -1,6 +1,6 @@
 # TRAC JHS SARMS
 
-The **LAN-Based Student Admission and Records Management System** for
+The **TRAC JHS Student Admission and Records Management System** for
 Tawi-Tawi Regional Agricultural College Junior High School (TRAC JHS),
 Bongao, Tawi-Tawi, BARMM.
 
