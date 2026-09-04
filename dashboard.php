@@ -24,24 +24,29 @@ render_header('Dashboard', 'dashboard');
 ?>
 <div class="stat-grid">
     <div class="stat-card glass-panel">
+        <div class="stat-icon stat-icon-gold"><i class="bi bi-person-check-fill"></i></div>
         <p class="mb-1 text-muted">Active Students</p>
-        <div class="stat-value"><?= (int) $stats['total_students'] ?></div>
+        <div class="stat-value" data-count="<?= (int) $stats['total_students'] ?>">0</div>
     </div>
     <div class="stat-card glass-panel">
+        <div class="stat-icon stat-icon-bronze"><i class="bi bi-hourglass-split"></i></div>
         <p class="mb-1 text-muted">Pending Admissions</p>
-        <div class="stat-value"><?= (int) $stats['pending_admissions'] ?></div>
+        <div class="stat-value" data-count="<?= (int) $stats['pending_admissions'] ?>">0</div>
     </div>
     <div class="stat-card glass-panel">
+        <div class="stat-icon stat-icon-green"><i class="bi bi-mortarboard-fill"></i></div>
         <p class="mb-1 text-muted">Enrolled (<?= e($stats['active_school_year']) ?>)</p>
-        <div class="stat-value"><?= (int) $stats['enrolled_this_year'] ?></div>
+        <div class="stat-value" data-count="<?= (int) $stats['enrolled_this_year'] ?>">0</div>
     </div>
     <div class="stat-card glass-panel">
+        <div class="stat-icon stat-icon-muted"><i class="bi bi-diagram-3-fill"></i></div>
         <p class="mb-1 text-muted">Unassigned Sections</p>
-        <div class="stat-value"><?= (int) $stats['unassigned_sections'] ?></div>
+        <div class="stat-value" data-count="<?= (int) $stats['unassigned_sections'] ?>">0</div>
     </div>
     <div class="stat-card glass-panel">
+        <div class="stat-icon <?= $stats['overdue_transfers'] > 0 ? 'stat-icon-danger' : 'stat-icon-muted' ?>"><i class="bi bi-exclamation-triangle-fill"></i></div>
         <p class="mb-1 text-muted">Overdue Transfers</p>
-        <div class="stat-value <?= $stats['overdue_transfers'] > 0 ? 'text-danger' : '' ?>"><?= (int) $stats['overdue_transfers'] ?></div>
+        <div class="stat-value <?= $stats['overdue_transfers'] > 0 ? 'text-danger' : '' ?>" data-count="<?= (int) $stats['overdue_transfers'] ?>">0</div>
     </div>
 </div>
 
