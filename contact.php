@@ -42,7 +42,7 @@ $active_nav        = 'contact';
 require __DIR__ . '/includes/site_header.php';
 ?>
 
-<section class="about" id="contact" style="padding-top:88px;">
+<section class="about" id="contact-info" style="padding-top:88px;">
     <div class="wrap">
         <span class="section-head kicker">Contact</span>
         <h1 class="display" style="font-size:clamp(28px,4vw,40px);margin-bottom:24px;">Visit or reach the registrar</h1>

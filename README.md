@@ -1,6 +1,6 @@
 # TRAC JHS SARMS
 
-The **LAN-Based Student Admission and Records Management System** for
+The **TRAC JHS Student Admission and Records Management System** for
 Tawi-Tawi Regional Agricultural College Junior High School (TRAC JHS),
 Bongao, Tawi-Tawi, BARMM.
 
@@ -15,6 +15,41 @@ The system handles:
 
 The system is intended for use by the school's **registrar** and
 **data encoders**. It is not a public-facing admission portal.
+
+---
+
+## Quick start (local dev)
+
+Requires PHP + PostgreSQL installed. Get them from
+[php.net](https://www.php.net/downloads) and
+[postgresql.org](https://www.postgresql.org/download/).
+
+```
+git clone <this-repo>
+cd LAN-Based-Student-Admission-and-Records-Management-System
+bash tools/dev-up.sh
+```
+
+`dev-up.sh` boots an embedded PostgreSQL on port 5433, imports
+`database/schema.sql` (idempotent), exports the right env vars,
+and execs `php -S 0.0.0.0:8000`. Open
+[http://127.0.0.1:8000](http://127.0.0.1:8000) and sign in:
+
+  - username: `registrar`
+  - password: `Registrar@2026`
+
+**Change this password immediately** under
+Account → Change Password after first login. The same goes for
+the `encoder` account if it's used.
+
+On Windows, use `tools\dev-up.cmd` instead of `bash tools/dev-up.sh`.
+
+To add another user (e.g. a second registrar), run
+`php tools/create-registrar.php` and follow the prompts.
+
+To stop everything, press Ctrl+C in the terminal where you ran
+`dev-up.sh` — both the dev server and the embedded Postgres are
+shut down.
 
 ---
 
@@ -70,15 +105,13 @@ on that locally.
 
 ---
 
-## Default seed accounts (in `database/schema.sql`)
+## First deploy
 
-| Role                    | Username     | Password         |
-|-------------------------|--------------|------------------|
-| School Registrar (Admin) | `registrar`  | `Registrar@2026` |
-| Data Encoder (Staff)    | `encoder`    | `Encoder@2026`   |
-
-Change these immediately after first sign-in via
-**Account → Change Password**.
+`database/schema.sql` ships with bcrypt-hashed seed accounts whose plaintext
+passwords are not committed to this repository. The deploying operator must
+rotate every seed account through **Account → Change Password** immediately
+after the first successful sign-in. Until rotation, the live system is
+vulnerable to any reader of the public GitHub repository.
 
 ---
 

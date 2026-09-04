@@ -10,8 +10,8 @@ only the non-obvious, cloud-VM specific details.
 
 | Service | Required | Start command | Notes |
 |---------|----------|---------------|-------|
-| PostgreSQL | Yes | `sudo service postgresql start` (or use the in-repo `.pgdata` embedded cluster — see Gotchas) | Not started on boot; start it each session. |
-| PHP dev server | Yes | `php -S 0.0.0.0:8000` (run from repo root) | App at http://localhost:8000/ . Use instead of Apache/XAMPP. |
+| PostgreSQL | Yes | `bash tools/dev-up.sh` (recommended) — or `sudo service postgresql start` (or use the in-repo `.pgdata` embedded cluster — see Gotchas) | Not started on boot; start it each session. The recommended path is `tools/dev-up.sh`, which boots an embedded Postgres on 5433, imports `database/schema.sql`, and execs `php -S 0.0.0.0:8000`. |
+| PHP dev server | Yes | `php -S 0.0.0.0:8000` (run from repo root) | App at http://localhost:8000/ . Use instead of Apache/XAMPP. `tools/dev-up.sh` starts this for you. |
 
 PHP 8.3 (`pdo_pgsql`, `mbstring`, `xml`) and PostgreSQL are provided by the VM snapshot — do
 not reinstall them. There is **no MariaDB** in this project despite what older revisions of
@@ -28,6 +28,10 @@ this file claimed; the actual stack is Postgres + Supabase/Render.
     (Supabase / Render managed Postgres).
 - Schema + seed data live in `database/schema.sql`. Tables are namespaced under
   `trac_jhs_sarms.<table>`; the connection sets `search_path` so unqualified names resolve there.
+- For local dev, `bash tools/dev-up.sh` handles initdb + start + import + dev server in one
+  command. It binds the embedded cluster to port **5433** (not the 6543 default) and exports
+  `DB_PORT=5433` so the DSN matches. Manual import: `psql -h 127.0.0.1 -p 5433 -U postgres
+  -d postgres -f database/schema.sql` (or use the existing `tools/import_schema.php`).
 - The files under `database/migrations/` are for upgrading older deployments. Note: `002_phase2.sql`
   and `003_lis_csv.sql` were authored against MySQL (`ENGINE=InnoDB`, `TIMESTAMP`, `USE`) and are
   **stale** relative to the current PostgreSQL schema. Don't run them on a fresh Postgres database
@@ -36,7 +40,10 @@ this file claimed; the actual stack is Postgres + Supabase/Render.
 - `render.yaml` provisions the production deploy target (https://trac-jhs-sarms.onrender.com)
   with `DB_PORT=5432` and `DB_SSLMODE=require` against a Render-managed Postgres instance; the
   schema is created in `trac_jhs_sarms` and `search_path` is set accordingly.
-- Default app logins: `registrar` / `Registrar@2026` (admin) and `encoder` / `Encoder@2026` (staff).
+- Default app logins: bcrypt-hashed seed accounts whose plaintext credentials are
+  not committed to this repository. The first operator to deploy must rotate
+  every seed account through **Account → Change Password** immediately after
+  first sign-in.
 
 ### Database maintenance
 

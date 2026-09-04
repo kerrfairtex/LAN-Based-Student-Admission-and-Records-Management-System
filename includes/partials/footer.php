@@ -90,7 +90,7 @@ $minimal_footer = $minimal_footer ?? false;
 $card_legal = $card_legal ?? false;
 ?>
 <?php if (!$card_legal): ?>
-<footer class="site-footer" id="contact" role="contentinfo">
+<footer class="site-footer" role="contentinfo">
     <div class="wrap foot-bottom">
         <span>&copy; <?= date('Y') ?> TRAC Junior High School. Laboratory school of Tawi-Tawi Regional Agricultural College.</span>
         <nav class="legal-row" aria-label="Legal">
@@ -106,7 +106,7 @@ $card_legal = $card_legal ?? false;
     </div>
 
     <div class="wrap foot-attribution">
-        <p class="foot-attribution__system">LAN-Based Student Admission and Records Management System</p>
+        <p class="foot-attribution__system">TRAC JHS Student Admission and Records Management System</p>
         <p class="foot-attribution__credits">
             <span class="foot-attribution__label">System Development Team</span>
             <span class="foot-attribution__names">

@@ -45,7 +45,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (attempt_login($username, $password)) {
         redirect('/dashboard.php');
     } else {
-        $error = 'Invalid credentials or inactive account.';
+        // attempt_login() returns false for both bad-credentials and
+        // throttled. Distinguish them by re-running the gate: if the gate
+        // trips, the caller was rate-limited; otherwise it was a normal
+        // bad-credentials attempt. Avoids leaking 'account locked' detail.
+        if (function_exists('login_rate_check') && login_rate_check($username) !== 'ok') {
+            http_response_code(429);
+            $error = 'Too many sign-in attempts. Please wait 15 minutes and try again, or contact the School Registrar.';
+        } else {
+            $error = 'Invalid credentials or inactive account.';
+        }
     }
 }
 
@@ -103,7 +112,7 @@ $flash = get_flash();
         </div>
         <div class="node-seal">
             <img class="node-seal__img"
-                 src="/assets/img/lanbaselogo.jpeg" alt=""
+                 src="/assets/img/trac-jhs-seal.jpeg" alt=""
                  width="84" height="84" loading="eager" decoding="async"
                  onerror="this.onerror=null;this.style.display='none';this.parentNode.classList.add('node-seal--fallback');">
             <span class="node-seal__fallback" aria-hidden="true">TRAC</span>
@@ -223,7 +232,7 @@ $flash = get_flash();
             <span class="link-sep" aria-hidden="true">|</span>
             <a class="link-underline" href="<?= e(url('/about.php')) ?>">About</a>
         </nav>
-        <p class="login-card__legal-system">LAN-Based Student Admission and Records Management System</p>
+        <p class="login-card__legal-system">TRAC JHS Student Admission and Records Management System</p>
         <p class="login-card__legal-devs">
             <span class="login-card__legal-devs-label">System Development Team</span>
             <span class="login-card__legal-devs-names">

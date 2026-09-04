@@ -25,24 +25,24 @@ function render_header(string $title, string $active = ''): void
         [
             'label' => '',
             'items' => [
-                ['label' => 'Dashboard', 'href' => '/dashboard.php', 'active' => $active === 'dashboard', 'icon' => 'speedometer2'],
+                ['label' => 'Dashboard', 'href' => '/dashboard.php', 'active' => $active === 'dashboard', 'icon' => 'bi-speedometer2'],
             ],
         ],
         [
             'label' => 'Admissions',
             'items' => [
-                ['label' => 'Admissions',    'href' => '/modules/admission/index.php',   'active' => $active === 'admission',    'icon' => 'person-plus'],
-                ['label' => 'Students',      'href' => '/modules/records/index.php',     'active' => $active === 'records',      'icon' => 'people'],
-                ['label' => 'Enrollments',   'href' => '/modules/enrollment/index.php',  'active' => $active === 'enrollment',   'icon' => 'person-check'],
-                ['label' => 'Records',       'href' => '/modules/records/academic.php',  'active' => $active === 'academic',     'icon' => 'journal'],
+                ['label' => 'Admissions',    'href' => '/modules/admission/index.php',   'active' => $active === 'admission',    'icon' => 'bi-person-plus'],
+                ['label' => 'Students',      'href' => '/modules/records/index.php',     'active' => $active === 'records',      'icon' => 'bi-people'],
+                ['label' => 'Enrollments',   'href' => '/modules/enrollment/index.php',  'active' => $active === 'enrollment',   'icon' => 'bi-person-check'],
+                ['label' => 'Records',       'href' => '/modules/records/academic.php',  'active' => $active === 'academic',     'icon' => 'bi-journal'],
             ],
         ],
         [
             'label' => 'Reports',
             'items' => [
-                ['label' => 'Reports',   'href' => '/modules/reports/index.php',  'active' => $active === 'reports',  'icon' => 'file-earmark-text'],
-                ['label' => 'Transfers', 'href' => '/modules/transfers/index.php', 'active' => $active === 'transfers', 'icon' => 'arrow-left-right'],
-                ['label' => 'Search',    'href' => '/modules/search/index.php',   'active' => $active === 'search',   'icon' => 'search'],
+                ['label' => 'Reports',   'href' => '/modules/reports/index.php',  'active' => $active === 'reports',  'icon' => 'bi-file-earmark-text'],
+                ['label' => 'Transfers', 'href' => '/modules/transfers/index.php', 'active' => $active === 'transfers', 'icon' => 'bi-arrow-left-right'],
+                ['label' => 'Search',    'href' => '/modules/search/index.php',   'active' => $active === 'search',   'icon' => 'bi-search'],
             ],
         ],
     ];
@@ -51,12 +51,12 @@ function render_header(string $title, string $active = ''): void
         $sidebarGroups[] = [
             'label' => 'Administration',
             'items' => [
-                ['label' => 'Users',  'href' => '/modules/admin/users.php',     'active' => $active === 'users',     'icon' => 'person-gear'],
-                ['label' => 'Settings','href' => '/modules/admin/settings.php',  'active' => $active === 'settings',  'icon' => 'gear'],
-                ['label' => 'Audit',   'href' => '/modules/admin/audit.php',     'active' => $active === 'audit',     'icon' => 'journal-text'],
-                ['label' => 'LIS',     'href' => '/modules/admin/lis.php',       'active' => $active === 'lis',       'icon' => 'file-earmark-spreadsheet'],
-                ['label' => 'Backup',  'href' => '/modules/admin/backup.php',    'active' => $active === 'backup',    'icon' => 'hdd-network'],
-                ['label' => 'Restore', 'href' => '/modules/admin/restore.php',   'active' => $active === 'restore',   'icon' => 'arrow-counterclockwise'],
+                ['label' => 'Users',  'href' => '/modules/admin/users.php',     'active' => $active === 'users',     'icon' => 'bi-person-gear'],
+                ['label' => 'Settings','href' => '/modules/admin/settings.php',  'active' => $active === 'settings',  'icon' => 'bi-gear'],
+                ['label' => 'Audit',   'href' => '/modules/admin/audit.php',     'active' => $active === 'audit',     'icon' => 'bi-journal-text'],
+                ['label' => 'LIS',     'href' => '/modules/admin/lis.php',       'active' => $active === 'lis',       'icon' => 'bi-file-earmark-spreadsheet'],
+                ['label' => 'Backup',  'href' => '/modules/admin/backup.php',    'active' => $active === 'backup',    'icon' => 'bi-hdd-network'],
+                ['label' => 'Restore', 'href' => '/modules/admin/restore.php',   'active' => $active === 'restore',   'icon' => 'bi-arrow-counterclockwise'],
             ],
         ];
     }
@@ -67,10 +67,16 @@ function render_header(string $title, string $active = ''): void
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title) ?> | <?= e(APP_NAME) ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"
+          integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
     <link href="<?= e(url('/assets/css/tokens.css')) ?>" rel="stylesheet">
+    <link href="<?= e(url('/assets/css/app-shell.css')) ?>" rel="stylesheet">
     <link href="<?= e(url('/assets/css/dashboard.css')) ?>" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- tokens.css is the shared design-system source of truth (dark-green
          palette, gold accents, Fraunces serif, spacing/typography tokens).
          It was already loaded by includes/partials/header.php for the public
@@ -282,10 +288,11 @@ function render_header(string $title, string $active = ''): void
                 </div>
             </header>
 
-            <!-- LAN badge -->
-            <div class="lan-badge-row">
-                <span class="lan-badge"><i class="bi bi-shield-lock"></i> Intranet Only</span>
-            </div>
+            <!-- LAN badge removed: was a static "Internet Access Only" label
+                 that added noise to every authed page. The .lan-badge /
+                 .lan-badge-row CSS in app-shell.css is kept on purpose so
+                 the design tokens are still available if we ever want to
+                 re-introduce a real, dynamic status indicator here. -->
 
             <!-- Flash messages -->
             <?php
@@ -307,7 +314,9 @@ function render_footer(): void
             </section>
         </main>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
     <script>
         // Mobile sidebar toggle
         (function () {

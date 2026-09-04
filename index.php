@@ -93,6 +93,33 @@ if ($html === false) {
     exit;
 }
 
+/* Surface a top-of-page banner for one-shot flash messages that arrived via
+   a redirect into the landing page (e.g. auth/logout.php → /). The flash is
+   read here so get_flash() doesn't accidentally consume it for some other
+   consumer. get_flash() also unsets the session entry, so the banner only
+   shows once. The banner sits between </header> and <main id="top"> in the
+   landing template; we splice it in via a unique marker in the template. */
+$bannerHtml = '';
+$sessionFlash = get_flash();
+if ($sessionFlash && in_array($sessionFlash['type'], ['success', 'danger', 'info'], true)) {
+    $type     = $sessionFlash['type'];
+    $message  = e($sessionFlash['message']);
+    $iconCls  = $type === 'success' ? 'bi-check-circle-fill'
+              : ($type === 'danger'  ? 'bi-exclamation-triangle-fill'
+              :                        'bi-info-circle-fill');
+    $bannerHtml = <<<HTML
+<div class="page-banner" role="status" data-page-banner>
+  <div class="wrap">
+    <i class="bi {$iconCls}" aria-hidden="true"></i>
+    <span>{$message}</span>
+    <button type="button" aria-label="Dismiss" data-page-banner-close>&times;</button>
+  </div>
+</div>
+
+HTML;
+}
+$html = str_replace("</header>\n\n<main id=\"top\">", "</header>\n\n{$bannerHtml}<main id=\"top\">", $html);
+
 /* Surgical modification 1+2: repoint staff-sign-in links. */
 $html = str_replace(
     '<a class="btn-portal" href="#staff">Staff Sign In</a>',

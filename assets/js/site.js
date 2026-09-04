@@ -287,4 +287,27 @@
             ripple.classList.add('is-active');
         });
     }
+
+    /* =====================================================================
+     * 3. Top-of-page banner dismiss (post-logout, post-inquiry confirmation)
+     * ===================================================================== */
+    var banner = document.querySelector('[data-page-banner]');
+    var bannerClose = document.querySelector('[data-page-banner-close]');
+    if (banner && bannerClose) {
+        bannerClose.addEventListener('click', function () {
+            banner.style.transition = 'opacity .25s ease, max-height .25s ease, padding .25s ease, margin .25s ease';
+            banner.style.maxHeight = banner.offsetHeight + 'px';
+            // Force reflow so the transition runs from set values
+            // eslint-disable-next-line no-unused-expressions
+            banner.offsetWidth;
+            banner.style.opacity = '0';
+            banner.style.maxHeight = '0';
+            banner.style.paddingTop = '0';
+            banner.style.paddingBottom = '0';
+            banner.style.overflow = 'hidden';
+            banner.addEventListener('transitionend', function () {
+                banner.parentNode && banner.parentNode.removeChild(banner);
+            }, { once: true });
+        });
+    }
 })();

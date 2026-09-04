@@ -71,6 +71,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         redirect('/modules/admin/users.php');
     }
+
+    if ($action === 'reset_throttle' && isset($_POST['username'])) {
+        $target = trim((string) $_POST['username']);
+        if ($target !== '') {
+            $cleared = reset_login_throttle($target);
+            audit_log(
+                'update',
+                'users',
+                null,
+                "Cleared {$cleared} failed-login audit row(s) for {$target}"
+            );
+            flash('success', "Cleared {$cleared} failed-login record(s) for {$target}. They can sign in again now.");
+        }
+        redirect('/modules/admin/users.php');
+    }
 }
 
 render_header('User Management', 'users');
@@ -135,6 +150,15 @@ render_header('User Management', 'users');
                                             <input type="hidden" name="action" value="toggle">
                                             <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-light"><?= $user['is_active'] ? 'Disable' : 'Enable' ?></button>
+                                        </form>
+                                        <form method="post" class="d-inline">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="action" value="reset_throttle">
+                                            <input type="hidden" name="username" value="<?= e($user['username']) ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                    title="Clear failed-login counter for this user (un-throttle a locked-out account)">
+                                                Reset Lockout
+                                            </button>
                                         </form>
                                     <?php endif; ?>
                                 </td>
