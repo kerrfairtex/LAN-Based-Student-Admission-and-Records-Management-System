@@ -288,10 +288,11 @@ function render_header(string $title, string $active = ''): void
                 </div>
             </header>
 
-            <!-- LAN badge -->
-            <div class="lan-badge-row">
-                <span class="lan-badge"><i class="bi bi-shield-lock"></i> Internet Access Only</span>
-            </div>
+            <!-- LAN badge removed: was a static "Internet Access Only" label
+                 that added noise to every authed page. The .lan-badge /
+                 .lan-badge-row CSS in app-shell.css is kept on purpose so
+                 the design tokens are still available if we ever want to
+                 re-introduce a real, dynamic status indicator here. -->
 
             <!-- Flash messages -->
             <?php

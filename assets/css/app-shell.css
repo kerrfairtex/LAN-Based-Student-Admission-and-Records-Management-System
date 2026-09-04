@@ -230,6 +230,15 @@
     border-bottom: 1px solid var(--line);
     background: rgba(15, 49, 32, 0.55);    /* --green-900 @ 55% */
 }
+/* The topbar element also has the .glass-panel class, which sets
+   overflow: hidden (defined later in dashboard.css). That overflow
+   clips the Bootstrap dropdown menus (year selector, notifications,
+   avatar) to the topbar's ~60px box height, making them visually
+   unreachable even though the click toggles .show on .dropdown.
+
+   .topbar.glass-panel has specificity (0,0,2,0) which beats the
+   single-class .glass-panel rule. No !important needed. */
+.topbar.glass-panel { overflow: visible; }
 
 .topbar-left {
     display: flex;
