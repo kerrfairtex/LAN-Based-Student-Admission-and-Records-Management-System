@@ -240,6 +240,21 @@
    single-class .glass-panel rule. No !important needed. */
 .topbar.glass-panel { overflow: visible; }
 
+/* Bootstrap's dropdown-menu is position:absolute with z-index:1000, but
+   that z-index is scoped to the .topbar.glass-panel stacking context
+   (which is position:relative via the .glass-panel mixin). The .stat-card
+   and .panel-card elements below the topbar ALSO use .glass-panel, so
+   they create their own stacking contexts with z-index:auto. Because
+   they come later in DOM order than the topbar, they paint on top of
+   the open dropdown menu — the user sees the menu behind the stat grid.
+
+   z-index:50 lifts the topbar's stacking context above the .main-content
+   subtree (where the .stat-card / .panel-card children live at z-index
+   auto), so the dropdown is now visible above the page content. 50 is
+   above the sidebar (40) and the mobile drawer (45) so the topbar stays
+   on top in every layout. */
+.topbar.glass-panel { z-index: 50; }
+
 .topbar-left {
     display: flex;
     align-items: center;
