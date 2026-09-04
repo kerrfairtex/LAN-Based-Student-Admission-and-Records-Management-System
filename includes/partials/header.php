@@ -102,11 +102,11 @@ $is_authed         = is_logged_in();
                 <a class="btn-portal" href="<?= e(url('/auth/login.php')) ?>">Staff Sign In</a>
             <?php endif; ?>
             <?php if (!$hide_nav_links): ?>
-            <button class="menu-btn" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-nav">
+            <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav">
                 <svg class="menu-btn-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                    <line x1="3" y1="6"  x2="21" y2="6"/>
-                    <line x1="3" y1="12" x2="21" y2="12"/>
-                    <line x1="3" y1="18" x2="21" y2="18"/>
+                    <line class="menu-btn-line menu-btn-line--top"    x1="3" y1="6"  x2="21" y2="6"/>
+                    <line class="menu-btn-line menu-btn-line--middle" x1="3" y1="12" x2="21" y2="12"/>
+                    <line class="menu-btn-line menu-btn-line--bottom" x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
             </button>
             <?php endif; ?>
@@ -114,16 +114,26 @@ $is_authed         = is_logged_in();
     </div>
 
     <?php if (!$hide_nav_links): ?>
+    <div class="mobile-nav-backdrop" data-mobile-nav-close aria-hidden="true"></div>
     <nav class="mobile-nav" id="mobile-nav" aria-label="Public sections (mobile)" hidden>
+        <div class="mobile-nav__head">
+            <span class="mobile-nav__title">Menu</span>
+            <button class="mobile-nav__close" type="button" data-mobile-nav-close aria-label="Close menu">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <line x1="6" y1="6"  x2="18" y2="18"/>
+                    <line x1="6" y1="18" x2="18" y2="6"/>
+                </svg>
+            </button>
+        </div>
         <a href="<?= e(url('/')) ?>#about">About</a>
         <a href="<?= e(url('/')) ?>#programs">Academics</a>
         <a href="<?= e(url('/')) ?>#admissions">Admissions</a>
         <a href="<?= e(url('/')) ?>#campus">Campus</a>
         <a href="<?= e(url('/')) ?>#contact">Contact</a>
         <?php if ($is_authed): ?>
-            <a href="<?= e(url('/dashboard.php')) ?>">Dashboard</a>
+            <a class="mobile-nav__cta" href="<?= e(url('/dashboard.php')) ?>">Dashboard</a>
         <?php else: ?>
-            <a href="<?= e(url('/auth/login.php')) ?>">Staff Sign In</a>
+            <a class="mobile-nav__cta" href="<?= e(url('/auth/login.php')) ?>">Staff Sign In</a>
         <?php endif; ?>
     </nav>
     <?php endif; ?>

@@ -273,3 +273,57 @@
     .js .hero .eyebrow-row,.js .hero h1,.js .hero p.lede,.js .hero-ctas,.js .hero-meta,.js .emblem-wrap{opacity:1 !important;transform:none !important;transition:none !important;}
     .mobile-nav,.mobile-nav-backdrop,.menu-btn-line,.menu-btn-icon,.faq-chev::before,.faq-chev::after,.foot-form__spinner{transition:none !important;animation:none !important;}
   }
+
+  /* ---------- Inline form-flash + top banner (post-logout, post-inquiry) ----------
+     Pre-existing markup already uses .form-flash inside the footer's contact form
+     and the inquiry-form injection. These rules give that markup a real visual
+     and let index.php render a top-of-page confirmation after a redirect
+     (e.g. auth/logout.php → / flashes "You have been signed out."). */
+  .form-flash{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:12px 14px;border-radius:6px;
+    font-size:14px;line-height:1.4;
+    border:1px solid transparent;
+    margin:0 0 12px;
+  }
+  .form-flash::before{
+    content:"";flex:0 0 auto;width:18px;height:18px;border-radius:50%;
+    background:var(--cream-100);opacity:.95;
+    -webkit-mask-position:center;mask-position:center;
+    -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+    -webkit-mask-size:14px 14px;mask-size:14px 14px;
+    margin-top:1px;
+  }
+  .form-flash--success{
+    background:rgba(62,122,87,.18);
+    border-color:rgba(62,122,87,.55);
+    color:var(--cream-100);
+  }
+  .form-flash--success::before{
+    -webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23142016' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='5 12 10 17 19 8'/></svg>");
+            mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23142016' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='5 12 10 17 19 8'/></svg>");
+  }
+  .form-flash--danger{
+    background:rgba(193,68,59,.20);
+    border-color:rgba(193,68,59,.55);
+    color:var(--cream-100);
+  }
+  .form-flash--danger::before{
+    -webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23142016' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><line x1='6' y1='6' x2='18' y2='18'/><line x1='6' y1='18' x2='18' y2='6'/></svg>");
+            mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23142016' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><line x1='6' y1='6' x2='18' y2='18'/><line x1='6' y1='18' x2='18' y2='6'/></svg>");
+  }
+
+  /* Top-of-page banner variant. Sits between the site header and the hero. */
+  .page-banner{
+    background:rgba(62,122,87,.18);
+    border-bottom:1px solid rgba(62,122,87,.55);
+    color:var(--cream-100);
+  }
+  .page-banner .wrap{display:flex;align-items:center;gap:10px;padding:14px 24px;font-size:14.5px;}
+  .page-banner i{color:var(--gold-400);font-size:1rem;}
+  .page-banner button{
+    margin-left:auto;background:transparent;border:0;color:var(--cream-100);
+    font-size:20px;line-height:1;cursor:pointer;padding:4px 8px;border-radius:4px;
+  }
+  .page-banner button:hover{background:rgba(245,238,220,.08);}
+  .page-banner button:focus-visible{outline:2px solid var(--gold-500);outline-offset:2px;}
