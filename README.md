@@ -18,6 +18,41 @@ The system is intended for use by the school's **registrar** and
 
 ---
 
+## Quick start (local dev)
+
+Requires PHP + PostgreSQL installed. Get them from
+[php.net](https://www.php.net/downloads) and
+[postgresql.org](https://www.postgresql.org/download/).
+
+```
+git clone <this-repo>
+cd LAN-Based-Student-Admission-and-Records-Management-System
+bash tools/dev-up.sh
+```
+
+`dev-up.sh` boots an embedded PostgreSQL on port 5433, imports
+`database/schema.sql` (idempotent), exports the right env vars,
+and execs `php -S 0.0.0.0:8000`. Open
+[http://127.0.0.1:8000](http://127.0.0.1:8000) and sign in:
+
+  - username: `registrar`
+  - password: `Registrar@2026`
+
+**Change this password immediately** under
+Account → Change Password after first login. The same goes for
+the `encoder` account if it's used.
+
+On Windows, use `tools\dev-up.cmd` instead of `bash tools/dev-up.sh`.
+
+To add another user (e.g. a second registrar), run
+`php tools/create-registrar.php` and follow the prompts.
+
+To stop everything, press Ctrl+C in the terminal where you ran
+`dev-up.sh` — both the dev server and the embedded Postgres are
+shut down.
+
+---
+
 ## Live deployment
 
 - **URL:** https://trac-jhs-sarms.onrender.com

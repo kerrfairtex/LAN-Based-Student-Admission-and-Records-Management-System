@@ -298,9 +298,10 @@ INSERT INTO trac_jhs_sarms.school_years (label, is_active, start_date, end_date)
 ON CONFLICT DO NOTHING;
 
 
--- Default credentials (change after first login):
--- registrar / Registrar@2026
--- encoder   / Encoder@2026
+-- Seed users: registrar and encoder accounts. The plaintext
+-- default password is documented in README.md (Quick Start)
+-- and the operator MUST change it on first login.
+
 INSERT INTO trac_jhs_sarms.users (username, password_hash, full_name, role) VALUES
     ('registrar', '$2y$10$J3yYuFMGsf89Ae/Li/IMEeYsVEf85EHrIH0DzZUKrYhsl5.TbjFki', 'School Registrar', 'registrar'),
     ('encoder', '$2y$10$uqu6a1xzHGqOM/DktEsUr..9dZT1B/BkOdLqVJznwApTwubYEeKZu', 'Data Encoder', 'encoder')

@@ -10,8 +10,8 @@ only the non-obvious, cloud-VM specific details.
 
 | Service | Required | Start command | Notes |
 |---------|----------|---------------|-------|
-| PostgreSQL | Yes | `sudo service postgresql start` (or use the in-repo `.pgdata` embedded cluster — see Gotchas) | Not started on boot; start it each session. |
-| PHP dev server | Yes | `php -S 0.0.0.0:8000` (run from repo root) | App at http://localhost:8000/ . Use instead of Apache/XAMPP. |
+| PostgreSQL | Yes | `bash tools/dev-up.sh` (recommended) — or `sudo service postgresql start` (or use the in-repo `.pgdata` embedded cluster — see Gotchas) | Not started on boot; start it each session. The recommended path is `tools/dev-up.sh`, which boots an embedded Postgres on 5433, imports `database/schema.sql`, and execs `php -S 0.0.0.0:8000`. |
+| PHP dev server | Yes | `php -S 0.0.0.0:8000` (run from repo root) | App at http://localhost:8000/ . Use instead of Apache/XAMPP. `tools/dev-up.sh` starts this for you. |
 
 PHP 8.3 (`pdo_pgsql`, `mbstring`, `xml`) and PostgreSQL are provided by the VM snapshot — do
 not reinstall them. There is **no MariaDB** in this project despite what older revisions of
@@ -28,6 +28,10 @@ this file claimed; the actual stack is Postgres + Supabase/Render.
     (Supabase / Render managed Postgres).
 - Schema + seed data live in `database/schema.sql`. Tables are namespaced under
   `trac_jhs_sarms.<table>`; the connection sets `search_path` so unqualified names resolve there.
+- For local dev, `bash tools/dev-up.sh` handles initdb + start + import + dev server in one
+  command. It binds the embedded cluster to port **5433** (not the 6543 default) and exports
+  `DB_PORT=5433` so the DSN matches. Manual import: `psql -h 127.0.0.1 -p 5433 -U postgres
+  -d postgres -f database/schema.sql` (or use the existing `tools/import_schema.php`).
 - The files under `database/migrations/` are for upgrading older deployments. Note: `002_phase2.sql`
   and `003_lis_csv.sql` were authored against MySQL (`ENGINE=InnoDB`, `TIMESTAMP`, `USE`) and are
   **stale** relative to the current PostgreSQL schema. Don't run them on a fresh Postgres database
