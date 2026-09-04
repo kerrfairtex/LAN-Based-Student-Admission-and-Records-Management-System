@@ -70,15 +70,13 @@ on that locally.
 
 ---
 
-## Default seed accounts (in `database/schema.sql`)
+## First deploy
 
-| Role                    | Username     | Password         |
-|-------------------------|--------------|------------------|
-| School Registrar (Admin) | `registrar`  | `Registrar@2026` |
-| Data Encoder (Staff)    | `encoder`    | `Encoder@2026`   |
-
-Change these immediately after first sign-in via
-**Account → Change Password**.
+`database/schema.sql` ships with bcrypt-hashed seed accounts whose plaintext
+passwords are not committed to this repository. The deploying operator must
+rotate every seed account through **Account → Change Password** immediately
+after the first successful sign-in. Until rotation, the live system is
+vulnerable to any reader of the public GitHub repository.
 
 ---
 

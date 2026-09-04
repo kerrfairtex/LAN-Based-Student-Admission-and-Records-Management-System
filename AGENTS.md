@@ -36,7 +36,10 @@ this file claimed; the actual stack is Postgres + Supabase/Render.
 - `render.yaml` provisions the production deploy target (https://trac-jhs-sarms.onrender.com)
   with `DB_PORT=5432` and `DB_SSLMODE=require` against a Render-managed Postgres instance; the
   schema is created in `trac_jhs_sarms` and `search_path` is set accordingly.
-- Default app logins: `registrar` / `Registrar@2026` (admin) and `encoder` / `Encoder@2026` (staff).
+- Default app logins: bcrypt-hashed seed accounts whose plaintext credentials are
+  not committed to this repository. The first operator to deploy must rotate
+  every seed account through **Account → Change Password** immediately after
+  first sign-in.
 
 ### Database maintenance
 
