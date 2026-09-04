@@ -116,15 +116,14 @@
       0 20px 45px rgba(0,0,0,0.6),
       0 0 0 2px rgba(212,167,44,0.45),
       0 0 50px rgba(212,167,44,0.25);
-    transform: rotateX(12deg) rotateY(-12deg) translateZ(30px);
-    transition: transform 0.5s ease;
-    animation: emblem-pulse 4.2s ease-in-out infinite, emblem-float 6s ease-in-out infinite;
+    transform-style: preserve-3d;
+    animation: emblem-3d-rotate 20s linear infinite, emblem-pulse 4.2s ease-in-out infinite;
     z-index: 2;
   }
   .emblem-seal:hover {
-    transform: rotateX(0deg) rotateY(0deg) translateZ(50px) scale(1.03);
+    animation-play-state: paused;
   }
-  .emblem-seal__img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;filter:contrast(1.05) saturate(1.05);mix-blend-mode:luminosity;opacity:0.95;}
+  .emblem-seal__img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;filter:contrast(1.05) saturate(1.05);backface-visibility:visible;}
   .emblem-seal--fallback{display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:clamp(28px,4vw,42px);font-weight:600;color:var(--gold-400);background:radial-gradient(circle at 50% 35%, var(--green-800), var(--green-950) 75%);}
   .emblem-seal__fallback-text{display:none;}
   .emblem-seal--fallback .emblem-seal__fallback-text{display:inline;}
@@ -132,8 +131,11 @@
   .rune-spokes{stroke-dasharray:600;stroke-dashoffset:600;animation:emblem-draw 1.6s ease forwards 0.3s;}
   @keyframes emblem-spin{to{transform:rotate(360deg);}}
   @keyframes emblem-draw{to{stroke-dashoffset:0;}}
-  @keyframes emblem-float{0%,100%{transform:rotateX(12deg) rotateY(-12deg) translateY(0) translateZ(30px);}50%{transform:rotateX(6deg) rotateY(-6deg) translateY(-10px) translateZ(40px);}}
-  @keyframes emblem-pulse{0%,100%{box-shadow:inset 0 10px 20px rgba(255,255,255,0.15),inset 0 -12px 25px rgba(0,0,0,0.7),0 20px 45px rgba(0,0,0,0.6),0 0 0 2px rgba(212,167,44,0.45),0 0 40px rgba(212,167,44,0.2);}50%{box-shadow:inset 0 10px 20px rgba(255,255,255,0.2),inset 0 -12px 25px rgba(0,0,0,0.7),0 25px 55px rgba(0,0,0,0.7),0 0 0 2px rgba(212,167,44,0.7),0 0 65px rgba(212,167,44,0.38);}}
+  @keyframes emblem-3d-rotate{
+    0% { transform: perspective(1000px) rotateX(12deg) rotateY(0deg) translateZ(30px); }
+    50% { transform: perspective(1000px) rotateX(12deg) rotateY(180deg) translateZ(40px); }
+    100% { transform: perspective(1000px) rotateX(12deg) rotateY(360deg) translateZ(30px); }
+  }
 
   /* ---------- Woven divider ---------- */
   .weave{height:14px;width:100%;background-image:repeating-linear-gradient(45deg, var(--gold-500) 0 2px, transparent 2px 14px), repeating-linear-gradient(-45deg, var(--bronze-600) 0 2px, transparent 2px 14px);background-size:20px 20px;opacity:0.35;}
