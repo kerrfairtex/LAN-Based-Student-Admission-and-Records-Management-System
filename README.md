@@ -36,7 +36,7 @@ and execs `php -S 0.0.0.0:8000`. Open
 [http://127.0.0.1:8000](http://127.0.0.1:8000) and sign in:
 
   - username: `registrar`
-  - password: `Registrar@2026`
+  - password: the seed account password shown on first-run setup
 
 **Change this password immediately** under
 Account → Change Password after first login. The same goes for
