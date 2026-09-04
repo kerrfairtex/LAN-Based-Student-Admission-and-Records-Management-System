@@ -125,23 +125,6 @@ function logout_user(): void
 }
 
 /**
- * Return the originating client IP, honoring X-Forwarded-For from a single
- * trusted proxy (Render's edge). Falls back to REMOTE_ADDR. Never trust
- * multiple XFF hops because the public deploy is behind exactly one proxy.
- */
-function client_ip(): string
-{
-    $forwarded = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
-    if ($forwarded !== '') {
-        $first = trim(explode(',', $forwarded)[0]);
-        if (filter_var($first, FILTER_VALIDATE_IP)) {
-            return $first;
-        }
-    }
-    return (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-}
-
-/**
  * Read recent login_failed audit rows and decide whether the current attempt
  * should be throttled. Returns 'ok', 'username', or 'ip'.
  *
