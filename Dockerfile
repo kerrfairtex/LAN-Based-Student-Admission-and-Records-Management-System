@@ -11,6 +11,13 @@ RUN apt-get update && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/
 RUN sed -ri 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf \
     && sed -ri 's/AllowOverride None/AllowOverride All/g' /etc/apache2/sites-available/*.conf 2>/dev/null || true
 
+# Suppress Apache version banner (Server: Apache/2.4.xx ... → Server: Apache)
+RUN { \
+        echo 'ServerTokens Prod'; \
+        echo 'ServerSignature Off'; \
+    } > /etc/apache2/conf-available/server-tokens-prod.conf \
+    && a2enconf server-tokens-prod
+
 # App lives at the web root
 WORKDIR /var/www/html
 COPY . .
