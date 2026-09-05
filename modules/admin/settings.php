@@ -36,54 +36,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'end' => $end ?: null,
                 ]);
                 db()->commit();
-                flash('success', "School year {$label} added.");
-            } catch (PDOException $e) {
-                db()->rollBack();
-                flash('danger', 'Failed to add school year: ' . $e->getMessage());
-            }
-        }
-        redirect('/modules/admin/settings.php');
-    }
+                                $newYearId = (int) db()->lastInsertId();
+                                audit_log('create', 'school_years', $newYearId, "Created school year {$label}" . ($setActive ? ' (set active)' : ''));
+                                flash('success', "School year {$label} added.");
+                            } catch (PDOException $e) {
+                                db()->rollBack();
+                                flash('danger', 'Failed to add school year: ' . $e->getMessage());
+                            }
+                        }
+                        redirect('/modules/admin/settings.php');
+                    }
 
-    if ($action === 'activate_year' && isset($_POST['year_id'])) {
-        try {
-            db()->beginTransaction();
-            db()->exec('UPDATE school_years SET is_active = 0');
-            db()->prepare('UPDATE school_years SET is_active = 1 WHERE id = :id')
-                ->execute(['id' => (int) $_POST['year_id']]);
-            db()->commit();
-            flash('success', 'Active school year updated.');
-        } catch (PDOException $e) {
-            db()->rollBack();
-            flash('danger', 'Failed to activate school year: ' . $e->getMessage());
-        }
-        redirect('/modules/admin/settings.php');
-    }
+                    if ($action === 'activate_year' && isset($_POST['year_id'])) {
+                        try {
+                            db()->beginTransaction();
+                            db()->exec('UPDATE school_years SET is_active = 0');
+                            $yearId = (int) $_POST['year_id'];
+                            db()->prepare('UPDATE school_years SET is_active = 1 WHERE id = :id')
+                                ->execute(['id' => $yearId]);
+                            db()->commit();
+                            audit_log('update', 'school_years', $yearId, "Set school year #{$yearId} as active");
+                            flash('success', 'Active school year updated.');
+                        } catch (PDOException $e) {
+                            db()->rollBack();
+                            flash('danger', 'Failed to activate school year: ' . $e->getMessage());
+                        }
+                        redirect('/modules/admin/settings.php');
+                    }
 
-    if ($action === 'add_section') {
-        $gradeId = (int) ($_POST['grade_level_id'] ?? 0);
-        $name = trim($_POST['section_name'] ?? '');
-        if ($gradeId && $name) {
-            try {
-                db()->prepare('INSERT INTO sections (grade_level_id, name) VALUES (:grade, :name)')
-                    ->execute(['grade' => $gradeId, 'name' => $name]);
-                flash('success', "Section {$name} added.");
-            } catch (PDOException $e) {
-                flash('danger', 'Failed to add section: ' . $e->getMessage());
-            }
-        }
-        redirect('/modules/admin/settings.php');
-    }
+                    if ($action === 'add_section') {
+                        $gradeId = (int) ($_POST['grade_level_id'] ?? 0);
+                        $name = trim($_POST['section_name'] ?? '');
+                        if ($gradeId && $name) {
+                            try {
+                                db()->prepare('INSERT INTO sections (grade_level_id, name) VALUES (:grade, :name)')
+                                    ->execute(['grade' => $gradeId, 'name' => $name]);
+                                $newSectionId = (int) db()->lastInsertId();
+                                audit_log('create', 'sections', $newSectionId, "Created section {$name} (grade_level_id={$gradeId})");
+                                flash('success', "Section {$name} added.");
+                            } catch (PDOException $e) {
+                                flash('danger', 'Failed to add section: ' . $e->getMessage());
+                            }
+                        }
+                        redirect('/modules/admin/settings.php');
+                    }
 
     if ($action === 'lis_settings') {
         $schoolId = trim($_POST['lis_school_id'] ?? '');
         $division = trim($_POST['lis_division'] ?? '');
 
+        $changes = [];
         if ($schoolId !== '' && preg_match('/^\d{6}$/', $schoolId)) {
             set_app_setting('lis_school_id', $schoolId);
+            $changes[] = "lis_school_id={$schoolId}";
         }
         if ($division !== '') {
             set_app_setting('lis_division', $division);
+            $changes[] = "lis_division={$division}";
+        }
+        if ($changes !== []) {
+            audit_log('update', 'app_settings', null, 'LIS export settings: ' . implode(', ', $changes));
         }
         flash('success', 'LIS export settings updated.');
         redirect('/modules/admin/settings.php');

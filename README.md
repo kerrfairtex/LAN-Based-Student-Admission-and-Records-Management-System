@@ -18,100 +18,87 @@ The system is intended for use by the school's **registrar** and
 
 ---
 
-## Quick start (local dev)
+## Quick start — local dev (works on any OS)
 
-Requires PHP + PostgreSQL installed. Get them from
-[php.net](https://www.php.net/downloads) and
-[postgresql.org](https://www.postgresql.org/download/).
+Requires only PHP 8.1+ and PostgreSQL client tools on `PATH` (no
+Composer, no npm, no build step).
 
-```
-git clone <this-repo>
+```bash
+git clone https://github.com/kerrfairtex/LAN-Based-Student-Admission-and-Records-Management-System.git
 cd LAN-Based-Student-Admission-and-Records-Management-System
 bash tools/dev-up.sh
 ```
 
-`dev-up.sh` boots an embedded PostgreSQL on port 5433, imports
-`database/schema.sql` (idempotent), exports the right env vars,
-and execs `php -S 0.0.0.0:8000`. Open
-[http://127.0.0.1:8000](http://127.0.0.1:8000) and sign in:
+`dev-up.sh` does everything:
 
-  - username: `registrar`
-  - password: the seed account password shown on first-run setup
+1. Verifies PHP + PostgreSQL tools are installed.
+2. Creates an embedded PostgreSQL cluster in `.pgdata/` (gitignored).
+3. Starts it on port 5433.
+4. Imports `database/schema.sql` (14 tables, 2 seed accounts).
+5. Starts PHP's built-in dev server on port 8000.
+6. Prints the URLs you can sign in at.
 
-**Change this password immediately** under
-Account → Change Password after first login. The same goes for
-the `encoder` account if it's used.
+When the boot banner appears, open either URL in your browser:
 
-On Windows, use `tools\dev-up.cmd` instead of `bash tools/dev-up.sh`.
+```
+TRAC JHS SARMS is live.
+  Loopback : http://127.0.0.1:8000/
+  LAN      : http://192.168.x.x:8000/        ← any device on your LAN
+```
 
-To add another user (e.g. a second registrar), run
-`php tools/create-registrar.php` and follow the prompts.
+(On sandboxed Termux/Android, the LAN line may show 127.0.0.1 because
+the environment has no netlink privileges. Run on a normal Linux
+server, macOS, or WSL to get a real LAN IP.)
 
-To stop everything, press Ctrl+C in the terminal where you ran
-`dev-up.sh` — both the dev server and the embedded Postgres are
-shut down.
+### Seed accounts
+
+Two accounts are committed to `database/schema.sql` so a fresh clone is
+immediately usable:
+
+| Username   | Password         | Role         | Access                          |
+|------------|------------------|--------------|---------------------------------|
+| `registrar`| `Registrar@2026` | registrar    | Full (admit, enroll, backup)    |
+| `encoder`  | `Encoder@2026`   | encoder      | Data entry only                 |
+
+**Change both passwords immediately** under **Account → Change Password**
+after first sign-in. The repo is public on GitHub — anyone who clones
+gets the same bcrypt hashes.
+
+### Stopping the dev server
+
+Press **Ctrl+C** in the terminal where `dev-up.sh` is running. The
+shutdown handler stops the embedded PostgreSQL child cleanly.
+
+### Re-running
+
+`dev-up.sh` is idempotent. If `.pgdata/` already exists with a matching
+PostgreSQL major version, it just starts the cluster and re-imports
+schema (which is itself idempotent — every `CREATE` uses `IF NOT EXISTS`).
+
+---
+
+## LAN access
+
+The dev server binds to `0.0.0.0:8000` (all interfaces). Any device on
+the same network can sign in at the LAN URL printed at boot.
+
+For shared-internet access (e.g. registrar at home, encoder at a
+different branch), port-forward port 8000 on your router to the host.
+**There is no built-in TLS** — the system is for use on a trusted LAN.
+Run behind a reverse proxy (nginx, Caddy) with Let's Encrypt if you need
+HTTPS from the public internet.
 
 ---
 
 ## Live deployment
 
 - **URL:** https://trac-jhs-sarms.onrender.com
-- **Stack:** PHP 8 + PostgreSQL, deployed on Render via Docker
+- **Stack:** PHP 8.3 + PostgreSQL 18, deployed on Render via Docker
 - **Branch:** `main` (auto-deploy on push)
 
-See [`AGENTS.md`](AGENTS.md) for the Render service ID, deploy commands, and
-operational notes.
-
----
-
-## Local development (Termux)
-
-There is no Composer or npm step. PHP files are served directly.
-
-### 1. Start the local PostgreSQL cluster
-
-The repo ships with a local cluster in `.pgdata/` (gitignored):
-
-```bash
-cd ~/LAN-Based-Student-Admission-and-Records-Management-System
-pg_ctl -D .pgdata -l .pglogs/server.log start
-```
-
-If `.pgdata/` is empty (fresh clone), initialize and import the schema:
-
-```bash
-initdb -D .pgdata -U postgres --auth=trust --no-locale -E UTF8
-# edit .pgdata/postgresql.conf: set port = 6543, listen_addresses = '127.0.0.1'
-# edit .pgdata/pg_hba.conf: add 'host all all 127.0.0.1/32 trust'
-pg_ctl -D .pgdata -l .pglogs/server.log start
-PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-    psql -h 127.0.0.1 -p 6543 -U postgres -d postgres \
-    -v ON_ERROR_STOP=1 -f database/schema.sql
-```
-
-### 2. Run the PHP dev server
-
-```bash
-export DB_HOST=127.0.0.1 DB_PORT=6543 DB_NAME=postgres \
-       DB_USER=postgres DB_PASS= DB_SCHEMA=trac_jhs_sarms
-php -S 127.0.0.1:8000
-```
-
-Open http://127.0.0.1:8000/.
-
-The PHP built-in server does NOT enforce `.htaccess` deny rules — sensitive
-directories are readable in local dev. Fine for development; do not rely
-on that locally.
-
----
-
-## First deploy
-
-`database/schema.sql` ships with bcrypt-hashed seed accounts whose plaintext
-passwords are not committed to this repository. The deploying operator must
-rotate every seed account through **Account → Change Password** immediately
-after the first successful sign-in. Until rotation, the live system is
-vulnerable to any reader of the public GitHub repository.
+See [`AGENTS.md`](AGENTS.md) for the Render service ID, deploy commands,
+and operational notes (audit retention, migrations, persistent disk
+layout).
 
 ---
 
@@ -119,9 +106,9 @@ vulnerable to any reader of the public GitHub repository.
 
 | Layer       | Tech                                                                |
 |-------------|---------------------------------------------------------------------|
-| Frontend    | Plain HTML + hand-rolled CSS + a small `assets/js/site.js`           |
+| Frontend    | Plain HTML + hand-rolled CSS + `assets/js/site.js` + Bootstrap 5.3.3 + Bootstrap Icons 1.11.3 + Google Fonts (Fraunces, Inter) |
 | Backend     | PHP 8.x (PDO), no framework                                        |
-| Database    | PostgreSQL 18+ with `pgcrypto`                                     |
+| Database    | PostgreSQL 18 with `pgcrypto`                                       |
 | Deploy      | Docker image (`php:8.3-apache` + `pdo_pgsql`), Render.com            |
 | Persistence | Render persistent disk at `/var/www/html/storage` (sessions, uploads, backups) |
 
@@ -131,18 +118,37 @@ vulnerable to any reader of the public GitHub repository.
 
 | Module                              | Path                                          |
 |-------------------------------------|-----------------------------------------------|
-| Authentication, RBAC                 | `auth/login.php`, `includes/auth.php`          |
-| Dashboard + stats                   | `dashboard.php`                                |
-| Admission                           | `modules/admission/`                           |
-| Student records                     | `modules/records/`                             |
-| Enrollment / section assignment     | `modules/enrollment/`                          |
-| Transfers (SF10 in/out)             | `modules/transfers/`                           |
+| Authentication, RBAC, CSRF          | `auth/login.php`, `auth/logout.php`, `includes/auth.php`, `includes/csrf.php` |
+| Dashboard + 5 stat-cards             | `dashboard.php`                                |
+| Admission                           | `modules/admission/` (index, create, edit, view) |
+| Student records                     | `modules/records/` (index, view, edit, academic, print, sf10_edit, status) |
+| Enrollment / section assignment     | `modules/enrollment/` (index, assign)         |
+| Transfers (SF10 in/out)             | `modules/transfers/` (index, create, view)    |
 | Search                              | `modules/search/index.php`                     |
-| Reports (admission, enrollment, SF10)| `modules/reports/`                             |
-| Admin (users, audit, backup, settings, LIS) | `modules/admin/`                      |
-| Account (change password)           | `modules/account/`                             |
+| Reports                             | `modules/reports/` (index, admission_status, enrollment_summary, sf10, student_masterlist) |
+| Admin                               | `modules/admin/` (users, audit, backup, download_backup, restore, settings, lis, lis_export, lis_import, lis_template, set_year) |
+| Account (change password)           | `modules/account/password.php`                 |
 | Public landing                      | `index.php` (loads `templates/landing.html`)   |
-| Public pages (about/privacy/terms/contact) | `about.php`, `privacy.php`, `terms.php`, `contact.php` |
+| Public pages                        | `about.php`, `privacy.php`, `terms.php`, `contact.php` |
+
+---
+
+## Database schema
+
+Canonical schema: `database/schema.sql` (PostgreSQL). It creates **14
+tables** under the `trac_jhs_sarms` schema:
+
+`users`, `school_years`, `grade_levels`, `sections`, `students`,
+`admissions`, `enrollments`, `academic_records`, `sf10_grade_entries`,
+`transfer_requests`, `app_settings`, `lis_import_logs`, `audit_logs`,
+`inquiries`.
+
+The files under `database/migrations/` are upgrade paths for older
+MySQL installs. **Do NOT run them on a fresh Postgres install.**
+
+- `002_phase2.sql`, `003_lis_csv.sql` — authored against MySQL
+  (`ENGINE=InnoDB`, `TIMESTAMP`, `USE`); they will error on Postgres.
+- `004_audit_retention.sql` onward — written for PostgreSQL.
 
 ---
 
@@ -150,36 +156,26 @@ vulnerable to any reader of the public GitHub repository.
 
 Registrar → **Admin → LIS CSV** in the sidebar:
 
-- **Export:** Download enrolled learners as SF1-aligned CSV (filter by school
-  year, grade, section)
-- **Import:** Upload CSV to create/update students; matches by LRN or Student ID
+- **Export:** Download enrolled learners as SF1-aligned CSV (filter by
+  school year, grade, section)
+- **Import:** Upload CSV to create/update students; matches by LRN or
+  Student ID
 - **Template:** Download a sample CSV with the correct column headers
 - **Settings:** Configure the 6-digit EBEIS School ID in System Settings
 
 CSV columns align with the SF1 School Register and Enhanced BEEF fields
-(DepEd DO 35, s. 2022). Reference schema is in `database/migrations/003_lis_csv.sql`.
-
----
-
-## Database schema
-
-The canonical schema is `database/schema.sql` (PostgreSQL, includes all13
-tables for admission, records, enrollment, transfers, audit, LIS). The
-files under `database/migrations/` are upgrade paths for older MySQL installs —
-do NOT run them on a fresh install.
-
-Tables: `users`, `school_years`, `grade_levels`, `sections`, `students`,
-`admissions`, `enrollments`, `academic_records`, `sf10_grade_entries`,
-`transfer_requests`, `app_settings`, `lis_import_logs`, `audit_logs`.
+(DepEd DO 35, s. 2022). Reference schema is in
+`database/migrations/003_lis_csv.sql`.
 
 ---
 
 ## Public landing design
 
-The landing page (`index.php`) renders `templates/landing.html` as a string,
-applying5 surgical modifications (CSRF field on the inquiry form, button
-attrs, repointed Staff Sign In links). The template is the design source of
-truth — if you change the landing's look, edit the template, not the PHP.
+The landing page (`index.php`) renders `templates/landing.html` as a
+string, applying 5 surgical modifications (CSRF field on the inquiry
+form, button attrs, repointed Staff Sign In links). The template is
+the design source of truth — if you change the landing's look, edit
+the template, not the PHP.
 
 ---
 

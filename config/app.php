@@ -27,6 +27,39 @@ define('APP_BASE_PATH', rtrim($basePath, '/'));
 date_default_timezone_set(APP_TIMEZONE);
 
 /**
+ * Force display_errors off, defensively, BEFORE anything else runs.
+ *
+ * Why we override .user.ini here:
+ *   `.user.ini` is honored by CGI/FastCGI/FPM SAPIs but IGNORED by Apache's
+ *   mod_php. Render ships `php:8.3-apache` which uses mod_php, so any
+ *   `display_errors = 0` set in `.user.ini` is silently dropped there. In
+ *   production on Render, `display_errors` defaults to ON, so PHP warnings
+ *   and notices (e.g. `scandir(): Permission denied` from a missing
+ *   persistent-disk mount) leak into HTML responses alongside the actual
+ *   page content. That leaks absolute filesystem paths and table names to
+ *   anyone who hits a broken endpoint.
+ *
+ *   `ini_set()` from PHP code is also unreliable on some SAPIs and is
+ *   blocked once output has started; setting it as the very first thing in
+ *   config/app.php (which every page requires) guarantees it runs before
+ *   any output and on every SAPI we ship to.
+ *
+ * What we still keep in .user.ini:
+ *   - The portable baseline (CGI/FPM users still pick it up).
+ *   - `log_errors = 1` and `error_log = php://stderr` for the Render log
+ *     stream — those are honored by mod_php and are the diagnostic channel
+ *     operators use to investigate warnings we now suppress on the wire.
+ *
+ * We also bump error_reporting here so E_DEPRECATED/E_STRICT are NOT
+ * silenced at the reporting layer — they still go to the error log, only
+ * the on-screen HTML is suppressed. That keeps server-side diagnostics
+ * complete while shutting the info-disclosure hole.
+ */
+@ini_set('display_errors', '0');
+@ini_set('display_startup_errors', '0');
+error_reporting(E_ALL);
+
+/**
  * Emit baseline security headers from PHP for every page. Apache's mod_headers
  * is not always available (Render's stock php image doesn't enable it), so we
  * set these in PHP before any output is sent. The .htaccess also sets them via

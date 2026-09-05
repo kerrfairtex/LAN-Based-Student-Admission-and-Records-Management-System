@@ -50,9 +50,24 @@ function get_app_setting(string $key, string $default = ''): string
 
 function set_app_setting(string $key, string $value): void
 {
+    // PostgreSQL upsert: `ON CONFLICT (...) DO UPDATE SET ...`.
+    // The previous code used MySQL's `ON DUPLICATE KEY UPDATE` syntax,
+    // which Postgres rejects with a 42601 syntax exception. The bug
+    // went undetected because schema.sql ships with the four app_settings
+    // rows already populated, so the helper is rarely exercised on a
+    // fresh install — the operator's first interaction is usually via
+    // the Admin → Settings page, where the form sets the values and the
+    // helper is then called. Until then, the 500 above is the symptom.
+    //
+    // Using `ON CONFLICT (setting_key) DO UPDATE` keyed on the UNIQUE
+    // constraint (uq_app_settings_key) keeps the operation atomic and
+    // works whether the row exists or not — semantically identical to
+    // the MySQL version.
     $stmt = db()->prepare(
-        'INSERT INTO app_settings (setting_key, setting_value) VALUES (:key, :value)
-         ON DUPLICATE KEY UPDATE setting_value = :value'
+        'INSERT INTO app_settings (setting_key, setting_value)
+         VALUES (:key, :value)
+         ON CONFLICT (setting_key) DO UPDATE
+         SET setting_value = EXCLUDED.setting_value'
     );
     $stmt->execute(['key' => $key, 'value' => $value]);
 }
@@ -326,10 +341,14 @@ function lis_stream_csv(array $headers, array $rows, string $filename): void
     echo "\xEF\xBB\xBF";
 
     $out = fopen('php://output', 'w');
-    fputcsv($out, $headers);
+    // PHP 8.4 deprecates the implicit default for fputcsv's $escape
+    // parameter; pass '' explicitly to silence the warning AND to lock
+    // in the current behavior (no field escaping — CSV consumers like
+    // DepEd's LIS portal expect standard RFC 4180 unescaped fields).
+    fputcsv($out, $headers, ',', '"', '');
 
     foreach ($rows as $row) {
-        fputcsv($out, $row);
+        fputcsv($out, $row, ',', '"', '');
     }
 
     fclose($out);

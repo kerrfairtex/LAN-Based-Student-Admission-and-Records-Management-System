@@ -1,74 +1,118 @@
 # AGENTS.md
 
-## Cursor Cloud specific instructions
+Operational notes for **deployers, maintainers, and AI agents** working
+on TRAC JHS SARMS. The user-facing Quick Start is in `README.md`; this
+file is the source of truth for environment-specific behavior.
 
-TRAC JHS SARMS is a single PHP 8 + PostgreSQL app (no Composer/npm/build step). It is served
-directly from the repo root. Standard setup/run steps live in `README.md`; the notes below cover
-only the non-obvious, cloud-VM specific details.
+## Repository conventions
 
-### Services
+- **Single source of truth for credentials:** README.md "Seed accounts"
+  table. Both seed passwords are committed to `database/schema.sql` (bcrypt
+  hashes verified). Do not change one without updating the other.
+- **Single source of truth for table count:** README.md "Database schema"
+  section (14 tables). If you add a table, update both this file's
+  inventory and the README.
+- **Embedded Postgres port:** 5433. Render Postgres port: 5432. Supabase
+  pooler port: 6543. Never mix these up.
+- **Public landing design source of truth:** `templates/landing.html`.
+  Edit the template; do not duplicate the markup into `index.php`.
 
-| Service | Required | Start command | Notes |
-|---------|----------|---------------|-------|
-| PostgreSQL | Yes | `bash tools/dev-up.sh` (recommended) — or `sudo service postgresql start` (or use the in-repo `.pgdata` embedded cluster — see Gotchas) | Not started on boot; start it each session. The recommended path is `tools/dev-up.sh`, which boots an embedded Postgres on 5433, imports `database/schema.sql`, and execs `php -S 0.0.0.0:8000`. |
-| PHP dev server | Yes | `php -S 0.0.0.0:8000` (run from repo root) | App at http://localhost:8000/ . Use instead of Apache/XAMPP. `tools/dev-up.sh` starts this for you. |
+## Cursor Cloud / Termux / Linux dev setup
 
-PHP 8.3 (`pdo_pgsql`, `mbstring`, `xml`) and PostgreSQL are provided by the VM snapshot — do
-not reinstall them. There is **no MariaDB** in this project despite what older revisions of
-this file claimed; the actual stack is Postgres + Supabase/Render.
+PHP 8.1+ and PostgreSQL client tools (`pg_ctl`, `initdb`, `psql`,
+`pg_isready`) are required. No Composer, no npm.
 
-### Database
+```bash
+bash tools/dev-up.sh
+```
 
-- Driver: PostgreSQL (PHP DSN uses `pgsql:`). Connection is centralized in `config/database.php`
-  and reads `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASS` / `DB_SCHEMA` / `DB_SSLMODE`
-  from env, with these defaults baked in:
-  - `DB_HOST=localhost`, `DB_PORT=6543`, `DB_NAME=postgres`, `DB_USER=postgres`, `DB_PASS=`
-    (empty), `DB_SCHEMA=trac_jhs_sarms`
-  - `DB_SSLMODE` auto-resolves to `disable` for local connections and `require` for non-local
-    (Supabase / Render managed Postgres).
-- Schema + seed data live in `database/schema.sql`. Tables are namespaced under
-  `trac_jhs_sarms.<table>`; the connection sets `search_path` so unqualified names resolve there.
-- For local dev, `bash tools/dev-up.sh` handles initdb + start + import + dev server in one
-  command. It binds the embedded cluster to port **5433** (not the 6543 default) and exports
-  `DB_PORT=5433` so the DSN matches. Manual import: `psql -h 127.0.0.1 -p 5433 -U postgres
-  -d postgres -f database/schema.sql` (or use the existing `tools/import_schema.php`).
-- The files under `database/migrations/` are for upgrading older deployments. Note: `002_phase2.sql`
-  and `003_lis_csv.sql` were authored against MySQL (`ENGINE=InnoDB`, `TIMESTAMP`, `USE`) and are
-  **stale** relative to the current PostgreSQL schema. Don't run them on a fresh Postgres database
-  — they will error. Only apply them to legacy MySQL installs that predate the pgsql migration.
-  New migrations (`004_audit_retention.sql` onward) are written in PostgreSQL syntax.
-- `render.yaml` provisions the production deploy target (https://trac-jhs-sarms.onrender.com)
-  with `DB_PORT=5432` and `DB_SSLMODE=require` against a Render-managed Postgres instance; the
-  schema is created in `trac_jhs_sarms` and `search_path` is set accordingly.
-- Default app logins: bcrypt-hashed seed accounts whose plaintext credentials are
-  not committed to this repository. The first operator to deploy must rotate
-  every seed account through **Account → Change Password** immediately after
-  first sign-in.
+`tools/dev-up.sh` → `tools/dev-up.php` is the cross-platform single source
+of truth for the local bootstrap. It:
+- creates `.pgdata/` (gitignored) if missing,
+- starts an embedded Postgres on 5433,
+- imports `database/schema.sql` via `psql -f` (Postgres handles PL/pgSQL
+  function bodies correctly — the previous PHP-side statement splitter
+  was buggy on `$$ ... $$`),
+- exports `DB_*` env to the dev server child process,
+- exec's `php -S 0.0.0.0:8000` so the LAN can reach it.
 
-### Database maintenance
+`tools/dev-up.cmd` is the Windows shim that calls the same PHP file.
 
-- **Audit retention** — `trac_jhs_sarms.purge_old_audit_logs()` deletes `audit_logs` rows older
-  than `app_settings.audit_retention_days` (default 1825 = 5 years). Invoke manually from `psql`,
-  via cron, or wire it into a Render scheduled job. Each run logs a NOTICE with the deleted count.
-  To override the window per institution: `UPDATE app_settings SET setting_value = '3650' WHERE
-  setting_key = 'audit_retention_days';`
+### Why port 5433 (not 6543)
 
-### Lint / test
+The embedded cluster is started with `pg_ctl -o "-p 5433"`, which
+overrides the `port = 6543` that `initdb` writes into the generated
+`postgresql.conf`. Port 6543 is the Supabase pooler port and is
+documented in the README/AGENTS historic context, but **local dev
+always uses 5433**. Render production uses 5432.
 
-- No automated test suite exists. Lint PHP with `php -l <file>` (e.g. loop over `*.php`).
-- All committed PHP files currently pass `php -l`. Earlier revisions flagged
-  `modules/admin/settings.php` as broken; that was stale and the file is clean now.
+### `dev-up.php` does NOT assume port 5433 is "ours"
 
-### Gotchas
+If a foreign Postgres is already answering on 5433 when you run
+`dev-up.php`, it will detect that and print a warning, then either
+proceed (assuming it's a leftover from a prior session) or fail
+loudly. If you have system Postgres on 5433 and don't want collisions,
+edit `DB_PORT` in `tools/dev-up.php` to e.g. 5434.
 
-- The PHP built-in server does **not** enforce `.htaccess`, so the deny rules for `config/`,
-  `includes/`, `database/`, and `backups/` are inactive in local dev. Fine for development; do not
-  rely on them locally.
-- The repo root contains `.pgdata/`, `.pglogs/`, `.pgrun/` — these are an embedded Postgres
-  dev cluster. If `database/schema.sql` hasn't been imported there yet, run
-  `sudo -u postgres psql < database/schema.sql` (or against whatever Postgres `DB_HOST` points to).
-- `DB_PORT=6543` is the **Supabase pooler** port. Direct Postgres connections (Render, local
-  `postgresql` service) use 5432. `render.yaml` already sets 5432 for production.
-- The branch `audit-fixes-enrollment-transfers` (PR #12) is open and contains input-validation
-  fixes for `modules/enrollment/assign.php` and `modules/transfers/{create,view}.php`, plus the
-  audit-log filters in `modules/admin/audit.php` and the new `004_audit_retention.sql` migration.
+## Database
+
+- **Driver:** PostgreSQL (PHP DSN uses `pgsql:`). Connection is
+  centralized in `config/database.php` and reads `DB_HOST` / `DB_PORT` /
+  `DB_NAME` / `DB_USER` / `DB_PASS` / `DB_SCHEMA` / `DB_SSLMODE` from env.
+- **Schema + seed data:** `database/schema.sql`. Tables live under
+  `trac_jhs_sarms.<table>`; the connection sets `search_path` so
+  unqualified names resolve there.
+- **Migrations:** `database/migrations/` is upgrade-only.
+  `002_phase2.sql` and `003_lis_csv.sql` are MySQL-flavored (do not run
+  on fresh Postgres). `004_audit_retention.sql` onward are Postgres.
+
+## Render production
+
+- **Service:** `trac-jhs-sarms` (render.yaml provisions a Docker web
+  service with `php:8.3-apache` + persistent disk at
+  `/var/www/html/storage`).
+- **Database:** managed Postgres on Render (`DB_PORT=5432`,
+  `DB_SSLMODE=require`).
+- **Healthcheck:** `/healthcheck.php` — returns 200 + JSON body with
+  `db: reachable | unreachable`.
+- **Deploys:** `render.yaml` sets `autoDeploy: false`; deployments are
+  triggered via Render dashboard or GitHub Actions.
+
+## Database maintenance
+
+- **Audit retention** — `trac_jhs_sarms.purge_old_audit_logs()` deletes
+  `audit_logs` rows older than `app_settings.audit_retention_days`
+  (default 1825 = 5 years). Invoke manually from `psql`, via cron, or
+  wire it into a Render scheduled job. Each run logs a NOTICE with the
+  deleted count. To override the window per institution:
+  `UPDATE app_settings SET setting_value = '3650' WHERE setting_key =
+  'audit_retention_days';`
+
+## Security
+
+- `.user.ini` declares `display_errors = 0` but is **only honored on
+  CGI/FastCGI/FPM PHP** (not Apache mod_php, which Render uses). In
+  production, `display_errors` must also be turned off via the PHP
+  config or the Apache/PHP-FPM ini. See audit §3.3 for the current
+  live exposure of PHP warnings in HTML.
+- Committed seed passwords (`Registrar@2026`, `Encoder@2026`) are
+  public in this repo. Rotate on every fresh install via
+  **Account → Change Password**.
+- See `.htaccess` for path-deny and security-header rules. The
+  PHP-built-in dev server ignores `.htaccess`; live's Apache enforces
+  them.
+
+## Known live issues (carryover from 2026-09-05 audit)
+
+- `modules/admin/backup.php` exposes PHP warnings to HTML on live
+  (scandir on `/backups/` returns permission denied). Local dev with
+  `php -S` does NOT enforce `.htaccess`, so the equivalent local path
+  may also leak. Fix in `config/app.php` defensively.
+- `modules/admin/download_backup.php` returns 404 on live even though
+  the file is committed. Deployed-commit vs. repo-commit drift;
+  investigate Render's last build log before pushing a fix.
+
+## Lint / test
+
+- No automated test suite. Lint PHP with `php -l <file>`.
+- All committed PHP files pass `php -l` as of 2026-09-05.
