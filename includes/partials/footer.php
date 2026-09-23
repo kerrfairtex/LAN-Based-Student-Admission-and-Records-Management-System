@@ -97,6 +97,7 @@ $card_legal = $card_legal ?? false;
             <a href="<?= e(url('/privacy.php')) ?>">Privacy</a>
             <a href="<?= e(url('/terms.php')) ?>">Terms</a>
             <a href="<?= e(url('/about.php')) ?>">About</a>
+            <a href="<?= e(url('/user-guidelines.php')) ?>">User Guidelines</a>
             <?php if ($is_authed ?? false): ?>
                 <a href="<?= e(url('/auth/logout.php')) ?>">Sign out</a>
             <?php elseif (!$minimal_footer): ?>

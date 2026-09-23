@@ -4,7 +4,11 @@ Options -Indexes
     RewriteEngine On
 
     # Block direct access to sensitive directories
-    RewriteRule ^(?:config|includes|database|backups)/ - [F,L]
+    RewriteRule ^(?:config|includes|database|backups|docs)/ - [F,L]
+
+    # Clean public URL for the User Guidelines page:
+    #   /user-guidelines -> user-guidelines.php
+    RewriteRule ^user-guidelines$ user-guidelines.php [L]
 
     # .user.ini is read by PHP at startup to set per-directory directives
     # (display_errors, error_log, etc.) — exposing it to the web would let

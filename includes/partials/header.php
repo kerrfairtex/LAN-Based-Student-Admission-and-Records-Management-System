@@ -18,6 +18,8 @@ declare(strict_types=1);
  *   $active_nav        — one of '', 'about', 'programs', 'admissions',
  *                        'campus', 'contact', 'login'
  *   $body_class        — string added to <body class="…">
+ *   $page_css          — optional app-relative path to an extra stylesheet
+ *                        (e.g. '/assets/css/user-guide.css'); empty = none
  *   $hide_nav_links    — bool (default false): hide the in-page anchor nav
  *                        (used by auth/login.php where the menu doesn't apply)
  *   $hide_header       — bool (default false): suppress the entire <header>
@@ -71,6 +73,7 @@ $page_title        = $page_title        ?? 'TRAC JHS';
 $page_description  = $page_description  ?? 'TRAC JHS, Junior High School of Tawi-Tawi Regional Agricultural College, Bongao, Tawi-Tawi.';
 $active_nav        = $active_nav        ?? '';
 $body_class        = $body_class        ?? '';
+$page_css          = $page_css          ?? '';
 $hide_nav_links    = $hide_nav_links    ?? false;
 $hide_header       = $hide_header       ?? false;
 $is_authed         = is_logged_in();
@@ -88,6 +91,7 @@ $is_authed         = is_logged_in();
     <link href="<?= e(url('/assets/css/tokens.css')) ?>" rel="stylesheet">
     <link href="<?= e(url('/assets/css/landing.css')) ?>" rel="stylesheet">
     <?php if (strpos($body_class, 'login-body') !== false): ?><link href="<?= e(url('/assets/css/login.css')) ?>" rel="stylesheet"><?php endif; ?>
+    <?php if ($page_css !== ''): ?><link href="<?= e(url($page_css)) ?>" rel="stylesheet"><?php endif; ?>
 </head>
 <body class="<?= e($body_class) ?>">
 
