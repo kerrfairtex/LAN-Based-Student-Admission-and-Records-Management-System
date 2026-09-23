@@ -11,6 +11,12 @@ RUN apt-get update && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/
 RUN sed -ri 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf \
     && sed -ri 's/AllowOverride None/AllowOverride All/g' /etc/apache2/sites-available/*.conf 2>/dev/null || true
 
+# Enable mod_rewrite — required by the root .htaccess (clean URLs like
+# /user-guidelines, and the docs/ + .user.ini deny rules). The base
+# php:8.3-apache image does NOT load rewrite by default, which made every
+# <IfModule mod_rewrite.c> block in .htaccess silently inert.
+RUN a2enmod rewrite
+
 # Suppress Apache version banner (Server: Apache/2.4.xx ... → Server: Apache)
 RUN { \
         echo 'ServerTokens Prod'; \

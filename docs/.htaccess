@@ -1,0 +1,9 @@
+# Deny direct web access to documentation sources.
+# The rendered public page is /user-guidelines (user-guidelines.php);
+# the raw markdown is read server-side only.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>
