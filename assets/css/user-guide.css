@@ -23,6 +23,38 @@
     opacity: 0.7;
 }
 
+.ug-switcher {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 24px;
+    flex-wrap: wrap;
+}
+
+.ug-switcher a {
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--line, rgba(244, 240, 228, 0.14));
+    font-size: 13.5px;
+    text-decoration: none;
+    color: var(--cream-200, #f4f0e4);
+    opacity: 0.8;
+}
+
+.ug-switcher a:hover,
+.ug-switcher a:focus-visible {
+    border-color: var(--gold-500, #d4a72c);
+    opacity: 1;
+    outline-offset: 2px;
+}
+
+.ug-switcher a.is-active {
+    background: var(--gold-500, #d4a72c);
+    border-color: var(--gold-500, #d4a72c);
+    color: var(--green-950, #0a2418);
+    font-weight: 600;
+    opacity: 1;
+}
+
 .ug-backtop {
     display: inline-block;
     margin-top: 40px;

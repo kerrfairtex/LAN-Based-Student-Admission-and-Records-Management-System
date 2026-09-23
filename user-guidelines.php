@@ -27,12 +27,25 @@ require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/markdown.php';
 
-$page_title       = 'User Guidelines';
-$page_description = 'Complete user guide for the TRAC JHS Student Admission and Records Management System: verified workflows, roles, installation, security, and troubleshooting.';
+// Document switcher: the default is the comprehensive system guide
+// (docs/USER_GUIDE.md); ?doc=journey renders the step-by-step journey
+// guide (docs/USER_JOURNEY_GUIDE.md). The value is whitelisted — it
+// never reaches a file path directly.
+$doc = $_GET['doc'] ?? 'system';
+if (!in_array($doc, ['system', 'journey'], true)) {
+    $doc = 'system';
+}
+
+$page_title       = $doc === 'journey' ? 'User Journey Guide' : 'User Guidelines';
+$page_description = $doc === 'journey'
+    ? 'Step-by-step user journey guide for the TRAC JHS Student Admission and Records Management System: how staff sign in, navigate, enter records, and handle problems.'
+    : 'Complete user guide for the TRAC JHS Student Admission and Records Management System: verified workflows, roles, installation, security, and troubleshooting.';
 $active_nav       = '';
 $page_css         = '/assets/css/user-guide.css';
 
-$guidePath = __DIR__ . '/docs/USER_GUIDE.md';
+$guidePath = $doc === 'journey'
+    ? __DIR__ . '/docs/USER_JOURNEY_GUIDE.md'
+    : __DIR__ . '/docs/USER_GUIDE.md';
 $guideHtml = null;
 $guideMissing = false;
 
@@ -57,8 +70,15 @@ require __DIR__ . '/includes/site_header.php';
 <section class="ug" aria-labelledby="ug-title">
     <div class="wrap">
         <span class="section-head kicker">Documentation</span>
-        <h1 class="display" id="ug-title" style="font-size:clamp(28px,4vw,40px);margin-bottom:12px;">User Guidelines</h1>
-        <p class="ug-revision">TRAC JHS Student Admission and Records Management System &mdash; complete operational guide for registrars, encoders, and administrators.</p>
+        <h1 class="display" id="ug-title" style="font-size:clamp(28px,4vw,40px);margin-bottom:12px;"><?= $doc === 'journey' ? 'User Journey Guide' : 'User Guidelines' ?></h1>
+        <p class="ug-revision"><?= $doc === 'journey'
+            ? 'Step-by-step manual for registrars, encoders, and administrators &mdash; from opening the website to signing out.'
+            : 'Complete operational guide for registrars, encoders, and administrators.' ?></p>
+
+        <nav class="ug-switcher" aria-label="Guide selection">
+            <a href="<?= e(url('/user-guidelines.php')) ?>?doc=system"<?= $doc === 'system' ? ' class="is-active" aria-current="page"' : '' ?>>System Guide</a>
+            <a href="<?= e(url('/user-guidelines.php')) ?>?doc=journey"<?= $doc === 'journey' ? ' class="is-active" aria-current="page"' : '' ?>>Journey Guide</a>
+        </nav>
 
         <div class="ug-body">
             <?php

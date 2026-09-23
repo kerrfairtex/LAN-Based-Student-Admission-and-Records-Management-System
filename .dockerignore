@@ -8,6 +8,7 @@ backups/*.sql
 .gitignore
 *.md
 !docs/USER_GUIDE.md
+!docs/USER_JOURNEY_GUIDE.md
 package.json
 package-lock.json
 pnpm-lock.yaml
