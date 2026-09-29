@@ -59,6 +59,18 @@ date_default_timezone_set(APP_TIMEZONE);
 @ini_set('display_startup_errors', '0');
 error_reporting(E_ALL);
 
+// .user.ini is honored by CGI/FastCGI/FPM SAPIs but IGNORED by mod_php
+// (Render) and by Vercel's PHP runtime. Set these here so they apply
+// universally across all deployment targets.
+@ini_set('log_errors', '1');
+// On Vercel, php://stderr is not available; fall back to /dev/null
+// (errors are captured by the serverless platform's logging).
+// On Render, php://stderr goes to the log stream.
+$errorLog = (getenv('APP_ENV') ?: '') === 'production'
+    ? (function_exists('fopen') && @fopen('/dev/stderr', 'w') !== false ? 'php://stderr' : ini_get('error_log'))
+    : ini_get('error_log');
+@ini_set('error_log', $errorLog ?: 'php://stderr');
+
 /**
  * Emit baseline security headers from PHP for every page. Apache's mod_headers
  * is not always available (Render's stock php image doesn't enable it), so we
@@ -134,14 +146,8 @@ function ensure_dir(string $path, int $mode = 0750): void
 require_once __DIR__ . '/constants.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    // Keep session storage inside the project dir (no leaks to /tmp).
-    // On Render this is a symlink into the persistent disk; on local dev it's
-    // a real directory. ensure_dir() handles both (including the dangling-symlink
-    // case that the persistent disk hits on first deploy).
-    ensure_dir(APP_ROOT . '/.sessions');
-
-    session_save_path(APP_ROOT . '/.sessions');
-
+    // Session cookie parameters are the same regardless of handler —
+    // HttpOnly + SameSite=Lax + conditional Secure flag.
     session_name('TRAC_JHS_SARMS');
     session_set_cookie_params([
         'lifetime' => 0,
@@ -149,13 +155,35 @@ if (session_status() === PHP_SESSION_NONE) {
         'httponly' => true,
         'samesite' => 'Lax',
         // Treat the cookie as Secure when the request was HTTPS, either by direct
-        // TLS termination (HTTPS server var) or by a trusted proxy that forwards the
-        // original scheme via X-Forwarded-Proto (Render behind Cloudflare).
+        // TLS termination (HTTPS server var) or by a trusted proxy that forwards
+        // the original scheme via X-Forwarded-Proto (Render behind Cloudflare).
         'secure' => (
             (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
             || (strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
         ),
     ]);
+
+    // In production (Vercel), the filesystem is read-only, so we use
+    // PostgreSQL-backed sessions via session_handler.php. In local/dev
+    // (APP_ENV != production), fall back to PHP's native filesystem
+    // handler with the .sessions/ directory on the persistent disk
+    // (Render) or project dir (local).
+    $appEnv = getenv('APP_ENV') ?: '';
+    if ($appEnv === 'production') {
+        // Load the DB-backed session handler and register it.
+        require_once __DIR__ . '/../includes/session_handler.php';
+        $handler = session_handler();
+        if ($handler instanceof SessionHandlerInterface) {
+            session_set_save_handler($handler, true);
+        }
+    } else {
+        // Local/dev: use filesystem sessions (Render persistent disk
+        // or local .sessions/ directory). ensure_dir() handles the
+        // dangling-symlink case on first deploy.
+        ensure_dir(APP_ROOT . '/.sessions');
+        session_save_path(APP_ROOT . '/.sessions');
+    }
+
     session_start();
 }
 

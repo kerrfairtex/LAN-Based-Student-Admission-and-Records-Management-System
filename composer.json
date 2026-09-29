@@ -1,0 +1,15 @@
+{
+    "name": "kerrfairtex/trac-jhs-sarms",
+    "description": "TRAC JHS Student Admission and Records Management System — Laravel-free PHP application",
+    "type": "project",
+    "require": {
+        "ext-pdo": "*",
+        "ext-pgsql": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*"
+    },
+    "config": {
+        "platform-check": false
+    }
+}

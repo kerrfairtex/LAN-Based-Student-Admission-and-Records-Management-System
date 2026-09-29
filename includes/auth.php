@@ -105,6 +105,12 @@ function attempt_login(string $username, string $password): bool
     $touch = db()->prepare('UPDATE users SET last_active = NOW() WHERE id = :id');
     $touch->execute(['id' => $user['id']]);
 
+    // Regenerate session ID to prevent session fixation attacks.
+    // This MUST happen after clearing sensitive session data and before
+    // storing the authenticated user record — the old session ID becomes
+    // invalid, so any attacker-set session cookie is discarded.
+    session_regenerate_id(true);
+
     unset($user['password_hash'], $user['is_active']);
     $_SESSION['user'] = $user;
     $_SESSION['last_activity'] = time();

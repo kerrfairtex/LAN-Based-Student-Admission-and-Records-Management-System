@@ -4,16 +4,22 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../includes/layout.php';
+require_once __DIR__ . '/../../includes/storage.php';
 
 require_registrar();
 
+// Backup directory (used by local filesystem adapter on Render/dev).
+// On Vercel, backups are stored in Supabase Storage; the local path
+// is irrelevant but harmless to define.
 $backupDir = __DIR__ . '/../../backups';
 ensure_dir($backupDir);
 
-$existingBackups = array_values(array_filter(
-    scandir($backupDir) ?: [],
-    static fn (string $file): bool => str_ends_with($file, '.sql')
-));
+// List existing backups from storage (Supabase or local filesystem).
+// On Render, these were in backups/ on the persistent disk; on Vercel,
+// they are in the Supabase Storage 'backups/' prefix.
+$allFiles = storage_list('backups/');
+$existingBackups = array_values(array_filter($allFiles, static fn (string $file): bool => str_ends_with($file, '.sql')));
+// Sort by filename descending (newest first — filenames include timestamp).
 rsort($existingBackups);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -115,7 +121,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $dump .= "COMMIT;\n";
 
-    file_put_contents($filepath, $dump);
+    // Write to object storage (Supabase on Vercel, local filesystem on Render/dev).
+    // The full SQL dump is generated in memory then uploaded — never written
+    // to the local filesystem in production (Vercel filesystem is read-only).
+    try {
+        storage_upload('backups/' . $filename, $dump, 'application/sql');
+    } catch (Throwable $e) {
+        error_log('Backup upload failed: ' . $e->getMessage());
+        flash('danger', 'Database backup failed to save to storage.');
+        redirect('/modules/admin/backup.php');
+    }
     audit_log('backup', 'database', null, "Exported backup {$filename}");
     flash('success', "Database backup created: {$filename}");
     redirect('/modules/admin/backup.php');

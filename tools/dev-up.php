@@ -109,6 +109,92 @@ function pg_version_from_cluster(): ?string
 }
 
 /**
+ * Identify which -D directory a Postgres server listening on $port is
+ * using, so dev-up can refuse to import schema.sql into a foreign
+ * cluster (audit §3.6).
+ *
+ * Strategy:
+ *   1. Find the PID by looking at the first line of any
+ *      `$DATA_DIR/postmaster.pid` file. (Our cluster leaves one when
+ *      pg_ctl started it; a foreign cluster is unlikely to have its
+ *      PID file inside OUR .pgdata/, but the system-wide convention
+ *      on Linux is /var/run/postgresql/ — we don't search that to
+ *      avoid permission noise.)
+ *   2. Read /proc/<pid>/cmdline and look for the `-D` argument's value.
+ *   3. Return the absolute path it reports, or null if we can't tell.
+ *
+ * Returns the project's own DATA_DIR string on a perfect match (this
+ * is what `=== DATA_DIR` checks for in the caller). On macOS /proc
+ * doesn't exist; we fall back to `lsof -nP -iTCP:<port> -sTCP:LISTEN`
+ * and parse the command column for `-D`.
+ */
+function foreign_pg_owner(int $port): ?string
+{
+    $pid = null;
+
+    if (is_readable('/proc')) {
+        // Linux: scan /proc/*/cmdline for postgres processes with -p $port.
+        foreach (glob('/proc/[0-9]*/cmdline') ?: [] as $f) {
+            $parts = @file($f, FILE_IGNORE_NEW_LINES) ?: [];
+            $cmd   = str_replace("\0", ' ', $parts[0] ?? '');
+            if ($cmd === '') {
+                continue;
+            }
+            if (!str_contains($cmd, 'postgres')) {
+                continue;
+            }
+            if (!preg_match('/\s-p\s+' . $port . '\b/', ' ' . $cmd)) {
+                continue;
+            }
+            $pid = (int) basename(dirname($f));
+            break;
+        }
+    } else {
+        // macOS / BSD fallback: ask lsof for the listener.
+        $lsof = trim((string) shell_exec('command -v lsof 2>/dev/null'));
+        if ($lsof === '') {
+            return null;
+        }
+        $out = shell_exec(
+            escapeshellcmd($lsof) . ' -nP -iTCP:' . $port . ' -sTCP:LISTEN -Fpc 2>/dev/null'
+        );
+        if (is_string($out) && preg_match('/^p(\d+)$/m', $out, $m)) {
+            $pid = (int) $m[1];
+        }
+    }
+
+    if ($pid === null || $pid <= 0) {
+        return null;
+    }
+
+    // Read the postgres command line and extract the -D argument.
+    $cmdline = '';
+    if (is_readable("/proc/$pid/cmdline")) {
+        $cmdline = (string) file_get_contents("/proc/$pid/cmdline");
+        $cmdline = str_replace("\0", ' ', $cmdline);
+    } else {
+        // macOS: ps -o command=
+        $cmdline = (string) shell_exec("ps -o command= -p $pid 2>/dev/null");
+    }
+
+    if ($cmdline === '') {
+        return null;
+    }
+
+    // -D /path/to/data   (the path may be quoted or not, may contain spaces)
+    if (preg_match('/(?:^|\s)-D\s+(\S+)/', $cmdline, $m)) {
+        // Resolve to absolute so DATA_DIR comparison works.
+        $candidate = $m[1];
+        // Strip surrounding quotes if any.
+        $candidate = trim($candidate, "\"'");
+        $real = realpath($candidate);
+        return $real !== false ? $real : $candidate;
+    }
+
+    return null;
+}
+
+/**
  * Best-effort LAN IP detection for the URL banner at boot.
  *
  * Returns the first non-loopback, non-link-local IPv4 address we can
@@ -268,10 +354,32 @@ if (!is_dir(DATA_DIR)) {
 out('[3/7] starting PostgreSQL on port ' . DB_PORT);
 
 // Refuse to start if a different Postgres already holds 5433.
+//
+// A naive `pg_isready` check accepts any server answering on the port,
+// which is a footgun if the developer has a system-wide Postgres
+// running on 5433 — dev-up would silently treat it as "ours" and
+// import schema.sql into it, potentially wiping or polluting the
+// system DB. The fix is to ask the running server for its `-D`
+// argument (via `pg_ctl status` against the PID file, or by reading
+// /proc/<pid>/cmdline as a portable fallback) and refuse unless it
+// matches our DATA_DIR.
 exec(escapeshellarg($pgIsReady) . ' -h 127.0.0.1 -p ' . DB_PORT . ' -q', $o, $rc);
 if ($rc === 0) {
-    out("       a server is already responding on 127.0.0.1:5433 — assuming it's ours,");
-    out('       continuing without starting a new instance.');
+    $owner = foreign_pg_owner(DB_PORT);
+    if ($owner === DATA_DIR) {
+        out('       embedded cluster from a prior run is still up on 5433 — reusing it.');
+    } else {
+        err('FATAL: 127.0.0.1:' . DB_PORT . ' is already held by a different Postgres.');
+        if ($owner !== null) {
+            err('       Owning -D argument: ' . $owner);
+        } else {
+            err('       Could not determine the owner (foreign process, no PID file, or unreadable).');
+        }
+        err('       Refusing to import schema.sql into an unknown cluster.');
+        err('       Either stop the other server or change DB_PORT in tools/dev-up.php');
+        err('       to a free port (e.g. 5434) and re-run.');
+        exit(1);
+    }
 } else {
     $startLog = dirname(LOG_FILE) . '/pg-stdout.log';
     if (!is_dir(dirname($startLog))) {
