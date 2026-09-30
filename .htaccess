@@ -4,7 +4,7 @@ Options -Indexes
     RewriteEngine On
 
     # Block direct access to sensitive directories
-    RewriteRule ^(?:config|includes|database|backups|docs)/ - [F,L]
+    RewriteRule ^(?:config|includes|database|backups|docs|tools)/ - [F,L]
 
     # Clean public URL for the User Guidelines page:
     #   /user-guidelines -> user-guidelines.php

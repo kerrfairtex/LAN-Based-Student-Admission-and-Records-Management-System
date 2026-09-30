@@ -172,9 +172,9 @@ render_header('Admission', 'admission');
                         <td><span class="badge badge-status-<?= e($row['status']) ?>"><?= e(ucfirst($row['status'])) ?></span></td>
                         <td><?= e($row['encoder_name']) ?></td>
                         <td>
-                            <a class="btn btn-sm btn-outline-light" href="<?= e(url('/modules/admission/view.php?id=' . (int) $row['id'])) ?>">View</a>
+                            <a class="btn btn-view-red btn-sm" href="<?= e(url('/modules/admission/view.php?id=' . (int) $row['id'])) ?>">View</a>
                             <?php if ($row['status'] === 'pending'): ?>
-                                <a class="btn btn-sm btn-outline-light" href="<?= e(url('/modules/admission/edit.php?id=' . (int) $row['id'])) ?>">Edit</a>
+                                <a class="btn btn-edit-yellow btn-sm" href="<?= e(url('/modules/admission/edit.php?id=' . (int) $row['id'])) ?>"><i class="bi bi-pencil"></i> Edit</a>
                             <?php endif; ?>
                         </td>
                     </tr>

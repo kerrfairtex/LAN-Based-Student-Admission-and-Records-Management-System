@@ -163,8 +163,8 @@ render_header('Records Management', 'records');
                         <td><?= e($student['section_name'] ?: '—') ?></td>
                         <td><?= e($student['school_year'] ?: '—') ?></td>
                         <td>
-                            <a class="btn btn-sm btn-outline-light" href="<?= e(url('/modules/records/view.php?id=' . (int) $student['id'])) ?>">View</a>
-                            <a class="btn btn-sm btn-outline-light" href="<?= e(url('/modules/records/edit.php?id=' . (int) $student['id'])) ?>">Edit</a>
+                            <a class="btn btn-view-red btn-sm" href="<?= e(url('/modules/records/view.php?id=' . (int) $student['id'])) ?>">View</a>
+                            <a class="btn btn-edit-yellow btn-sm" href="<?= e(url('/modules/records/edit.php?id=' . (int) $student['id'])) ?>"><i class="bi bi-pencil"></i> Edit</a>
                             <a class="btn btn-sm btn-outline-light" href="<?= e(url('/modules/records/status.php?id=' . (int) $student['id'])) ?>">Status</a>
                         </td>
                     </tr>
