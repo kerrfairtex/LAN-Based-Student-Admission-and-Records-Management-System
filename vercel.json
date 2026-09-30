@@ -6,27 +6,5 @@
             "entrypoint": "Dockerfile.vercel",
             "runtime": "container"
         }
-    },
-    "rewrites": [
-        { "source": "/config", "destination": { "statusCode": 404 } },
-        { "source": "/config/(.*)", "destination": { "statusCode": 404 } },
-        { "source": "/includes", "destination": { "statusCode": 404 } },
-        { "source": "/includes/(.*)", "destination": { "statusCode": 404 } },
-        { "source": "/database", "destination": { "statusCode": 404 } },
-        { "source": "/database/(.*)", "destination": { "statusCode": 404 } },
-        { "source": "/backups", "destination": { "statusCode": 404 } },
-        { "source": "/backups/(.*)", "destination": { "statusCode": 404 } },
-        { "source": "/tools", "destination": { "statusCode": 404 } },
-        { "source": "/tools/(.*)", "destination": { "statusCode": 404 } },
-        { "source": "/.user.ini", "destination": { "statusCode": 404 } },
-        { "source": "/.env", "destination": { "statusCode": 404 } },
-        { "source": "/.env.local", "destination": { "statusCode": 404 } },
-        { "source": "/.gitignore", "destination": { "statusCode": 404 } },
-        { "source": "/.htaccess", "destination": { "statusCode": 404 } },
-        { "source": "/composer.json", "destination": { "statusCode": 404 } },
-        { "source": "/vercel.json", "destination": { "statusCode": 404 } },
-        { "source": "/Dockerfile", "destination": { "statusCode": 404 } },
-        { "source": "/Dockerfile.vercel", "destination": { "statusCode": 404 } },
-        { "source": "/(.*)", "destination": { "service": "web" } }
-    ]
+    }
 }
