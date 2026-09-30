@@ -108,7 +108,7 @@ render_header('Inquiry #' . $inquiry['id'], 'inquiries');
             <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
                 <div>
                     <h3 class="mb-1">Inquiry #<?= (int) $inquiry['id'] ?></h3>
-                    <p class="text-muted mb-0">Submitted <?= date('M j, Y g:i A', strtotime($inquiry['created_at'])) ?></p>
+                    <p class="text-muted mb-0">Submitted <?= ($inquiry['created_at'] !== null && ($ts = strtotime($inquiry['created_at'])) !== false) ? e(date('M j, Y g:i A', $ts)) : '—' ?></p>
                 </div>
                 <span class="badge-status badge-status-<?= $inquiry['status'] ?>"><?= strtoupper($inquiry['status']) ?></span>
             </div>
@@ -173,8 +173,8 @@ render_header('Inquiry #' . $inquiry['id'], 'inquiries');
         <div class="card-body">
             <h6 class="mb-2">Timeline</h6>
             <ul class="list-unstyled small text-muted mb-0">
-                <li><strong>Submitted:</strong> <?= date('M j, Y g:i A', strtotime($inquiry['created_at'])) ?></li>
-                <li><strong>Last Updated:</strong> <?= date('M j, Y g:i A', strtotime($inquiry['updated_at'])) ?></li>
+                <li><strong>Submitted:</strong> <?= ($inquiry['created_at'] !== null && ($ts = strtotime($inquiry['created_at'])) !== false) ? e(date('M j, Y g:i A', $ts)) : '—' ?></li>
+                <li><strong>Last Updated:</strong> <?= ($inquiry['updated_at'] !== null && ($ts2 = strtotime($inquiry['updated_at'])) !== false) ? e(date('M j, Y g:i A', $ts2)) : '—' ?></li>
             </ul>
         </div>
     </div>

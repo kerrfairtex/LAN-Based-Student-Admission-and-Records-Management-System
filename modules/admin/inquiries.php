@@ -230,7 +230,7 @@ render_header('Inquiries', 'inquiries');
                             <span class="badge-status <?= $badgeClass ?>"><?= strtoupper($inq['status']) ?></span>
                         </td>
                         <td class="text-muted text-nowrap small">
-                            <?= date('M j, Y H:i', strtotime($inq['created_at'])) ?>
+                            <?= $inq['created_at'] !== null ? e(date('M j, Y H:i', strtotime($inq['created_at']))) : '—' ?>
                         </td>
                         <td>
                             <a href="<?= e(url('/modules/admin/inquiry.php?id=' . (int) $inq['id'])) ?>"
