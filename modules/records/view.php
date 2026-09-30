@@ -182,7 +182,7 @@ render_header('Student Record', 'records');
 
 <div class="d-flex gap-2 mt-3 no-print">
     <a href="<?= e(url('/modules/records/sf10_edit.php?student_id=' . (int) $student['id'])) ?>" class="btn btn-primary">SF10 Grades</a>
-    <a href="<?= e(url('/modules/records/edit.php?id=' . (int) $student['id'])) ?>" class="btn btn-outline-light">Edit Profile</a>
+    <a href="<?= e(url('/modules/records/edit.php?id=' . (int) $student['id'])) ?>" class="btn btn-edit-yellow">Edit Profile</a>
     <a href="<?= e(url('/modules/records/status.php?id=' . (int) $student['id'])) ?>" class="btn btn-outline-light">Change Status</a>
     <a href="<?= e(url('/modules/records/print.php?id=' . (int) $student['id'])) ?>" class="btn btn-outline-light" target="_blank"><i class="bi bi-printer"></i> Print</a>
     <a href="<?= e(url('/modules/records/index.php')) ?>" class="btn btn-outline-light">Back to Records</a>

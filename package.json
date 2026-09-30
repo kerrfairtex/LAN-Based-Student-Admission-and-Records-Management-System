@@ -1,5 +1,17 @@
 {
-  "dependencies": {
-    "@supabase/server": "^1.4.1"
-  }
+    "name": "trac-jhs-sarms",
+    "version": "1.0.0",
+    "description": "TRAC JHS Student Admission and Records Management System",
+    "private": true,
+    "scripts": {
+        "build": "echo 'PHP application — no build step required'",
+        "vercel-build": "echo 'PHP application — no build step required'",
+        "test": "node tests/login_layout.test.cjs"
+    },
+    "dependencies": {
+        "@supabase/server": "^1.4.1"
+    },
+    "devDependencies": {
+        "vercel-php": "^0.9.0"
+    }
 }

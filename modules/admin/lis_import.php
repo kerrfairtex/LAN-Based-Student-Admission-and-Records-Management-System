@@ -29,10 +29,21 @@ if (!isset($_FILES['lis_csv']) || $_FILES['lis_csv']['error'] !== UPLOAD_ERR_OK)
 $filename = basename($_FILES['lis_csv']['name']);
 $tmpPath = $_FILES['lis_csv']['tmp_name'];
 
-// Move uploaded file inside the project dir (so it stops leaking to /tmp).
+// Stage the uploaded file for processing. On Render, this writes to
+// the persistent disk's uploads/ directory. On Vercel, we write to
+// sys_get_temp_dir() (/tmp) which is ephemeral but sufficient for
+// CSV processing — the parsed data goes into the database, the temp
+// file is deleted after processing.
 $uploadDir = dirname(__DIR__, 2) . '/uploads';
 ensure_dir($uploadDir);
 $storedPath = $uploadDir . '/' . date('Ymd_His') . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $filename);
+
+// If the uploads dir is not writable (e.g. Vercel read-only filesystem),
+// fall back to PHP's temp directory.
+if (!is_writable($uploadDir)) {
+    $storedPath = sys_get_temp_dir() . '/' . date('Ymd_His') . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $filename);
+}
+
 if (!move_uploaded_file($tmpPath, $storedPath)) {
     flash('danger', 'Unable to stage uploaded file.');
     redirect('/modules/admin/lis.php');
@@ -110,6 +121,11 @@ try {
 }
 
 fclose($handle);
+
+// Clean up the staged upload file (both uploads/ and /tmp paths).
+if (is_file($storedPath)) {
+    @unlink($storedPath);
+}
 
 $total = $created + $updated + $skipped + $errors;
 lis_log_import($filename, $defaultSchoolYearId, $total, $created, $updated, $skipped, $errors, $errorLines, $userId);

@@ -175,3 +175,119 @@
         transition: none !important;
     }
 }
+
+
+/* ---------- Admission status badges (plain-colour, plain-text) ---------- */
+/* The admission index and view pages emit <span class="badge badge-status-{pending|approved|rejected}">.
+   Previously these had NO CSS rules, so they fell back to Bootstrap's default
+   .badge (light gray background, dark text) — invisible on the dark green
+   app-shell background and colour-blind unfriendly. Now each status is a
+   flat-filled rectangle with coloured text so the registrar can scan the
+   list at a glance. */
+.badge-status-pending  { background: rgba(212, 167, 44, 0.18); color: var(--gold-400); border: 1px solid rgba(212, 167, 44, 0.40); }
+.badge-status-approved { background: rgba(62, 122, 87, 0.18);  color: #86E0B7;           border: 1px solid rgba(62, 122, 87, 0.40); }
+.badge-status-rejected { background: rgba(193, 68, 59, 0.18);  color: #FF7B7B;           border: 1px solid rgba(193, 68, 59, 0.40); }
+
+/* Make all badges use the same flat, bordered, plain-text style */
+.badge-status-pending,
+.badge-status-approved,
+.badge-status-rejected {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: 6px;
+    padding: 4px 10px;
+    backdrop-filter: none;
+}
+
+/* ---------- Table cards (admission list, records list, audit log) ---------- */
+.table-card {
+    background: rgba(23, 61, 41, 0.55);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.table-card .table {
+    margin-bottom: 0;
+    color: var(--cream-200);
+}
+
+.table-card .table th {
+    background: rgba(245, 238, 220, 0.06);
+    border-color: var(--line);
+    color: var(--cream-200);
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.table-card .table td {
+    border-color: var(--line);
+    color: var(--cream-200);
+}
+
+.table-card .table tbody tr:hover {
+    background: rgba(245, 238, 220, 0.04);
+}
+
+/* ---------- Red "View" button for admission records ---------- */
+/* The admission index uses btn-outline-light (white outline + white text)
+   which is nearly invisible on the dark green app-shell. Replace with a
+   red-bordered button that has a visible edge and stands out clearly. */
+.btn-view-red {
+    background: transparent;
+    border: 2px solid var(--qa-danger, #C1443B);
+    color: var(--qa-danger, #C1443B) !important;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: var(--font-ui);
+    transition: all 0.15s ease;
+}
+
+.btn-view-red:hover,
+.btn-view-red:focus-visible {
+    background: var(--qa-danger, #C1443B);
+    color: #FFFFFF !important;
+    border-color: var(--qa-danger, #C1443B);
+    box-shadow: 0 4px 12px rgba(193, 68, 59, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-view-red i {
+    font-size: 0.85rem;
+}
+
+/* ---------- Edit button (yellow accent) ---------- */
+.btn-edit-yellow {
+    background: transparent;
+    border: 1px solid var(--gold-500);
+    color: var(--gold-500) !important;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: var(--font-ui);
+    transition: all 0.15s ease;
+}
+
+.btn-edit-yellow:hover,
+.btn-edit-yellow:focus-visible {
+    background: var(--gold-500);
+    color: var(--ink-900) !important;
+    border-color: var(--gold-500);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-view-red,
+    .btn-edit-yellow {
+        transition: none !important;
+        transform: none !important;
+    }
+}

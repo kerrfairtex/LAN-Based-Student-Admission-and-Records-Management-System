@@ -4,26 +4,31 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../includes/layout.php';
+require_once __DIR__ . '/../../includes/storage.php';
 
 require_registrar();
 
 $backupDir = __DIR__ . '/../../backups';
-$backups = [];
 
-if (is_dir($backupDir)) {
-    $files = glob($backupDir . '/*.sql');
-    if ($files) {
-        foreach ($files as $file) {
-            $backups[] = [
-                'name' => basename($file),
-                'size' => filesize($file),
-                'modified' => date('Y-m-d H:i:s', filemtime($file)),
-                'path' => $file,
-            ];
-        }
-        usort($backups, static fn ($a, $b) => strcmp($b['modified'], $a['modified']));
+// List backups from storage (Supabase on Vercel, local filesystem on Render/dev).
+$allFiles = storage_list('backups/');
+$backupFiles = array_values(array_filter($allFiles, static fn (string $file): bool => str_ends_with($file, '.sql')));
+rsort($backupFiles);
+
+$backups = [];
+foreach ($backupFiles as $file) {
+    $name = basename($file);
+    $content = storage_download('backups/' . $name);
+    if ($content !== null) {
+        $backups[] = [
+            'name' => $name,
+            'size' => strlen($content),
+            'modified' => date('Y-m-d H:i:s'),
+            'path' => $file,
+        ];
     }
 }
+usort($backups, static fn ($a, $b) => strcmp($b['name'], $a['name']));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
@@ -39,8 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('danger', 'Backup file does not exist.');
     } else {
         try {
-            $sql = file_get_contents($fullPath);
-            if ($sql === false || trim($sql) === '') {
+            // Download the SQL file from object storage (Supabase or local filesystem).
+            $sql = storage_download($fullPath);
+            if ($sql === false || $sql === null || trim($sql) === '') {
                 throw new RuntimeException('Backup file is empty or unreadable.');
             }
 

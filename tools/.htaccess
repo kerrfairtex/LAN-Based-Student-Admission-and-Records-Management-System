@@ -1,0 +1,6 @@
+# Block web access to CLI-only scripts in this directory.
+# These files (dev-up.php, import_schema.php, create-registrar.php) are
+# intended for command-line execution and must never be served via HTTP.
+# Exposing them leaks server filesystem paths and can reveal sensitive
+# environment variable handling (information disclosure).
+Require all denied

@@ -20,7 +20,7 @@ if ($filterQuery !== '') {
     $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filterQuery) . '%';
 
     $where = [
-        '(s.student_id_no ILIKE :q ESCAPE \'\\\' OR s.lrn ILIKE :q ESCAPE \'\\\' OR CONCAT(s.first_name, \' \', s.middle_name, \' \', s.last_name) ILIKE :q ESCAPE \'\\\' OR CONCAT(s.last_name, \', \', s.first_name) ILIKE :q ESCAPE \'\\\')'
+        '(s.student_id_no ILIKE :q OR s.lrn ILIKE :q OR CONCAT(s.first_name, \' \', s.middle_name, \' \', s.last_name) ILIKE :q OR CONCAT(s.last_name, \', \', s.first_name) ILIKE :q)'
     ];
     $params = ['q' => $like];
     if ($statusValid !== '') {
@@ -101,7 +101,7 @@ render_header('Search & Inquiry', 'search');
             <td><?= e($student['lrn'] ?: '—') ?></td>
             <td><?= e($student['grade_name'] ?: '—') ?></td>
             <td><?= e(ucfirst($student['status'])) ?></td>
-            <td><a class="btn btn-sm btn-outline-light" href="<?= e(url('/modules/records/view.php?id=' . (int) $student['id'])) ?>">Open Record</a></td>
+            <td><a class="btn btn-view-red btn-sm" href="<?= e(url('/modules/records/view.php?id=' . (int) $student['id'])) ?>">Open Record</a></td>
           </tr>
         <?php endforeach; ?>
       </tbody>
