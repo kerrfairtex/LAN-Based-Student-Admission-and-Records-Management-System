@@ -18,7 +18,7 @@ if ($id <= 0) {
 
 // ---- Load inquiry ----
 
-$stmt = db()->prepare('SELECT id, full_name, grade, contact_number, status, COALESCE(created_at, '1970-01-01 00:00:00+00') AS created_at, COALESCE(updated_at, '1970-01-01 00:00:00+00') AS updated_at FROM inquiries WHERE id = :id');
+$stmt = db()->prepare('SELECT id, full_name, grade, contact_number, status, COALESCE(created_at, \'1970-01-01 00:00:00+00\') AS created_at, COALESCE(updated_at, \'1970-01-01 00:00:00+00\') AS updated_at FROM inquiries WHERE id = :id');
 $stmt->execute(['id' => $id]);
 $inquiry = $stmt->fetch();
 
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['status' => $newStatus, 'id' => $id]);
 
         // Reload to get updated updated_at
-        $stmt = db()->prepare('SELECT id, full_name, grade, contact_number, status, COALESCE(created_at, '1970-01-01 00:00:00+00') AS created_at, COALESCE(updated_at, '1970-01-01 00:00:00+00') AS updated_at FROM inquiries WHERE id = :id');
+        $stmt = db()->prepare('SELECT id, full_name, grade, contact_number, status, COALESCE(created_at, \'1970-01-01 00:00:00+00\') AS created_at, COALESCE(updated_at, \'1970-01-01 00:00:00+00\') AS updated_at FROM inquiries WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $inquiry = $stmt->fetch();
 
