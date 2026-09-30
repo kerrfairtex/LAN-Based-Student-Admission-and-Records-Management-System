@@ -1,4 +1,15 @@
 {
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "services": {
+        "web": {
+            "root": ".",
+            "entrypoint": "Dockerfile.vercel",
+            "runtime": "container"
+        }
+    },
+    "rewrites": [
+        { "source": "/(.*)", "destination": { "service": "web" } }
+    ],
     "routes": [
         { "source": "/config/(.*)", "status": 404 },
         { "source": "/config", "status": 404 },
@@ -16,8 +27,8 @@
         { "source": "/.gitignore", "status": 404 },
         { "source": "/.htaccess", "status": 404 },
         { "source": "/composer.json", "status": 404 },
+        { "source": "/vercel.json", "status": 404 },
         { "source": "/Dockerfile", "status": 404 },
-        { "source": "/Dockerfile.vercel", "status": 404 },
-        { "source": "/user-guidelines", "destination": "/user-guidelines.php" }
+        { "source": "/Dockerfile.vercel", "status": 404 }
     ]
 }
