@@ -53,6 +53,7 @@ function render_header(string $title, string $active = ''): void
             'items' => [
                 ['label' => 'Users',  'href' => '/modules/admin/users.php',     'active' => $active === 'users',     'icon' => 'bi-person-gear'],
                 ['label' => 'Settings','href' => '/modules/admin/settings.php',  'active' => $active === 'settings',  'icon' => 'bi-gear'],
+                ['label' => 'Inquiries', 'href' => '/modules/admin/inquiries.php', 'active' => $active === 'inquiries', 'icon' => 'bi-inbox'],
                 ['label' => 'Audit',   'href' => '/modules/admin/audit.php',     'active' => $active === 'audit',     'icon' => 'bi-journal-text'],
                 ['label' => 'LIS',     'href' => '/modules/admin/lis.php',       'active' => $active === 'lis',       'icon' => 'bi-file-earmark-spreadsheet'],
                 ['label' => 'Backup',  'href' => '/modules/admin/backup.php',    'active' => $active === 'backup',    'icon' => 'bi-hdd-network'],

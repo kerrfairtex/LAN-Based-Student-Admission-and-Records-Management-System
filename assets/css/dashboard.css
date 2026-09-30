@@ -291,3 +291,22 @@
         transform: none !important;
     }
 }
+
+/* ---------- Inquiry status badges (new) ---------- */
+.badge-status-new       { background: rgba(212, 167, 44, 0.18); color: var(--gold-400); border: 1px solid rgba(212, 167, 44, 0.40); }
+.badge-status-processed { background: rgba(62, 122, 87, 0.18);  color: #86E0B7;           border: 1px solid rgba(62, 122, 87, 0.40); }
+.badge-status-spam      { background: rgba(193, 68, 59, 0.18);  color: #FF7B7B;           border: 1px solid rgba(193, 68, 59, 0.40); }
+.badge-status-duplicate { background: rgba(128, 128, 128, 0.18); color: #C8C8C8;           border: 1px solid rgba(128, 128, 128, 0.40); }
+
+.badge-status-new,
+.badge-status-processed,
+.badge-status-spam,
+.badge-status-duplicate {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.35em 0.6em;
+    border-radius: 4px;
+}
