@@ -336,9 +336,17 @@
 .form-select.form-select-sm,
 .form-control.form-control-sm {
     background-color: var(--form-bg);
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23EDE3C8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5.5L8 10 14 5.5'/%3e%3c/svg%3e");
     border: 1px solid var(--form-border);
     color: var(--form-text);
+}
+
+/* Dropdown arrow for select inputs (NOT text inputs) */
+.form-select.form-select-sm {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23EDE3C8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5.5L8 10 14 5.5'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 16px;
+    padding-right: 2.25rem;
 }
 
 .form-select.form-select-sm::placeholder,
