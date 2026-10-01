@@ -336,6 +336,6 @@
 
 /* Dark-theme badge overrides for non-status badges (e.g. "Active" on records) */
 .badge.bg-primary.ms-1 {
-    background: var(--qa-success) !important;
+    background: #2D6945 !important;
     color: var(--cream-100) !important;
 }
