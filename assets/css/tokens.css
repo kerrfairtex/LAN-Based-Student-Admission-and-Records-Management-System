@@ -17,6 +17,34 @@
     --ink-900:   #141B14;
     --line:      rgba(245, 238, 220, 0.14);
 
+    /* Table tokens (dark green glass surface) */
+    --table-bg:           rgba(23, 61, 41, 0.55);
+    --table-bg-hex:       #173D29;
+    --table-border:       var(--line);
+    --table-text:         var(--cream-200);
+    --table-header-bg:    rgba(245, 238, 220, 0.06);
+    --table-row-hover:    rgba(245, 238, 220, 0.08);
+    --table-zebra:        rgba(245, 238, 220, 0.03);
+
+    /* Badge tokens — solid backgrounds tuned for WCAG AA (4.5:1) on table surface */
+    --badge-new-bg:       var(--gold-500);
+    --badge-new-text:     var(--ink-900);
+    --badge-approved-bg:  #2D6945;
+    --badge-approved-text: var(--cream-100);
+    --badge-rejected-bg:  #9C3A31;
+    --badge-rejected-text: var(--cream-100);
+    --badge-duplicate-bg: #555555;
+    --badge-duplicate-text: var(--cream-100);
+    --badge-pending-bg:   var(--gold-500);
+    --badge-pending-text: var(--ink-900);
+
+    /* Form tokens — dark theme matching the app-shell */
+    --form-bg:            rgba(15, 49, 32, 0.50);
+    --form-border:        var(--line);
+    --form-text:          var(--cream-200);
+    --form-placeholder:   var(--cream-200);
+    --form-focus-ring:    var(--gold-500);
+
     /* Legacy aliases kept for site.css compatibility */
     --brand-green:        var(--green-700);
     --brand-green-deep:   var(--green-950);

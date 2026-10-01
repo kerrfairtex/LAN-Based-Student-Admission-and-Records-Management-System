@@ -184,9 +184,9 @@
    app-shell background and colour-blind unfriendly. Now each status is a
    flat-filled rectangle with coloured text so the registrar can scan the
    list at a glance. */
-.badge-status-pending  { background: rgba(212, 167, 44, 0.18); color: var(--gold-400); border: 1px solid rgba(212, 167, 44, 0.40); }
-.badge-status-approved { background: rgba(62, 122, 87, 0.18);  color: #86E0B7;           border: 1px solid rgba(62, 122, 87, 0.40); }
-.badge-status-rejected { background: rgba(193, 68, 59, 0.18);  color: #FF7B7B;           border: 1px solid rgba(193, 68, 59, 0.40); }
+.badge-status-pending  { background: var(--badge-pending-bg);   color: var(--badge-pending-text);   border: none; }
+.badge-status-approved { background: var(--badge-approved-bg);  color: var(--badge-approved-text);  border: none; }
+.badge-status-rejected { background: var(--badge-rejected-bg);  color: var(--badge-rejected-text);  border: none; }
 
 /* Make all badges use the same flat, bordered, plain-text style */
 .badge-status-pending,
@@ -240,9 +240,9 @@
    which is nearly invisible on the dark green app-shell. Replace with a
    red-bordered button that has a visible edge and stands out clearly. */
 .btn-view-red {
-    background: transparent;
-    border: 2px solid var(--qa-danger, #C1443B);
-    color: var(--qa-danger, #C1443B) !important;
+    background: rgba(193, 68, 59, 0.25);
+    border: 1px solid var(--qa-danger, #C1443B);
+    color: var(--cream-100) !important;
     border-radius: 8px;
     padding: 4px 12px;
     font-size: 0.8rem;
@@ -293,10 +293,10 @@
 }
 
 /* ---------- Inquiry status badges (new) ---------- */
-.badge-status-new       { background: rgba(212, 167, 44, 0.18); color: var(--gold-400); border: 1px solid rgba(212, 167, 44, 0.40); }
-.badge-status-processed { background: rgba(62, 122, 87, 0.18);  color: #86E0B7;           border: 1px solid rgba(62, 122, 87, 0.40); }
-.badge-status-spam      { background: rgba(193, 68, 59, 0.18);  color: #FF7B7B;           border: 1px solid rgba(193, 68, 59, 0.40); }
-.badge-status-duplicate { background: rgba(128, 128, 128, 0.18); color: #C8C8C8;           border: 1px solid rgba(128, 128, 128, 0.40); }
+.badge-status-new       { background: var(--badge-new-bg);       color: var(--badge-new-text);       border: none; }
+.badge-status-processed { background: var(--badge-approved-bg); color: var(--badge-approved-text);  border: none; }
+.badge-status-spam      { background: var(--badge-rejected-bg); color: var(--badge-rejected-text);  border: none; }
+.badge-status-duplicate { background: var(--badge-duplicate-bg); color: var(--badge-duplicate-text); border: none; }
 
 .badge-status-new,
 .badge-status-processed,
@@ -309,4 +309,33 @@
     letter-spacing: 0.04em;
     padding: 0.35em 0.6em;
     border-radius: 4px;
+}
+
+/* ---------- Dark-theme form controls ---------- */
+/* Bootstrap's default form-select/form-control use white bg + dark text,
+   which clashes with the dark green app-shell. Override to match theme. */
+.form-select.form-select-sm,
+.form-control.form-control-sm {
+    background-color: var(--form-bg);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23EDE3C8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5.5L8 10 14 5.5'/%3e%3c/svg%3e");
+    border: 1px solid var(--form-border);
+    color: var(--form-text);
+}
+
+.form-select.form-select-sm::placeholder,
+.form-control.form-control-sm::placeholder {
+    color: var(--form-placeholder);
+    opacity: 0.7;
+}
+
+.form-select.form-select-sm:focus,
+.form-control.form-control-sm:focus {
+    border-color: var(--form-focus-ring);
+    box-shadow: 0 0 0 0.2rem rgba(212, 167, 44, 0.25);
+}
+
+/* Dark-theme badge overrides for non-status badges (e.g. "Active" on records) */
+.badge.bg-primary.ms-1 {
+    background: var(--qa-success) !important;
+    color: var(--cream-100) !important;
 }
