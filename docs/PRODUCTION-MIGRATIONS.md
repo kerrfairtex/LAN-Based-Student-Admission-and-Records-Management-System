@@ -2,11 +2,12 @@
 # Project ref: ebyepweqwihdvjecrufk
 # Schema:      trac_jhs_sarms (every statement is schema-qualified)
 #
-# STATUS (2026-11-21): ALL MIGRATIONS APPLIED to production.
+# STATUS (2026-11-21): ALL MIGRATIONS (004–008) APPLIED to production.
 #   005 was applied earlier; 004, 006 and 007 were applied on
-#   2026-11-21 in one transaction. Production has 15 tables, matching
-#   database/schema.sql. Fresh installs need none of this — schema.sql
-#   already includes 004–007. Use this runbook only to re-check
+#   2026-11-21 in one transaction; 008 (users.must_change_password)
+#   was applied on 2026-11-21 via the Supabase SQL Editor and verified.
+#   Production has 15 tables, matching database/schema.sql. Fresh
+#   installs need none of this — schema.sql already includes 004–008. Use this runbook only to re-check
 #   production or to upgrade another existing database.
 #
 # !! SHARED DATABASE !!
@@ -51,6 +52,9 @@ select 'audit user_id nullable (006)', is_nullable from information_schema.colum
 select 'audit FK on delete (006)', delete_rule from information_schema.referential_constraints
   where constraint_schema='trac_jhs_sarms' and constraint_name='fk_audit_user'; -- expect SET NULL
 select 'app_sessions (007)', to_regclass('trac_jhs_sarms.app_sessions') is not null;
+select 'must_change_password (008)', count(*) from information_schema.columns
+  where table_schema='trac_jhs_sarms' and table_name='users'
+    and column_name='must_change_password';                             -- expect 1
 SQL
 
 # =====================================================================
@@ -66,6 +70,9 @@ SQL
 #   006_audit_user_nullable.sql audit_logs.user_id NULL-able, FK ON DELETE SET NULL
 #                               (briefly locks trac_jhs_sarms.audit_logs)
 #   007_app_sessions.sql        app_sessions table for DB-backed PHP sessions
+#   008_must_change_password.sql users.must_change_password SMALLINT DEFAULT 0
+#                               (metadata-only ADD COLUMN; touches only
+#                               trac_jhs_sarms.users)
 #
 # Do NOT run 002/003 — they are MySQL-flavored.
 #
@@ -75,6 +82,13 @@ PGOPTIONS='-c lock_timeout=10s' \
     -f database/migrations/004_audit_retention.sql \
     -f database/migrations/006_audit_user_nullable.sql \
     -f database/migrations/007_app_sessions.sql
+
+# 008 (applied 2026-11-21; kept for upgrading other databases).
+# Supabase SQL Editor alternative: run the ALTER TABLE inside
+#   begin; set local lock_timeout = '10s'; ... commit;
+PGOPTIONS='-c lock_timeout=10s' \
+  psql "$CONN" -X -v ON_ERROR_STOP=1 --single-transaction \
+    -f database/migrations/008_must_change_password.sql
 
 # Then re-run the CHECK in step 1.
 #

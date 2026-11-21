@@ -99,7 +99,10 @@ $card_legal = $card_legal ?? false;
             <a href="<?= e(url('/about.php')) ?>">About</a>
             <a href="<?= e(url('/user-guidelines.php')) ?>">User Guidelines</a>
             <?php if ($is_authed ?? false): ?>
-                <a href="<?= e(url('/auth/logout.php')) ?>">Sign out</a>
+                <form method="post" action="<?= e(url('/auth/logout.php')) ?>" style="display:inline;margin:0;">
+                    <?= csrf_field() ?>
+                    <button type="submit" style="background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:inherit;">Sign out</button>
+                </form>
             <?php elseif (!$minimal_footer): ?>
                 <a href="<?= e(url('/auth/login.php')) ?>">Staff sign in &rarr;</a>
             <?php endif; ?>

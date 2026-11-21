@@ -2,7 +2,7 @@
 
 **System:** TRAC JHS Student Admission and Records Management System  
 **Institution:** Tawi-Tawi Regional Agricultural College Junior High School (TRAC JHS)  
-**Stack:** PHP 8 + MySQL + XAMPP (three-tier, intranet-only)
+**Stack:** PHP 8 + PostgreSQL (embedded cluster for LAN; Supabase + Render for the hosted copy)
 
 ---
 
@@ -66,9 +66,28 @@
 |---|-------------|
 | 3.1 | LIS CSV export/import compatibility | Done |
 | 3.2 | Automated scheduled backups (cron) |
-| 3.3 | SF9 (Report Card) generation |
+| 3.3 | SF9 (Report Card) generation | Done |
 | 3.4 | Barcode/QR on student ID printouts |
 | 3.5 | Annex campus multi-server sync |
+
+---
+
+## Phase 4 — Production Hardening (2026-11-21)
+
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 4.1 | Deny web access to `uploads/`, `storage/`, dotfiles, repo metadata (`.htaccess` + `tools/router.php` for `php -S`) | Done |
+| 4.2 | Branded 403/404/500 page (`error.php`), `robots.txt` | Done |
+| 4.3 | Logout is POST + CSRF | Done |
+| 4.4 | Password policy; forced change for seed passwords / registrar resets (migration 008) | Done |
+| 4.5 | Registrar: edit users, reset passwords, last-registrar guards; disable/role change effective immediately | Done |
+| 4.6 | Settings: edit/delete school years and sections (fixed missing CSRF on add forms) | Done |
+| 4.7 | Year-end bulk promotion / retention / graduation (`modules/enrollment/promote.php`) | Done |
+| 4.8 | Print stylesheet for SF9/SF10/reports | Done |
+| 4.9 | Additional roles (principal/viewer, adviser), permission matrix | Planned |
+| 4.10 | CSV export for reports, pagination on transfers/search | Planned |
+| 4.11 | Email/SMS notifications, JSON API for search/LRN check | Planned |
+| 4.12 | CI (php -l + smoke tests), scheduled backups and audit purge | Planned |
 
 ---
 

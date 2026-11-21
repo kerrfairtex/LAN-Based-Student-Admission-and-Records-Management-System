@@ -70,6 +70,32 @@ render_header('Reporting', 'reports');
             </form>
         </div>
     </div>
+    <div class="col-md-6">
+        <div class="panel-card glass-panel h-100">
+            <h3>SF9-JHS Report Card</h3>
+            <p class="text-muted">DepEd School Form 9 (formerly Form 138): quarterly ratings, general average, attendance and promotional status for one school year.</p>
+            <form action="<?= e(url('/modules/reports/sf9.php')) ?>" method="get" class="row g-2">
+                <div class="col-12">
+                    <select name="student_id" class="form-select" aria-label="Student" required>
+                        <option value="">Select student</option>
+                        <?php foreach ($reportStudents as $s): ?>
+                            <option value="<?= (int) $s['id'] ?>"><?= e($s['name']) ?> (<?= e($s['student_id_no']) ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <select name="school_year_id" class="form-select" aria-label="School year" required>
+                        <?php foreach (fetch_school_years() as $year): ?>
+                            <option value="<?= (int) $year['id'] ?>" <?= !empty($year['is_active']) ? 'selected' : '' ?>><?= e($year['label']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Generate SF9</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 <?php
 render_footer();

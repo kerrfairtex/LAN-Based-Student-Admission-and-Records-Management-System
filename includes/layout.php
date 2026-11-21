@@ -53,6 +53,7 @@ function render_header(string $title, string $active = ''): void
             'items' => [
                 ['label' => 'Users',  'href' => '/modules/admin/users.php',     'active' => $active === 'users',     'icon' => 'bi-person-gear'],
                 ['label' => 'Settings','href' => '/modules/admin/settings.php',  'active' => $active === 'settings',  'icon' => 'bi-gear'],
+                ['label' => 'Year-End Promotion', 'href' => '/modules/enrollment/promote.php', 'active' => $active === 'promote', 'icon' => 'bi-arrow-up-circle'],
                 ['label' => 'Inquiries', 'href' => '/modules/admin/inquiries.php', 'active' => $active === 'inquiries', 'icon' => 'bi-inbox'],
                 ['label' => 'Audit',   'href' => '/modules/admin/audit.php',     'active' => $active === 'audit',     'icon' => 'bi-journal-text'],
                 ['label' => 'LIS',     'href' => '/modules/admin/lis.php',       'active' => $active === 'lis',       'icon' => 'bi-file-earmark-spreadsheet'],
@@ -124,7 +125,7 @@ function render_header(string $title, string $active = ''): void
                     <?php foreach ($group['items'] as $item): ?>
                         <a class="nav-link <?= $item['active'] ? 'active' : '' ?>"
                            href="<?= e(url($item['href'])) ?>">
-                            <i class="bi bi-<?= e($item['icon']) ?>"></i>
+                            <i class="bi <?= e($item['icon']) ?>" aria-hidden="true"></i>
                             <span><?= e($item['label']) ?></span>
                         </a>
                     <?php endforeach; ?>
@@ -142,9 +143,12 @@ function render_header(string $title, string $active = ''): void
                 <a href="<?= e(url('/modules/account/password.php')) ?>" class="btn btn-outline-light btn-sm w-100 mt-2">
                     <i class="bi bi-key"></i> Change Password
                 </a>
-                <a href="<?= e(url('/auth/logout.php')) ?>" class="btn btn-outline-light btn-sm w-100 mt-2">
-                    <i class="bi bi-box-arrow-right"></i> Sign Out
-                </a>
+                <form method="post" action="<?= e(url('/auth/logout.php')) ?>" class="m-0">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-outline-light btn-sm w-100 mt-2">
+                        <i class="bi bi-box-arrow-right"></i> Sign Out
+                    </button>
+                </form>
             </div>
         </aside>
 
@@ -281,9 +285,12 @@ function render_header(string $title, string $active = ''): void
                                     <i class="bi bi-gear"></i> Settings
                                 </a>
                             <?php endif; ?>
-                            <a href="<?= e(url('/auth/logout.php')) ?>" class="dropdown-item">
-                                <i class="bi bi-box-arrow-right"></i> Sign Out
-                            </a>
+                            <form method="post" action="<?= e(url('/auth/logout.php')) ?>" class="m-0">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="dropdown-item">
+                                    <i class="bi bi-box-arrow-right"></i> Sign Out
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

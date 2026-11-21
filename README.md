@@ -60,9 +60,12 @@ immediately usable:
 | `registrar`| `Registrar@2026` | registrar    | Full (admit, enroll, backup)    |
 | `encoder`  | `Encoder@2026`   | encoder      | Data entry only                 |
 
-**Change both passwords immediately** under **Account → Change Password**
-after first sign-in. The repo is public on GitHub — anyone who clones
-gets the same bcrypt hashes.
+The repo is public on GitHub, so anyone who clones gets the same bcrypt
+hashes. The app therefore **forces a password change** on the first
+sign-in with either seed password (and after a registrar creates a user
+or resets someone's password). Passwords must be at least 10 characters
+with a letter and a number, must not contain the username, and cannot be
+a seed password.
 
 ### Stopping the dev server
 
@@ -122,14 +125,14 @@ layout).
 | Dashboard + 5 stat-cards             | `dashboard.php`                                |
 | Admission                           | `modules/admission/` (index, create, edit, view) |
 | Student records                     | `modules/records/` (index, view, edit, academic, print, sf10_edit, status) |
-| Enrollment / section assignment     | `modules/enrollment/` (index, assign)         |
+| Enrollment / section assignment     | `modules/enrollment/` (index, assign, promote — year-end promotion, registrar) |
 | Transfers (SF10 in/out)             | `modules/transfers/` (index, create, view)    |
 | Search                              | `modules/search/index.php`                     |
-| Reports                             | `modules/reports/` (index, admission_status, enrollment_summary, sf10, student_masterlist) |
+| Reports                             | `modules/reports/` (index, admission_status, enrollment_summary, sf9, sf10, student_masterlist) |
 | Admin                               | `modules/admin/` (users, audit, backup, download_backup, restore, settings, lis, lis_export, lis_import, lis_template, set_year) |
 | Account (change password)           | `modules/account/password.php`                 |
 | Public landing                      | `index.php` (loads `templates/landing.html`)   |
-| Public pages                        | `about.php`, `privacy.php`, `terms.php`, `contact.php` |
+| Public pages                        | `about.php`, `privacy.php`, `terms.php`, `contact.php`, `error.php` (403/404/500) |
 
 ---
 
@@ -144,7 +147,7 @@ tables** under the `trac_jhs_sarms` schema:
 `inquiries`, `app_sessions`.
 
 It also creates `trac_jhs_sarms.purge_old_audit_logs()` and seeds
-`app_settings.audit_retention_days = 1825`. Migrations 004–007 are
+`app_settings.audit_retention_days = 1825`. Migrations 004–008 are
 already folded in, so a fresh install needs no migrations.
 
 The files under `database/migrations/` are upgrade paths for existing

@@ -34,7 +34,13 @@ of truth for the local bootstrap. It:
   function bodies correctly — the previous PHP-side statement splitter
   was buggy on `$$ ... $$`),
 - exports `DB_*` env to the dev server child process,
-- exec's `php -S 0.0.0.0:8000` so the LAN can reach it.
+- exec's `php -S 0.0.0.0:8000 tools/router.php` so the LAN can reach it.
+
+`tools/router.php` is **required** on the built-in server: `php -S`
+ignores `.htaccess`, so without the router `backups/*.sql`,
+`uploads/*.csv` (learner PII), `.env` and `config/` are downloadable by
+anyone on the LAN. The router mirrors the `.htaccess` deny list — keep
+the two in sync when adding a private directory.
 
 `tools/dev-up.cmd` is the Windows shim that calls the same PHP file.
 
@@ -64,8 +70,9 @@ edit `DB_PORT` in `tools/dev-up.php` to e.g. 5434.
   unqualified names resolve there.
 - **Migrations:** `database/migrations/` is upgrade-only.
   `002_phase2.sql` and `003_lis_csv.sql` are MySQL-flavored (do not run
-  on fresh Postgres). `004_audit_retention.sql` onward are Postgres and
-  are already folded into `schema.sql`; run them only to upgrade an
+  on fresh Postgres). `004_audit_retention.sql` through
+  `008_must_change_password.sql` are Postgres and are already folded
+  into `schema.sql`; run them only to upgrade an
   existing database. Production shares its Supabase database with other
   projects' schemas (including `public`), so every migration statement
   must be qualified with `trac_jhs_sarms.` — never rely on
@@ -101,8 +108,18 @@ edit `DB_PORT` in `tools/dev-up.php` to e.g. 5434.
   config or the Apache/PHP-FPM ini. See audit §3.3 for the current
   live exposure of PHP warnings in HTML.
 - Committed seed passwords (`Registrar@2026`, `Encoder@2026`) are
-  public in this repo. Rotate on every fresh install via
-  **Account → Change Password**.
+  public in this repo. `includes/auth.php` forces a password change on
+  any sign-in that uses them (`KNOWN_PUBLIC_PASSWORDS`), and after a
+  registrar creates a user or resets a password
+  (`users.must_change_password`, migration 008). Password policy lives
+  in `password_policy_errors()`.
+- Logout is POST + CSRF only (`auth/logout.php`); never link to it with
+  a plain `<a href>`.
+- `require_login()` re-reads the user row on every request, so
+  disabling a user or changing their role takes effect immediately.
+- Inline `confirm()` messages that include user data must be built with
+  `json_encode(..., JSON_HEX_*)` then `e()` — `e()` alone is not safe
+  inside a JS string in an HTML attribute.
 - See `.htaccess` for path-deny and security-header rules. The
   PHP-built-in dev server ignores `.htaccess`; live's Apache enforces
   them.

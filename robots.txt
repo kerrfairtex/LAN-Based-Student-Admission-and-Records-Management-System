@@ -1,0 +1,8 @@
+# TRAC JHS SARMS — only the public information pages are indexable.
+User-agent: *
+Disallow: /modules/
+Disallow: /auth/
+Disallow: /dashboard.php
+Disallow: /healthcheck.php
+Disallow: /error.php
+Allow: /

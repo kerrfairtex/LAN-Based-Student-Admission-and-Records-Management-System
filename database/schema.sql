@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS trac_jhs_sarms.users (
     full_name VARCHAR(150) NOT NULL,
     role VARCHAR(15) NOT NULL CHECK (role IN ('registrar', 'encoder')) DEFAULT 'encoder',
     is_active SMALLINT NOT NULL DEFAULT 1,
+    must_change_password SMALLINT NOT NULL DEFAULT 0,  -- migration 008
     last_active TIMESTAMPTZ DEFAULT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -374,7 +375,7 @@ ON CONFLICT DO NOTHING;
 -- default password is documented in README.md (Quick Start)
 -- and the operator MUST change it on first login.
 
-INSERT INTO trac_jhs_sarms.users (username, password_hash, full_name, role) VALUES
-    ('registrar', '$2y$10$J3yYuFMGsf89Ae/Li/IMEeYsVEf85EHrIH0DzZUKrYhsl5.TbjFki', 'School Registrar', 'registrar'),
-    ('encoder', '$2y$10$uqu6a1xzHGqOM/DktEsUr..9dZT1B/BkOdLqVJznwApTwubYEeKZu', 'Data Encoder', 'encoder')
+INSERT INTO trac_jhs_sarms.users (username, password_hash, full_name, role, must_change_password) VALUES
+    ('registrar', '$2y$10$J3yYuFMGsf89Ae/Li/IMEeYsVEf85EHrIH0DzZUKrYhsl5.TbjFki', 'School Registrar', 'registrar', 1),
+    ('encoder', '$2y$10$uqu6a1xzHGqOM/DktEsUr..9dZT1B/BkOdLqVJznwApTwubYEeKZu', 'Data Encoder', 'encoder', 1)
 ON CONFLICT (username) DO NOTHING;
