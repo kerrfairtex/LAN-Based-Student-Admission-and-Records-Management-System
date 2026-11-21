@@ -10,7 +10,7 @@ file is the source of truth for environment-specific behavior.
   table. Both seed passwords are committed to `database/schema.sql` (bcrypt
   hashes verified). Do not change one without updating the other.
 - **Single source of truth for table count:** README.md "Database schema"
-  section (14 tables). If you add a table, update both this file's
+  section (15 tables). If you add a table, update both this file's
   inventory and the README.
 - **Embedded Postgres port:** 5433. Render Postgres port: 5432. Supabase
   pooler port: 6543. Never mix these up.
@@ -64,7 +64,12 @@ edit `DB_PORT` in `tools/dev-up.php` to e.g. 5434.
   unqualified names resolve there.
 - **Migrations:** `database/migrations/` is upgrade-only.
   `002_phase2.sql` and `003_lis_csv.sql` are MySQL-flavored (do not run
-  on fresh Postgres). `004_audit_retention.sql` onward are Postgres.
+  on fresh Postgres). `004_audit_retention.sql` onward are Postgres and
+  are already folded into `schema.sql`; run them only to upgrade an
+  existing database. Production shares its Supabase database with other
+  projects' schemas (including `public`), so every migration statement
+  must be qualified with `trac_jhs_sarms.` — never rely on
+  `search_path`.
 
 ## Render production
 

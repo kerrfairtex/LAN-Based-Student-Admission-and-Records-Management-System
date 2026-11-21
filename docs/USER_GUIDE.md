@@ -173,7 +173,7 @@ truth) does everything:
 1. Verifies PHP + PostgreSQL tools.
 2. Creates an embedded PostgreSQL cluster in `.pgdata/` (gitignored).
 3. Starts it on **port 5433**.
-4. Imports `database/schema.sql` — 14 tables, 2 seed accounts.
+4. Imports `database/schema.sql` — 15 tables, 2 seed accounts.
 5. Starts PHP's built-in dev server on **port 8000**, bound to all interfaces.
 6. Prints the sign-in URLs.
 
@@ -204,19 +204,17 @@ README. Do not leave them unchanged on any shared installation.
   PostgreSQL major version it reuses the cluster and re-imports the
   schema (all `CREATE` statements use `IF NOT EXISTS`).
 
-### 3.5 Known fresh-install gap
+### 3.5 Migrations and fresh installs
 
-**DEGRADED — inquiry table.** `dev-up.sh` imports `schema.sql` only. The
-`inquiries` table used by the public landing form is created by
-`database/migrations/005_inquiries.sql`, which is **not** part of the
-dev-up import. On a fresh install the public inquiry form cannot save
-rows until that migration is applied manually. (The inquiry form has a
-further, separate defect — see 23.)
+`schema.sql` already includes everything from migrations 004–007 (the
+`inquiries` and `app_sessions` tables, nullable `audit_logs.user_id`,
+and the audit-retention function and setting). A fresh install needs
+no migrations. (The inquiry form has a separate defect — see 23.)
 
 Migrations `002_phase2.sql` and `003_lis_csv.sql` are MySQL-flavored
 upgrades for old installs; **do not run them on a fresh Postgres
-database**. `004_audit_retention.sql` and `006_audit_user_nullable.sql`
-are Postgres-compatible.
+database**. `004_audit_retention.sql` onward are Postgres upgrade paths
+for existing databases only.
 
 ---
 
@@ -966,7 +964,7 @@ How the system protects data — and its limits:
 
 ## 27. Database Overview
 
-PostgreSQL, schema `trac_jhs_sarms`, 14 tables. A user-level view:
+PostgreSQL, schema `trac_jhs_sarms`, 15 tables. A user-level view:
 
 | Table | What it holds |
 |---|---|
@@ -983,7 +981,8 @@ PostgreSQL, schema `trac_jhs_sarms`, 14 tables. A user-level view:
 | `app_settings` | Key-value settings (LIS school ID, audit retention) |
 | `lis_import_logs` | History of LIS CSV imports |
 | `audit_logs` | Who did what, when, from which IP |
-| `inquiries` | Public landing-page inquiries (table created by migration 005) |
+| `inquiries` | Public landing-page inquiries |
+| `app_sessions` | Server-side login sessions (production only) |
 
 Relationships in plain terms: approving an **admission** creates a
 **student** and an **enrollment**; an enrollment may get a **section**;

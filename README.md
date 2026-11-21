@@ -34,7 +34,7 @@ bash tools/dev-up.sh
 1. Verifies PHP + PostgreSQL tools are installed.
 2. Creates an embedded PostgreSQL cluster in `.pgdata/` (gitignored).
 3. Starts it on port 5433.
-4. Imports `database/schema.sql` (14 tables, 2 seed accounts).
+4. Imports `database/schema.sql` (15 tables, 2 seed accounts).
 5. Starts PHP's built-in dev server on port 8000.
 6. Prints the URLs you can sign in at.
 
@@ -135,20 +135,26 @@ layout).
 
 ## Database schema
 
-Canonical schema: `database/schema.sql` (PostgreSQL). It creates **14
+Canonical schema: `database/schema.sql` (PostgreSQL). It creates **15
 tables** under the `trac_jhs_sarms` schema:
 
 `users`, `school_years`, `grade_levels`, `sections`, `students`,
 `admissions`, `enrollments`, `academic_records`, `sf10_grade_entries`,
 `transfer_requests`, `app_settings`, `lis_import_logs`, `audit_logs`,
-`inquiries`.
+`inquiries`, `app_sessions`.
 
-The files under `database/migrations/` are upgrade paths for older
-MySQL installs. **Do NOT run them on a fresh Postgres install.**
+It also creates `trac_jhs_sarms.purge_old_audit_logs()` and seeds
+`app_settings.audit_retention_days = 1825`. Migrations 004–007 are
+already folded in, so a fresh install needs no migrations.
+
+The files under `database/migrations/` are upgrade paths for existing
+databases only. **Do NOT run them on a fresh Postgres install.**
 
 - `002_phase2.sql`, `003_lis_csv.sql` — authored against MySQL
   (`ENGINE=InnoDB`, `TIMESTAMP`, `USE`); they will error on Postgres.
-- `004_audit_retention.sql` onward — written for PostgreSQL.
+- `004_audit_retention.sql` onward — written for PostgreSQL. Every
+  statement is qualified with `trac_jhs_sarms.` because production
+  shares its Supabase database with other projects' schemas.
 
 ---
 

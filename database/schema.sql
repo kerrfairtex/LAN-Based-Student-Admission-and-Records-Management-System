@@ -302,6 +302,18 @@ CREATE OR REPLACE TRIGGER trg_inquiries_updated_at
     BEFORE UPDATE ON trac_jhs_sarms.inquiries
     FOR EACH ROW EXECUTE FUNCTION trac_jhs_sarms.trigger_set_updated_at();
 
+-- PostgreSQL-backed PHP sessions (from migration 007). Used when
+-- APP_ENV=production (see config/app.php / includes/session_handler.php).
+CREATE TABLE IF NOT EXISTS trac_jhs_sarms.app_sessions (
+    sess_id       VARCHAR(128) PRIMARY KEY,
+    sess_data     BYTEA NOT NULL,
+    sess_expire   TIMESTAMPTZ NOT NULL,
+    sess_ip       INET,
+    sess_ua       TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_app_sessions_expire
+    ON trac_jhs_sarms.app_sessions (sess_expire);
+
 -- Audit-log retention (from migration 004). Deletes audit_logs rows older
 -- than app_settings.audit_retention_days (default 1825 = 5 years).
 CREATE OR REPLACE FUNCTION trac_jhs_sarms.purge_old_audit_logs()
