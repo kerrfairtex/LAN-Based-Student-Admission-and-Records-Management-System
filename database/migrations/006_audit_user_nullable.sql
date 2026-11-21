@@ -17,13 +17,13 @@
 SET search_path = trac_jhs_sarms, public;
 
 -- Drop the existing NOT NULL + FK, then re-add with ON DELETE SET NULL.
-ALTER TABLE audit_logs
+ALTER TABLE trac_jhs_sarms.audit_logs
     DROP CONSTRAINT IF EXISTS fk_audit_user;
 
-ALTER TABLE audit_logs
+ALTER TABLE trac_jhs_sarms.audit_logs
     ALTER COLUMN user_id DROP NOT NULL;
 
-ALTER TABLE audit_logs
+ALTER TABLE trac_jhs_sarms.audit_logs
     ADD CONSTRAINT fk_audit_user
     FOREIGN KEY (user_id) REFERENCES trac_jhs_sarms.users(id)
     ON DELETE SET NULL;

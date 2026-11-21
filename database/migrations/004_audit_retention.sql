@@ -7,7 +7,7 @@ SET search_path = trac_jhs_sarms, public;
 
 -- Retention window in days. Default 1825 = 5 years. Adjust via:
 --   UPDATE app_settings SET setting_value = '3650' WHERE setting_key = 'audit_retention_days';
-INSERT INTO app_settings (setting_key, setting_value)
+INSERT INTO trac_jhs_sarms.app_settings (setting_key, setting_value)
 VALUES ('audit_retention_days', '1825')
 ON CONFLICT (setting_key) DO NOTHING;
 
