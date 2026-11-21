@@ -1,147 +1,96 @@
 # TRAC JHS SARMS — Migrations to run against production Supabase
-# Project ref: rsuebvolfaqxtegulnud
-# Schema:       trac_jhs_sarms (explicit; never rely on default search_path)
+# Project ref: ebyepweqwihdvjecrufk
+# Schema:      trac_jhs_sarms (every statement is schema-qualified)
 #
-# CONNECTION DETAILS: get them from Render's dashboard for the
-# trac-jhs-sarms service (Environment tab) — NOT from any local shell
-# env vars. The local env was already shown to be unreliable for
-# this project once tonight. The Render dashboard is the only
-# authoritative source for DB_USER / DB_PASS / DB_HOST.
+# STATUS (2026-11-21): ALL MIGRATIONS APPLIED to production.
+#   005 was applied earlier; 004, 006 and 007 were applied on
+#   2026-11-21 in one transaction. Production has 15 tables, matching
+#   database/schema.sql. Fresh installs need none of this — schema.sql
+#   already includes 004–007. Use this runbook only to re-check
+#   production or to upgrade another existing database.
 #
-# Two connection options. Pick whichever resolves from your shell.
+# !! SHARED DATABASE !!
+#   This Supabase database also holds other projects' schemas
+#   (public, trac_library, smartcampus, rosariosis, admission, ...).
+#   `public` has its own audit_logs table. Never run DROP/TRUNCATE or
+#   unqualified DDL here, and touch only trac_jhs_sarms.*.
 #
-# OPTION A — Direct host (port 5432) — same target Render's runtime
-#           uses per render.yaml: DB_PORT=5432, DB_SSLMODE=require.
-#           DB_USER is typically the dedicated postgres role, no
-#           project-ref suffix.
+# CONNECTION: same target Render uses (Render dashboard → trac-jhs-sarms
+# → Environment is the authoritative source for the password).
+#   host     aws-0-ap-northeast-1.pooler.supabase.com
+#   port     5432  (session pooler — use this for migrations;
+#                   6543 is the transaction pooler)
+#   dbname   postgres
+#   user     postgres.ebyepweqwihdvjecrufk
+#   sslmode  require
 #
-# OPTION B — Supabase pooler (port 6543) — transaction-mode. Required
-#           username format on the pooler is postgres.<project-ref>
-#           (this is normal Supabase behavior, not a discrepancy to
-#           explain away). Fine for one-shot migrations; if you see
-#           "SET search_path not allowed in this role" or transient
-#           connection errors, fall back to Option A.
-#
-# In each psql invocation below:
-#   - PGOPTIONS sets search_path BEFORE the connection so every
-#     statement resolves trac_jhs_sarms.* without per-file SET.
-#   - -v ON_ERROR_STOP=1 makes psql exit non-zero on the FIRST error
-#     instead of continuing — critical for migrations, you do not
-#     want half-applied state.
-#   - Fill in <DB_USER> and <DB_PASSWORD> from Render's dashboard.
-#     Do NOT pull these from any local shell env var — that source
-#     has been confirmed unreliable for this project.
+# Set the password in the environment instead of the command line, so it
+# stays out of shell history:
+#   read -rs PGPASSWORD && export PGPASSWORD
+CONN="host=aws-0-ap-northeast-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.ebyepweqwihdvjecrufk sslmode=require"
+
+# Flags used below:
+#   -v ON_ERROR_STOP=1   stop on the first error
+#   --single-transaction all-or-nothing; no half-applied state
+#   lock_timeout=10s     give up rather than block other projects
 
 # =====================================================================
-# STEP 1 — Create the public inquiry submissions table
+# 1. CHECK (read-only) — run this first, always
 # =====================================================================
-# File: database/migrations/005_inquiries.sql
-#
-# Creates: inquiries(id, full_name, grade, contact_number, status,
-#                    created_at, updated_at) + 2 indexes + grade CHECK
-#                    constraint + updated_at trigger.
-# Idempotent (uses CREATE TABLE/INDEX IF NOT EXISTS) — safe to re-run.
-#
-# OPTION A (direct):
-PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-  psql "host=db.rsuebvolfaqxtegulnud.supabase.co port=5432 dbname=postgres user=<DB_USER> sslmode=require" \
-    -v ON_ERROR_STOP=1 \
-    -f database/migrations/005_inquiries.sql
-
-# OPTION B (pooler):
-# PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-#   psql "host=aws-0-<region>.pooler.supabase.com port=6543 dbname=postgres user=<DB_USER> sslmode=require" \
-#     -v ON_ERROR_STOP=1 \
-#     -f database/migrations/005_inquiries.sql
-
-# VERIFY (must show 8 columns + 2 indexes + 2 check constraints + trigger):
-PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-  psql "host=db.rsuebvolfaqxtegulnud.supabase.co port=5432 dbname=postgres user=<DB_USER> sslmode=require" \
-    -c "\d trac_jhs_sarms.inquiries"
-
-# VERIFY (must return 0 rows — table is new and empty):
-PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-  psql "host=db.rsuebvolfaqxtegulnud.supabase.co port=5432 dbname=postgres user=<DB_USER> sslmode=require" \
-    -c "SELECT count(*) FROM trac_jhs_sarms.inquiries;"
-
+psql "$CONN" -X -At -F ' | ' <<'SQL'
+select 'tables', count(*) from information_schema.tables
+  where table_schema='trac_jhs_sarms' and table_type='BASE TABLE';      -- expect 15
+select 'inquiries (005)', to_regclass('trac_jhs_sarms.inquiries') is not null;
+select 'purge fn (004)', count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='trac_jhs_sarms' and p.proname='purge_old_audit_logs'; -- expect 1
+select 'retention (004)', setting_value from trac_jhs_sarms.app_settings
+  where setting_key='audit_retention_days';                             -- expect 1825
+select 'audit user_id nullable (006)', is_nullable from information_schema.columns
+  where table_schema='trac_jhs_sarms' and table_name='audit_logs'
+    and column_name='user_id';                                          -- expect YES
+select 'audit FK on delete (006)', delete_rule from information_schema.referential_constraints
+  where constraint_schema='trac_jhs_sarms' and constraint_name='fk_audit_user'; -- expect SET NULL
+select 'app_sessions (007)', to_regclass('trac_jhs_sarms.app_sessions') is not null;
+SQL
 
 # =====================================================================
-# STEP 2 — Audit-log retention policy + purge function
+# 2. APPLY — only for whichever checks above failed
 # =====================================================================
-# File: database/migrations/004_audit_retention.sql
+# All files are Postgres, idempotent and schema-qualified:
+#   004_audit_retention.sql     purge_old_audit_logs() + audit_retention_days=1825
+#                               (ON CONFLICT DO NOTHING keeps a custom value)
+#   005_inquiries.sql           inquiries table, indexes, trigger.
+#                               NOT idempotent: its CREATE TRIGGER fails if the
+#                               table already exists — skip it when the check
+#                               shows inquiries already exists.
+#   006_audit_user_nullable.sql audit_logs.user_id NULL-able, FK ON DELETE SET NULL
+#                               (briefly locks trac_jhs_sarms.audit_logs)
+#   007_app_sessions.sql        app_sessions table for DB-backed PHP sessions
 #
-# Inserts one row into app_settings (audit_retention_days=1825) and
-# creates the trac_jhs_sarms.purge_old_audit_logs() function.
-# The corrected version (commit 60d60b7) replaces MySQL's
-# `USE trac_jhs_sarms;` with Postgres-native `SET search_path = ...`.
-# Idempotent (INSERT uses ON CONFLICT DO NOTHING; CREATE OR REPLACE
-# on the function).
+# Do NOT run 002/003 — they are MySQL-flavored.
 #
-# Note: if the app_settings row already exists with a different
-# retention value (e.g., you changed it earlier), the INSERT will
-# NOT overwrite — that's correct behavior. Check the verify query.
+# Example (production as of 2026-11-21 needed 004, 006, 007):
+PGOPTIONS='-c lock_timeout=10s' \
+  psql "$CONN" -X -v ON_ERROR_STOP=1 --single-transaction \
+    -f database/migrations/004_audit_retention.sql \
+    -f database/migrations/006_audit_user_nullable.sql \
+    -f database/migrations/007_app_sessions.sql
+
+# Then re-run the CHECK in step 1.
 #
-# OPTION A (direct):
-PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-  psql "host=db.rsuebvolfaqxtegulnud.supabase.co port=5432 dbname=postgres user=<DB_USER> sslmode=require" \
-    -v ON_ERROR_STOP=1 \
-    -f database/migrations/004_audit_retention.sql
-
-# VERIFY (must show audit_retention_days=1825):
-PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-  psql "host=db.rsuebvolfaqxtegulnud.supabase.co port=5432 dbname=postgres user=<DB_USER> sslmode=require" \
-    -c "SELECT setting_key, setting_value FROM trac_jhs_sarms.app_settings WHERE setting_key='audit_retention_days';"
-
-# VERIFY (must run with no error; notice "deleted 0 rows" is fine):
-PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-  psql "host=db.rsuebvolfaqxtegulnud.supabase.co port=5432 dbname=postgres user=<DB_USER> sslmode=require" \
-    -c "SELECT trac_jhs_sarms.purge_old_audit_logs();"
-
-
-# =====================================================================
-# STEP 3 — Make audit_logs.user_id nullable (required for #5 fix)
-# =====================================================================
-# File: database/migrations/006_audit_user_nullable.sql
+# Do NOT "verify" by calling purge_old_audit_logs() — it DELETES audit rows
+# older than the retention window. Run it only as intended maintenance
+# (see docs/AUDIT-RETENTION.md).
 #
-# Drops NOT NULL on audit_logs.user_id, changes FK to
-# ON DELETE SET NULL. This is a NEW migration that did not exist
-# before this remediation — it was created because fixing
-# login_failed logging required writing rows with user_id=NULL
-# (failed logins happen BEFORE authentication, by definition).
-#
-# Idempotent: uses DROP CONSTRAINT IF EXISTS. Safe to re-run.
-#
-# CRITICAL: do NOT skip this. If you apply the code fix that
-# writes login_failed rows without first applying this migration,
-# production will start INSERT-failing on every failed login —
-# turning a silent-success bug into a visible error.
-#
-# OPTION A (direct):
-PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-  psql "host=db.rsuebvolfaqxtegulnud.supabase.co port=5432 dbname=postgres user=<DB_USER> sslmode=require" \
-    -v ON_ERROR_STOP=1 \
-    -f database/migrations/006_audit_user_nullable.sql
-
-# VERIFY (user_id column should now show Nullable=empty in the
-# \d output below):
-PGOPTIONS='-c search_path=trac_jhs_sarms,public' \
-  psql "host=db.rsuebvolfaqxtegulnud.supabase.co port=5432 dbname=postgres user=<DB_USER> sslmode=require" \
-    -c "\d trac_jhs_sarms.audit_logs"
-
-# VERIFY (FK should now be ON DELETE SET NULL — confirm in the
-# Foreign-key constraints section of the same \d output):
-
+# Tip: rehearse on a throwaway local cluster first (initdb + pg_ctl on a
+# spare port, load the previous schema.sql from git, apply the
+# migrations), so you see failures before they happen on the shared DB.
 
 # =====================================================================
-# After all three migrations succeed, confirm:
+# 3. DEPLOY
 # =====================================================================
-# - The 10 code commits are still unpushed on local main
-#   (git log --oneline origin/main..main should show 10 hashes).
-# - Tell Hermes to push so Render can deploy.
-#
-# Do NOT trigger the Render deploy yourself yet — Render autoDeploy
-# is false in render.yaml per AGENTS.md, so a code push will NOT
-# auto-deploy. The deploy is triggered separately (dashboard button,
-# Render API POST, or GitHub Action). Hermes has the Render service
-# ID (srv-da47lsbl550s73b5phug) and can do that step once you
-# confirm you're ready.
+# Database changes take effect immediately; no deploy needed for them.
+# Code changes: render.yaml sets autoDeploy: false, so pushing to main
+# does not deploy. Trigger it from the Render dashboard (service
+# srv-da47lsbl550s73b5phug), the Render API, or GitHub Actions. Then confirm:
+curl -sS https://trac-jhs-sarms.onrender.com/healthcheck.php   # expect "db":"reachable"
