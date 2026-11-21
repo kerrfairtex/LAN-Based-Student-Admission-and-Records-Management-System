@@ -38,8 +38,114 @@ function require_login(): void
 
     $_SESSION['last_activity'] = time();
 
-    $stmt = db()->prepare('UPDATE users SET last_active = NOW() WHERE id = :id');
+    // Touch last_active AND re-read the account in the same round-trip, so
+    // that a registrar disabling a user, changing their role, or forcing a
+    // password reset takes effect on that user's very next request instead
+    // of when their session happens to expire. RETURNING * (not a column
+    // list) keeps this working on databases that predate migration 008.
+    $stmt = db()->prepare('UPDATE users SET last_active = NOW() WHERE id = :id RETURNING *');
     $stmt->execute(['id' => (int) $_SESSION['user']['id']]);
+    $row = $stmt->fetch();
+
+    if (!$row || !(int) $row['is_active']) {
+        unset($_SESSION['user'], $_SESSION['last_activity']);
+        session_regenerate_id(true);
+        flash('warning', 'Your account is no longer active. Please contact the School Registrar.');
+        redirect('/auth/login.php');
+    }
+
+    $_SESSION['user']['role'] = $row['role'];
+    $_SESSION['user']['full_name'] = $row['full_name'];
+    if ((int) ($row['must_change_password'] ?? 0) === 1) {
+        $_SESSION['must_change_password'] = true;
+    }
+
+    enforce_password_change();
+}
+
+/**
+ * While a forced password change is pending (seed password, or a registrar
+ * reset), every authenticated page except the change-password screen
+ * redirects there. Logout stays reachable because it never calls
+ * require_login().
+ */
+function enforce_password_change(): void
+{
+    if (empty($_SESSION['must_change_password'])) {
+        return;
+    }
+    $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    if (str_ends_with($script, '/modules/account/password.php')) {
+        return;
+    }
+    flash('warning', 'You must set a new password before continuing.');
+    redirect('/modules/account/password.php');
+}
+
+/** Passwords that are public in this repository (README / schema.sql). */
+const KNOWN_PUBLIC_PASSWORDS = ['Registrar@2026', 'Encoder@2026'];
+
+/**
+ * Password policy. Returns a list of human-readable problems (empty = OK).
+ *
+ * Follows NIST SP 800-63B in spirit: length matters most, plus a block list
+ * of known-compromised values. A letter+digit mix is required because staff
+ * accounts guard learner PII under RA 10173.
+ */
+function password_policy_errors(string $password, string $username = ''): array
+{
+    $errors = [];
+    $len = function_exists('mb_strlen') ? mb_strlen($password) : strlen($password);
+
+    if ($len < 10) {
+        $errors[] = 'must be at least 10 characters';
+    }
+    if ($len > 128) {
+        $errors[] = 'must be at most 128 characters';
+    }
+    if (!preg_match('/\pL/u', $password) || !preg_match('/\d/', $password)) {
+        $errors[] = 'must contain at least one letter and one number';
+    }
+    if ($username !== '' && stripos($password, $username) !== false) {
+        $errors[] = 'must not contain the username';
+    }
+    $common = ['password123', 'password1234', 'qwerty12345', '1234567890', 'admin12345', 'trac123456', 'tracjhs2026'];
+    if (in_array($password, KNOWN_PUBLIC_PASSWORDS, true) || in_array(strtolower($password), $common, true)) {
+        $errors[] = 'is a publicly known password';
+    }
+
+    return $errors;
+}
+
+/**
+ * Store a new password hash. $mustChange=true forces the user to pick a new
+ * password on next sign-in (used for registrar resets).
+ *
+ * Tolerates databases that predate migration 008 (no must_change_password
+ * column): falls back to updating only the hash.
+ */
+function set_user_password(int $userId, string $plain, bool $mustChange): void
+{
+    $hash = password_hash($plain, PASSWORD_DEFAULT);
+    try {
+        db()->prepare(
+            'UPDATE users SET password_hash = :hash, must_change_password = :mc WHERE id = :id'
+        )->execute(['hash' => $hash, 'mc' => $mustChange ? 1 : 0, 'id' => $userId]);
+    } catch (PDOException $e) {
+        if ($e->getCode() !== '42703') { // undefined_column
+            throw $e;
+        }
+        db()->prepare('UPDATE users SET password_hash = :hash WHERE id = :id')
+            ->execute(['hash' => $hash, 'id' => $userId]);
+    }
+}
+
+/** Number of active registrar accounts (guards against locking everyone out). */
+function active_registrar_count(): int
+{
+    return (int) db()->query(
+        "SELECT COUNT(*) FROM users WHERE role = 'registrar' AND is_active = 1"
+    )->fetchColumn();
 }
 
 function require_registrar(): void
@@ -71,10 +177,9 @@ function attempt_login(string $username, string $password): bool
         return false;
     }
 
-    $stmt = db()->prepare(
-        'SELECT id, username, password_hash, full_name, role, is_active
-         FROM users WHERE username = :username LIMIT 1'
-    );
+    // SELECT * so this keeps working on databases that predate migration 008
+    // (must_change_password column).
+    $stmt = db()->prepare('SELECT * FROM users WHERE username = :username LIMIT 1');
     $stmt->execute(['username' => $username]);
     $user = $stmt->fetch();
 
@@ -111,9 +216,23 @@ function attempt_login(string $username, string $password): bool
     // invalid, so any attacker-set session cookie is discarded.
     session_regenerate_id(true);
 
-    unset($user['password_hash'], $user['is_active']);
-    $_SESSION['user'] = $user;
+    // Force a password change when the account was reset by a registrar or
+    // is still using one of the seed passwords published in this repo.
+    $mustChange = (int) ($user['must_change_password'] ?? 0) === 1
+        || in_array($password, KNOWN_PUBLIC_PASSWORDS, true);
+
+    $_SESSION['user'] = [
+        'id'        => (int) $user['id'],
+        'username'  => $user['username'],
+        'full_name' => $user['full_name'],
+        'role'      => $user['role'],
+    ];
     $_SESSION['last_activity'] = time();
+    if ($mustChange) {
+        $_SESSION['must_change_password'] = true;
+    } else {
+        unset($_SESSION['must_change_password']);
+    }
 
     audit_log('login', 'users', (int) $user['id'], 'User signed in');
 
@@ -126,7 +245,7 @@ function logout_user(): void
         audit_log('logout', 'users', (int) $_SESSION['user']['id'], 'User signed out');
     }
 
-    unset($_SESSION['user'], $_SESSION['last_activity'], $_SESSION['_csrf']);
+    unset($_SESSION['user'], $_SESSION['last_activity'], $_SESSION['_csrf'], $_SESSION['must_change_password']);
     session_regenerate_id(true);
 }
 

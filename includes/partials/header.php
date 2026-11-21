@@ -50,7 +50,11 @@ header_remove('X-Powered-By');
 // caching is a no-op locally (acceptable). Here we set a moderate cache for
 // the public page itself — short enough that content updates show up quickly,
 // long enough to absorb traffic spikes.
-header('Cache-Control: public, max-age=3600, must-revalidate');
+// Signed-in visitors get a per-user page (Dashboard link + CSRF-bearing
+// sign-out form in the footer) — never let a shared cache store that.
+header(is_logged_in()
+    ? 'Cache-Control: private, no-store'
+    : 'Cache-Control: public, max-age=3600, must-revalidate');
 
 // Authentication routes must NEVER be cached, regardless of platform.
 // The .htaccess rule covers Apache (mod_headers); this PHP fallback

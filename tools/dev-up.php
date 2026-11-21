@@ -554,6 +554,14 @@ out('');
 out('  Press Ctrl+C to stop both the dev server and the embedded Postgres.');
 out('');
 
-$devCmd = sprintf('exec %s -S 0.0.0.0:%d', escapeshellarg(PHP_BINARY), DEV_HTTP_PORT);
+// tools/router.php enforces the .htaccess deny rules (backups/, uploads/,
+// .env, config/ ...) that the built-in server would otherwise ignore.
+$devCmd = sprintf(
+    'exec %s -S 0.0.0.0:%d -t %s %s',
+    escapeshellarg(PHP_BINARY),
+    DEV_HTTP_PORT,
+    escapeshellarg(PROJECT_ROOT),
+    escapeshellarg(PROJECT_ROOT . '/tools/router.php')
+);
 passthru($devCmd, $devExit);
 exit($devExit);

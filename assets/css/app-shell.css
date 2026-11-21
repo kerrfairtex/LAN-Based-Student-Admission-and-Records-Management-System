@@ -577,3 +577,34 @@
         transition: none !important;
     }
 }
+
+/* ==========================================================================
+   Printable school forms (SF9, SF10, reports)
+   On screen: a white "paper" sheet inside the dark app shell.
+   In print: only the sheet — no sidebar, top bar, flash or buttons.
+   ========================================================================== */
+.print-report {
+    background: #fff;
+    color: #000;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    line-height: 1.35;
+    padding: clamp(1rem, 3vw, 2rem);
+    border-radius: 6px;
+    max-width: 900px;
+    margin: 0 auto;
+    overflow-x: auto;
+}
+.print-report table { color: #000; background: #fff; --bs-table-bg: #fff; --bs-table-color: #000; }
+.print-report th, .print-report td { padding: 0.3rem 0.45rem; vertical-align: middle; }
+
+@media print {
+    @page { size: A4; margin: 12mm; }
+    html, body, .app-shell, .main-content { background: #fff !important; color: #000 !important; }
+    .sidebar, .topbar, .mobile-overlay, .alert, .no-print { display: none !important; }
+    .app-shell, .main-content { display: block !important; }
+    .content-area { padding: 0 !important; }
+    .print-report { max-width: none; padding: 0; border-radius: 0; box-shadow: none; overflow: visible; }
+    .print-report table { page-break-inside: avoid; }
+    .page-break { page-break-before: always; }
+}

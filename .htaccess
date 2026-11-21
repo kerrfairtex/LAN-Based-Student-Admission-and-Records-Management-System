@@ -1,10 +1,23 @@
 Options -Indexes
 
+# Branded error pages (no stack traces, no server banner)
+ErrorDocument 403 /error.php?code=403
+ErrorDocument 404 /error.php?code=404
+ErrorDocument 500 /error.php?code=500
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Block direct access to sensitive directories
-    RewriteRule ^(?:config|includes|database|backups|docs|tools)/ - [F,L]
+    # Block direct access to sensitive directories. uploads/ and storage/
+    # hold LIS CSVs (learner PII) and backups; .sessions holds PHP session
+    # files. Keep this list in sync with tools/router.php (dev/LAN server).
+    RewriteRule ^(?:config|includes|database|backups|docs|tools|uploads|storage|templates|tests|api|node_modules|\.sessions|\.pgdata)(?:/|$) - [F,L]
+
+    # Block dotfiles (.env, .git, .user.ini, ...) except .well-known
+    RewriteRule (?:^|/)\.(?!well-known/) - [F,L]
+
+    # Block repo/build metadata at the web root
+    RewriteRule ^(?!robots\.txt$)(?:[^/]+\.(?:md|sql|yaml|yml|lock|sh|cmd|txt)|composer\.json|package(?:-lock)?\.json|vercel\.json|Dockerfile(?:\.[a-z]+)?)$ - [F,L]
 
     # Clean public URL for the User Guidelines page:
     #   /user-guidelines -> user-guidelines.php
