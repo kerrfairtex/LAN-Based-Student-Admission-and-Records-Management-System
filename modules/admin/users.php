@@ -12,7 +12,7 @@ $validRoles = [ROLE_REGISTRAR, ROLE_ENCODER];
 
 /** Fetch one user row by id (null if missing). */
 $findUser = static function (int $id): ?array {
-    $stmt = db()->prepare('SELECT id, username, full_name, role, is_active FROM users WHERE id = :id');
+    $stmt = db()->prepare('SELECT id, username, full_name, role, is_active FROM trac_jhs_sarms.users WHERE id = :id');
     $stmt->execute(['id' => $id]);
     $row = $stmt->fetch();
     return $row ?: null;
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($messages === []) {
             try {
                 db()->prepare(
-                    'INSERT INTO users (username, password_hash, full_name, role) VALUES (:username, :hash, :full_name, :role)'
+                    'INSERT INTO trac_jhs_sarms.users (username, password_hash, full_name, role) VALUES (:username, :hash, :full_name, :role)'
                 )->execute([
                     'username' => $username,
                     'hash' => password_hash($password, PASSWORD_DEFAULT),
@@ -58,8 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 set_user_password($newId, $password, true);
                 audit_log('create', 'users', $newId, "Created user {$username} ({$role})");
                 flash('success', "User {$username} created. They will be asked to set a new password on first sign-in.");
-            } catch (PDOException $e) {
-                flash('danger', $e->getCode() === '23505' ? 'Username already exists.' : 'Could not create user.');
+            } catch (Throwable $e) {
+                error_log('[users] create failed: ' . $e->getMessage());
+                flash('danger', ($e instanceof PDOException && $e->getCode() === '23505') ? 'Username already exists.' : 'Could not create user.');
             }
         } else {
             flash('danger', 'Cannot create user: ' . implode('; ', $messages) . '.');
@@ -85,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             && (int) $target['is_active'] === 1 && active_registrar_count() <= 1) {
             flash('danger', 'Cannot demote the last active registrar.');
         } else {
-            db()->prepare('UPDATE users SET full_name = :fn, role = :role WHERE id = :id')
+            db()->prepare('UPDATE trac_jhs_sarms.users SET full_name = :fn, role = :role WHERE id = :id')
                 ->execute(['fn' => $fullName, 'role' => $role, 'id' => $uid]);
             $changes = [];
             if ($fullName !== $target['full_name']) {
@@ -113,10 +114,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($policy !== []) {
             flash('danger', 'Temporary password ' . implode('; ', $policy) . '.');
         } else {
-            set_user_password($uid, $password, true);
-            $cleared = reset_login_throttle($target['username']);
-            audit_log('update', 'users', $uid, "Reset password for {$target['username']} (must change on next sign-in; cleared {$cleared} lockout row(s))");
-            flash('success', "Password for {$target['username']} reset. Give them the temporary password; they must change it on next sign-in.");
+            try {
+                set_user_password($uid, $password, true);
+                $cleared = reset_login_throttle($target['username']);
+                audit_log('update', 'users', $uid, "Reset password for {$target['username']} (must change on next sign-in; cleared {$cleared} lockout row(s))");
+                flash('success', "Password for {$target['username']} reset. Give them the temporary password; they must change it on next sign-in.");
+            } catch (Throwable $e) {
+                error_log('[users] password reset failed for #' . $uid . ': ' . $e->getMessage());
+                flash('danger', 'Password reset failed; nothing was changed.');
+            }
         }
         redirect('/modules/admin/users.php');
     }
@@ -129,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($newState === 0 && $target['role'] === ROLE_REGISTRAR && active_registrar_count() <= 1) {
                 flash('danger', 'Cannot disable the last active registrar.');
             } else {
-                db()->prepare('UPDATE users SET is_active = :s WHERE id = :id')
+                db()->prepare('UPDATE trac_jhs_sarms.users SET is_active = :s WHERE id = :id')
                     ->execute(['s' => $newState, 'id' => $uid]);
                 audit_log('update', 'users', $uid, "User {$target['username']} set to " . ($newState ? 'active' : 'disabled'));
                 flash('success', "User {$target['username']} " . ($newState ? 'enabled' : 'disabled (signed out on their next request)') . '.');
@@ -153,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $users = db()->query(
-    'SELECT id, username, full_name, role, is_active, last_active, created_at FROM users ORDER BY role, full_name'
+    'SELECT id, username, full_name, role, is_active, last_active, created_at FROM trac_jhs_sarms.users ORDER BY role, full_name'
 )->fetchAll();
 
 $editId = (int) ($_GET['edit'] ?? 0);

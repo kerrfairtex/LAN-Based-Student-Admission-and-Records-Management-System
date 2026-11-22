@@ -43,7 +43,7 @@ function require_login(): void
     // password reset takes effect on that user's very next request instead
     // of when their session happens to expire. RETURNING * (not a column
     // list) keeps this working on databases that predate migration 008.
-    $stmt = db()->prepare('UPDATE users SET last_active = NOW() WHERE id = :id RETURNING *');
+    $stmt = db()->prepare('UPDATE trac_jhs_sarms.users SET last_active = NOW() WHERE id = :id RETURNING *');
     $stmt->execute(['id' => (int) $_SESSION['user']['id']]);
     $row = $stmt->fetch();
 
@@ -121,22 +121,25 @@ function password_policy_errors(string $password, string $username = ''): array
  * Store a new password hash. $mustChange=true forces the user to pick a new
  * password on next sign-in (used for registrar resets).
  *
- * Tolerates databases that predate migration 008 (no must_change_password
- * column): falls back to updating only the hash.
+ * Requires migration 008. There is deliberately NO fallback for a missing
+ * column: on the shared production database an "undefined column" error
+ * can mean the statement resolved to ANOTHER project's `users` table, and
+ * retrying without the column would overwrite that project's password.
+ * The table is schema-qualified for the same reason, and the update must
+ * hit exactly one row or the change is reported as failed.
  */
 function set_user_password(int $userId, string $plain, bool $mustChange): void
 {
-    $hash = password_hash($plain, PASSWORD_DEFAULT);
-    try {
-        db()->prepare(
-            'UPDATE users SET password_hash = :hash, must_change_password = :mc WHERE id = :id'
-        )->execute(['hash' => $hash, 'mc' => $mustChange ? 1 : 0, 'id' => $userId]);
-    } catch (PDOException $e) {
-        if ($e->getCode() !== '42703') { // undefined_column
-            throw $e;
-        }
-        db()->prepare('UPDATE users SET password_hash = :hash WHERE id = :id')
-            ->execute(['hash' => $hash, 'id' => $userId]);
+    $stmt = db()->prepare(
+        'UPDATE trac_jhs_sarms.users SET password_hash = :hash, must_change_password = :mc WHERE id = :id'
+    );
+    $stmt->execute([
+        'hash' => password_hash($plain, PASSWORD_DEFAULT),
+        'mc'   => $mustChange ? 1 : 0,
+        'id'   => $userId,
+    ]);
+    if ($stmt->rowCount() !== 1) {
+        throw new RuntimeException("Password update affected {$stmt->rowCount()} rows for user #{$userId}");
     }
 }
 
@@ -144,7 +147,7 @@ function set_user_password(int $userId, string $plain, bool $mustChange): void
 function active_registrar_count(): int
 {
     return (int) db()->query(
-        "SELECT COUNT(*) FROM users WHERE role = 'registrar' AND is_active = 1"
+        "SELECT COUNT(*) FROM trac_jhs_sarms.users WHERE role = 'registrar' AND is_active = 1"
     )->fetchColumn();
 }
 
@@ -179,7 +182,7 @@ function attempt_login(string $username, string $password): bool
 
     // SELECT * so this keeps working on databases that predate migration 008
     // (must_change_password column).
-    $stmt = db()->prepare('SELECT * FROM users WHERE username = :username LIMIT 1');
+    $stmt = db()->prepare('SELECT * FROM trac_jhs_sarms.users WHERE username = :username LIMIT 1');
     $stmt->execute(['username' => $username]);
     $user = $stmt->fetch();
 
@@ -207,7 +210,7 @@ function attempt_login(string $username, string $password): bool
         return false;
     }
 
-    $touch = db()->prepare('UPDATE users SET last_active = NOW() WHERE id = :id');
+    $touch = db()->prepare('UPDATE trac_jhs_sarms.users SET last_active = NOW() WHERE id = :id');
     $touch->execute(['id' => $user['id']]);
 
     // Regenerate session ID to prevent session fixation attacks.
@@ -272,7 +275,7 @@ function login_rate_check(string $username): string
     // LIKE both patterns. Username is already constrained to VARCHAR(50)
     // and bound via prepared statements, so the LIKE wildcards can't inject.
     $stmt = db()->prepare(
-        "SELECT COUNT(*) AS n FROM audit_logs
+        "SELECT COUNT(*) AS n FROM trac_jhs_sarms.audit_logs
          WHERE action = 'login_failed'
            AND created_at > NOW() - INTERVAL '15 minutes'
            AND (details LIKE :u1 OR details LIKE :u2)"
@@ -289,7 +292,7 @@ function login_rate_check(string $username): string
     // Per-IP: 30 fails / 5 min (covers enumeration sweeps across many usernames)
     if ($ip !== '') {
         $stmt = db()->prepare(
-            "SELECT COUNT(*) AS n FROM audit_logs
+            "SELECT COUNT(*) AS n FROM trac_jhs_sarms.audit_logs
              WHERE action = 'login_failed'
                AND ip_address = :ip
                AND created_at > NOW() - INTERVAL '5 minutes'"
@@ -312,7 +315,7 @@ function login_rate_check(string $username): string
 function reset_login_throttle(string $username): int
 {
     $stmt = db()->prepare(
-        "DELETE FROM audit_logs
+        "DELETE FROM trac_jhs_sarms.audit_logs
          WHERE action = 'login_failed'
            AND (details LIKE :u1 OR details LIKE :u2)"
     );

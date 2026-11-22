@@ -25,6 +25,15 @@ function e(?string $value): string
 
 function redirect(string $path): never
 {
+    // Persist the session BEFORE the browser sees the redirect. Otherwise
+    // PHP writes it during shutdown, after the 302 has been flushed; with
+    // DB-backed sessions (production → Supabase, tens of ms away) the
+    // browser can request the next page before the session row exists and
+    // gets treated as logged out — worst right after session_regenerate_id()
+    // (login, password change), where the new session id has no row yet.
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
     header('Location: ' . url($path));
     exit;
 }
@@ -95,7 +104,7 @@ function audit_log(string $action, string $entityType, ?int $entityId = null, ?s
 
     try {
         $stmt = db()->prepare(
-            'INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details, ip_address)
+            'INSERT INTO trac_jhs_sarms.audit_logs (user_id, action, entity_type, entity_id, details, ip_address)
              VALUES (:user_id, :action, :entity_type, :entity_id, :details, :ip_address)'
         );
 
@@ -288,7 +297,7 @@ function fetch_notifications(): array
             "SELECT a.id, a.application_no, a.status, a.first_name, a.last_name,
                     a.created_at, u.full_name AS reviewer
              FROM admissions a
-             LEFT JOIN users u ON u.id = a.reviewed_by
+             LEFT JOIN trac_jhs_sarms.users u ON u.id = a.reviewed_by
              WHERE a.status = 'approved'
                AND a.reviewed_at >= NOW() - INTERVAL '7 days'
              ORDER BY a.reviewed_at DESC

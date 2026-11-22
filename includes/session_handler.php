@@ -73,7 +73,7 @@ class PgSessionHandler implements SessionHandlerInterface
     {
         try {
             $stmt = $this->db->prepare(
-                'SELECT sess_data FROM app_sessions
+                'SELECT sess_data FROM trac_jhs_sarms.app_sessions
                  WHERE sess_id = :id AND sess_expire > NOW()'
             );
             $stmt->execute(['id' => $id]);
@@ -98,7 +98,7 @@ class PgSessionHandler implements SessionHandlerInterface
             // Upsert: INSERT ... ON CONFLICT (sess_id) DO UPDATE
             // The sess_id is the PRIMARY KEY, so conflicts are deterministic.
             $stmt = $this->db->prepare(
-                'INSERT INTO app_sessions (sess_id, sess_data, sess_expire, sess_ip, sess_ua)
+                'INSERT INTO trac_jhs_sarms.app_sessions (sess_id, sess_data, sess_expire, sess_ip, sess_ua)
                  VALUES (:id, :data, :expire, :ip, :ua)
                  ON CONFLICT (sess_id) DO UPDATE
                  SET sess_data = EXCLUDED.sess_data,
@@ -123,7 +123,7 @@ class PgSessionHandler implements SessionHandlerInterface
     public function destroy(string $id): bool
     {
         try {
-            $stmt = $this->db->prepare('DELETE FROM app_sessions WHERE sess_id = :id');
+            $stmt = $this->db->prepare('DELETE FROM trac_jhs_sarms.app_sessions WHERE sess_id = :id');
             $stmt->execute(['id' => $id]);
             return true;
         } catch (PDOException $e) {
@@ -136,7 +136,7 @@ class PgSessionHandler implements SessionHandlerInterface
     {
         try {
             $stmt = $this->db->prepare(
-                'DELETE FROM app_sessions WHERE sess_expire <= NOW()'
+                'DELETE FROM trac_jhs_sarms.app_sessions WHERE sess_expire <= NOW()'
             );
             $stmt->execute();
             return $stmt->rowCount();

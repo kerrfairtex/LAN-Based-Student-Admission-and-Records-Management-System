@@ -32,7 +32,12 @@ function db(): PDO
     $dsn = sprintf(
         'pgsql:host=%s;port=%s;dbname=%s;sslmode=%s',
         DB_HOST,
-        getenv('DB_PORT') ?: '6543',
+        // 5432 = Supabase *session* pooler / direct Postgres. Do NOT use the
+        // transaction pooler (6543): it multiplexes statements across
+        // backend connections, so the per-connection SET search_path below
+        // is not guaranteed to apply and unqualified table names can
+        // resolve to other projects' tables in the shared database.
+        getenv('DB_PORT') ?: '5432',
         DB_NAME,
         $sslmode
     );
