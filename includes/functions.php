@@ -408,3 +408,130 @@ function dashboard_stats(): array
         'active_school_year' => $activeYear['label'] ?? 'Not set',
     ];
 }
+
+// ---------------------------------------------------------------------------
+// CSV export
+// ---------------------------------------------------------------------------
+
+/**
+ * Neutralise spreadsheet formula injection (CWE-1236): a cell that starts
+ * with = + - @ TAB or CR is run as a formula by Excel/Sheets. Learner names
+ * and addresses are typed by staff, so prefix such cells with a quote.
+ */
+function csv_safe_cell(mixed $value): string
+{
+    $value = (string) ($value ?? '');
+    if ($value !== '' && preg_match('/^[=+\-@\t\r]/', $value)) {
+        return "'" . $value;
+    }
+    return $value;
+}
+
+/**
+ * Stream rows as a CSV download and stop. Adds a UTF-8 BOM so Excel shows
+ * ñ and accented names correctly, and records the export in the audit log
+ * (exports carry learner PII under RA 10173).
+ *
+ * @param list<string>       $headers
+ * @param iterable<array>    $rows    each row is a list of cell values
+ */
+function send_csv(string $filename, array $headers, iterable $rows, string $auditDetails): never
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+    audit_log('export', 'reports', null, $auditDetails);
+
+    $filename = preg_replace('/[^A-Za-z0-9._-]+/', '_', $filename) ?: 'export.csv';
+    header('Content-Type: text/csv; charset=UTF-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Cache-Control: private, no-store');
+    header('X-Content-Type-Options: nosniff');
+
+    $out = fopen('php://output', 'wb');
+    fwrite($out, "\xEF\xBB\xBF");
+    fputcsv($out, $headers, ',', '"', '');
+    foreach ($rows as $row) {
+        fputcsv($out, array_map('csv_safe_cell', array_values($row)), ',', '"', '');
+    }
+    fclose($out);
+    exit;
+}
+
+/** True when the current request asked for ?format=csv. */
+function wants_csv(): bool
+{
+    return ($_GET['format'] ?? '') === 'csv';
+}
+
+/** Same URL as the current page with format=csv added (for "Export CSV" buttons). */
+function csv_url(string $path): string
+{
+    $params = $_GET;
+    unset($params['page']);
+    $params['format'] = 'csv';
+    return url($path) . '?' . http_build_query($params);
+}
+
+// ---------------------------------------------------------------------------
+// Admission requirements (stored in admissions.documents_submitted JSONB)
+// ---------------------------------------------------------------------------
+
+/** Documents the registrar collects at admission, key => label. */
+const ADMISSION_REQUIREMENTS = [
+    'psa_birth_certificate' => 'PSA Birth Certificate',
+    'report_card'           => 'Report Card (SF9 / Form 138)',
+    'good_moral'            => 'Certificate of Good Moral Character',
+    'photo_2x2'             => '2x2 ID Photo',
+];
+
+/** Decode the JSONB column into key => bool for every known requirement. */
+function admission_documents_decode(?string $json): array
+{
+    $raw = json_decode((string) $json, true);
+    $raw = is_array($raw) ? $raw : [];
+    $docs = [];
+    foreach (ADMISSION_REQUIREMENTS as $key => $_label) {
+        $docs[$key] = !empty($raw[$key]);
+    }
+    return $docs;
+}
+
+/** Read the documents[] checkbox group from a form post (unknown keys ignored). */
+function admission_documents_from_post(array $post): array
+{
+    $ticked = $post['documents'] ?? [];
+    $ticked = is_array($ticked) ? array_map('strval', $ticked) : [];
+    $docs = [];
+    foreach (ADMISSION_REQUIREMENTS as $key => $_label) {
+        $docs[$key] = in_array($key, $ticked, true);
+    }
+    return $docs;
+}
+
+/** Labels of the requirements not yet submitted. */
+function admission_missing_documents(array $docs): array
+{
+    $missing = [];
+    foreach (ADMISSION_REQUIREMENTS as $key => $label) {
+        if (empty($docs[$key])) {
+            $missing[] = $label;
+        }
+    }
+    return $missing;
+}
+
+/** Checkbox group markup shared by the create/edit/view forms. */
+function render_requirements_checkboxes(array $docs, string $idPrefix = 'doc'): string
+{
+    $html = '';
+    foreach (ADMISSION_REQUIREMENTS as $key => $label) {
+        $id = $idPrefix . '_' . $key;
+        $html .= '<div class="form-check">'
+            . '<input class="form-check-input" type="checkbox" name="documents[]" value="' . e($key) . '" id="' . e($id) . '"'
+            . (!empty($docs[$key]) ? ' checked' : '') . '>'
+            . '<label class="form-check-label" for="' . e($id) . '">' . e($label) . '</label>'
+            . '</div>';
+    }
+    return $html;
+}

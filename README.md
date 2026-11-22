@@ -128,7 +128,7 @@ layout).
 | Enrollment / section assignment     | `modules/enrollment/` (index, assign, promote — year-end promotion, registrar) |
 | Transfers (SF10 in/out)             | `modules/transfers/` (index, create, view)    |
 | Search                              | `modules/search/index.php`                     |
-| Reports                             | `modules/reports/` (index, admission_status, enrollment_summary, sf9, sf10, student_masterlist) |
+| Reports                             | `modules/reports/` (index, admission_status, class_list, enrollment_summary, sf9, sf10, student_masterlist; most export CSV via `?format=csv`) |
 | Admin                               | `modules/admin/` (users, audit, backup, download_backup, restore, settings, lis, lis_export, lis_import, lis_template, set_year) |
 | Account (change password)           | `modules/account/password.php`                 |
 | Public landing                      | `index.php` (loads `templates/landing.html`)   |

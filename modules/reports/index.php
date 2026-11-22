@@ -9,9 +9,29 @@ require_login();
 
 render_header('Reporting', 'reports');
 ?>
-<p class="text-muted">Generate printable institutional reports formatted in Times New Roman, Size 12.</p>
+<p class="text-muted">Generate printable institutional reports formatted in Times New Roman, Size 12. Lists can also be exported to CSV for Excel.</p>
 
 <div class="row g-3">
+    <div class="col-md-6">
+        <div class="panel-card glass-panel h-100">
+            <h3>Class List</h3>
+            <p class="text-muted">Learners per section (male, then female) with LRN, birthdate, age and guardian contact, for advisers.</p>
+            <form action="<?= e(url('/modules/reports/class_list.php')) ?>" method="get" class="row g-2">
+                <div class="col-12">
+                    <select name="section_id" class="form-select" aria-label="Section" required>
+                        <option value="">Select section</option>
+                        <?php foreach (fetch_sections() as $sec): ?>
+                            <option value="<?= (int) $sec['id'] ?>"><?= e($sec['grade_name'] . ' - ' . $sec['name']) ?></option>
+                        <?php endforeach; ?>
+                        <option value="none">No section yet (unassigned)</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Generate Class List</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="col-md-6">
         <div class="panel-card glass-panel h-100">
             <h3>Enrollment Summary</h3>
@@ -22,8 +42,9 @@ render_header('Reporting', 'reports');
     <div class="col-md-6">
         <div class="panel-card glass-panel h-100">
             <h3>Admission Status Report</h3>
-            <p class="text-muted">List of pending, approved, and rejected admission applications.</p>
+            <p class="text-muted">Pending, approved and rejected applications, filterable by school year. Includes a missing-requirements follow-up list.</p>
             <a href="<?= e(url('/modules/reports/admission_status.php')) ?>" class="btn btn-primary">Generate Report</a>
+            <a href="<?= e(url('/modules/reports/admission_status.php?missing=1')) ?>" class="btn btn-outline-light">Missing Requirements</a>
         </div>
     </div>
         <div class="col-md-6">

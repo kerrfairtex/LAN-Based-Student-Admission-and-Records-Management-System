@@ -85,7 +85,9 @@
 | 4.7 | Year-end bulk promotion / retention / graduation (`modules/enrollment/promote.php`) | Done |
 | 4.8 | Print stylesheet for SF9/SF10/reports | Done |
 | 4.9 | Additional roles (principal/viewer, adviser), permission matrix | Planned |
-| 4.10 | CSV export for reports, pagination on transfers/search | Planned |
+| 4.10 | CSV export (masterlist, enrollment summary, admission status, class list, search), pagination on search | Done |
+| 4.10a | Class list per section (male/female, age as of Oct 31) | Done |
+| 4.10b | Admission requirements checklist (incl. 2x2 photo), editable after approval, missing-requirements report | Done |
 | 4.11 | Email/SMS notifications, JSON API for search/LRN check | Planned |
 | 4.12 | CI (php -l + smoke tests), scheduled backups and audit purge | Planned |
 

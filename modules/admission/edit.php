@@ -34,7 +34,7 @@ if ($admission['status'] !== 'pending') {
 }
 
 // Decode documents_submitted JSON
-$documents = json_decode($admission['documents_submitted'] ?? '{}', true) ?: [];
+$documents = admission_documents_decode($admission['documents_submitted'] ?? null);
 
 $input = [
     'school_year_id' => (string) $admission['school_year_id'],
@@ -53,9 +53,6 @@ $input = [
     'guardian_relationship' => $admission['guardian_relationship'],
     'guardian_contact' => $admission['guardian_contact'],
     'previous_school' => $admission['previous_school'] ?? '',
-    'psa_birth_cert' => ($documents['psa_birth_certificate'] ?? false) ? '1' : '',
-    'report_card' => ($documents['report_card'] ?? false) ? '1' : '',
-    'good_moral' => ($documents['good_moral'] ?? false) ? '1' : '',
 ];
 
 $errors = [];
@@ -65,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach (array_keys($input) as $key) {
         $input[$key] = trim((string) ($_POST[$key] ?? ''));
     }
+    $documents = admission_documents_from_post($_POST);
 
     $errors = validate_required([
         'school_year_id' => 'School year',
@@ -88,11 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $docs = [
-            'psa_birth_certificate' => $input['psa_birth_cert'] === '1',
-            'report_card' => $input['report_card'] === '1',
-            'good_moral' => $input['good_moral'] === '1',
-        ];
+        // Merge so keys this form does not know about are kept.
+        $docs = array_merge(
+            json_decode($admission['documents_submitted'] ?? '{}', true) ?: [],
+            $documents
+        );
 
         db()->prepare(
             'UPDATE admissions SET
@@ -102,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 lrn = :lrn, birthdate = :birthdate, sex = :sex, address = :address,
                 contact_number = :contact_number, guardian_name = :guardian_name,
                 guardian_relationship = :guardian_relationship, guardian_contact = :guardian_contact,
-                previous_school = :previous_school, documents_submitted = :documents,
+                previous_school = :previous_school, documents_submitted = :documents_submitted,
                 updated_at = NOW()
              WHERE id = :id'
         )->execute([
@@ -236,21 +234,7 @@ render_header('Edit Admission', 'admission');
 
             <div class="col-12">
                 <label class="form-label d-block">Documents Submitted</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" name="psa_birth_cert" value="1" id="psa" <?= $input['psa_birth_cert'] === '1' ? 'checked' : '' ?>>
-
-                    <label class="form-check-label" for="psa">PSA Birth Certificate</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" name="report_card" value="1" id="rc" <?= $input['report_card'] === '1' ? 'checked' : '' ?>>
-
-                    <label class="form-check-label" for="rc">Report Card / SF9</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" name="good_moral" value="1" id="gm" <?= $input['good_moral'] === '1' ? 'checked' : '' ?>>
-
-                    <label class="form-check-label" for="gm">Good Moral Character</label>
-                </div>
+                <?= render_requirements_checkboxes($documents) ?>
             </div>
         </div>
 

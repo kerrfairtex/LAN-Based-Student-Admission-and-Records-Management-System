@@ -7,22 +7,45 @@ require_once __DIR__ . '/../../includes/layout.php';
 
 require_login();
 
-$rows = db()->query(
+// Grade/section come from the enrollment in the selected school year only
+// (the old LEFT JOIN on school_years did not filter, so a learner could
+// show a grade from a past year).
+$activeYear = active_school_year();
+$yearId = (int) ($activeYear['id'] ?? 0);
+$yearLabel = $activeYear['label'] ?? 'N/A';
+
+$stmt = db()->prepare(
     'SELECT s.student_id_no, s.lrn,
             CONCAT(s.last_name, \', \', s.first_name, \' \', COALESCE(s.middle_name, \'\')) AS full_name,
-            s.sex, g.name AS grade_name, s.status
-     FROM students s
-     LEFT JOIN enrollments e ON e.student_id = s.id AND e.status = \'enrolled\'
-     LEFT JOIN school_years sy ON sy.id = e.school_year_id AND sy.is_active = 1
-     LEFT JOIN grade_levels g ON g.id = e.grade_level_id
+            s.sex, s.birthdate, g.name AS grade_name, sec.name AS section_name, s.status
+     FROM trac_jhs_sarms.students s
+     LEFT JOIN trac_jhs_sarms.enrollments e
+            ON e.student_id = s.id AND e.school_year_id = :year_id AND e.status = \'enrolled\'
+     LEFT JOIN trac_jhs_sarms.grade_levels g ON g.id = e.grade_level_id
+     LEFT JOIN trac_jhs_sarms.sections sec ON sec.id = e.section_id
      WHERE s.status = \'active\'
      ORDER BY s.last_name, s.first_name'
-)->fetchAll();
+);
+$stmt->execute(['year_id' => $yearId]);
+$rows = $stmt->fetchAll();
+
+if (wants_csv()) {
+    send_csv(
+        'student_masterlist_' . $yearLabel . '.csv',
+        ['Student ID', 'LRN', 'Name', 'Sex', 'Birthdate', 'Grade', 'Section', 'Status'],
+        array_map(static fn ($r) => [
+            $r['student_id_no'], $r['lrn'], trim($r['full_name']), $r['sex'], $r['birthdate'],
+            $r['grade_name'], $r['section_name'], ucfirst($r['status']),
+        ], $rows),
+        'Student master list CSV, SY ' . $yearLabel . ' (' . count($rows) . ' rows)'
+    );
+}
 
 render_header('Student Master List', 'reports');
 ?>
 <div class="no-print mb-3 d-flex gap-2">
     <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Print Report</button>
+    <a href="<?= e(csv_url('/modules/reports/student_masterlist.php')) ?>" class="btn btn-outline-light"><i class="bi bi-filetype-csv"></i> Export CSV</a>
     <a href="<?= e(url('/modules/reports/index.php')) ?>" class="btn btn-outline-light">Back</a>
 </div>
 
@@ -32,7 +55,7 @@ render_header('Student Master List', 'reports');
         <h2 style="font-size: 13pt; margin-top: 0.25rem;">Department of Education</h2>
         <h3 style="font-size: 12pt; margin-top: 0.5rem;"><?= e(APP_SCHOOL) ?></h3>
         <p style="margin-top: 1rem;"><strong>STUDENT MASTER LIST</strong></p>
-        <p>Date Generated: <?= e(date('F j, Y')) ?></p>
+        <p>School Year <?= e($yearLabel) ?> &middot; Date Generated: <?= e(date('F j, Y')) ?></p>
     </div>
 
     <table class="table table-bordered" style="color: #000;">
@@ -43,6 +66,7 @@ render_header('Student Master List', 'reports');
                 <th>Name</th>
                 <th>Sex</th>
                 <th>Grade</th>
+                <th>Section</th>
             </tr>
         </thead>
         <tbody>
@@ -53,10 +77,12 @@ render_header('Student Master List', 'reports');
                     <td><?= e(trim($row['full_name'])) ?></td>
                     <td><?= e($row['sex']) ?></td>
                     <td><?= e($row['grade_name'] ?: '—') ?></td>
+                    <td><?= e($row['section_name'] ?: '—') ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
+    <p><strong>Total active learners:</strong> <?= count($rows) ?></p>
 </div>
 <?php
 render_footer();
