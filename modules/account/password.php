@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new = (string) ($_POST['new_password'] ?? '');
     $confirm = (string) ($_POST['confirm_password'] ?? '');
 
-    $stmt = db()->prepare('SELECT password_hash FROM users WHERE id = :id');
+    $stmt = db()->prepare('SELECT password_hash FROM trac_jhs_sarms.users WHERE id = :id');
     $stmt->execute(['id' => $userId]);
     $user = $stmt->fetch();
 
@@ -33,7 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (hash_equals($current, $new)) {
         $error = 'New password must be different from the current password.';
     } else {
-        set_user_password($userId, $new, false);
+        $saved = false;
+        try {
+            set_user_password($userId, $new, false);
+            $saved = true;
+        } catch (Throwable $e) {
+            error_log('[password] change failed for user #' . $userId . ': ' . $e->getMessage());
+            $error = 'Your password could not be saved. Nothing was changed; please try again or contact the School Registrar.';
+        }
+    }
+    if (!empty($saved)) {
         unset($_SESSION['must_change_password']);
         session_regenerate_id(true);
         audit_log('update', 'users', $userId, $forced ? 'Changed password (forced change completed)' : 'Changed password');
