@@ -25,16 +25,15 @@ $input = [
     'guardian_relationship' => '',
     'guardian_contact' => '',
     'previous_school' => '',
-    'psa_birth_cert' => '',
-    'report_card' => '',
-    'good_moral' => '',
 ];
+$documents = admission_documents_decode(null);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
     foreach (array_keys($input) as $key) {
         $input[$key] = trim((string) ($_POST[$key] ?? ''));
     }
+    $documents = admission_documents_from_post($_POST);
 
     $errors = validate_required([
         'school_year_id' => 'School year',
@@ -58,12 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $documents = [
-            'psa_birth_certificate' => $input['psa_birth_cert'] === '1',
-            'report_card' => $input['report_card'] === '1',
-            'good_moral' => $input['good_moral'] === '1',
-        ];
-
         // LRN uniqueness check: if this LRN already corresponds to an existing
         // student, reject. (Two concurrent applications for the same LRN would
         // also collide at approval time on uq_students_lrn.)
@@ -242,18 +235,7 @@ render_header('New Admission', 'admission');
 
             <div class="col-12">
                 <label class="form-label d-block">Documents Submitted</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" name="psa_birth_cert" value="1" id="psa" <?= $input['psa_birth_cert'] === '1' ? 'checked' : '' ?>>
-                    <label class="form-check-label" for="psa">PSA Birth Certificate</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" name="report_card" value="1" id="rc" <?= $input['report_card'] === '1' ? 'checked' : '' ?>>
-                    <label class="form-check-label" for="rc">Report Card / SF9</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" name="good_moral" value="1" id="gm" <?= $input['good_moral'] === '1' ? 'checked' : '' ?>>
-                    <label class="form-check-label" for="gm">Good Moral Character</label>
-                </div>
+                <?= render_requirements_checkboxes($documents) ?>
             </div>
         </div>
 

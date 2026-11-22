@@ -27,6 +27,34 @@ if (!$admission) {
     redirect('/modules/admission/index.php');
 }
 
+// Documents often arrive after the application is approved (e.g. PSA copy
+// follows later), so any signed-in staff member may update the checklist
+// regardless of status. Approve/reject below stay registrar-only.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_documents') {
+    require_csrf();
+    $before = admission_documents_decode($admission['documents_submitted'] ?? null);
+    $after = admission_documents_from_post($_POST);
+    $merged = array_merge(json_decode($admission['documents_submitted'] ?? '{}', true) ?: [], $after);
+
+    db()->prepare(
+        'UPDATE trac_jhs_sarms.admissions SET documents_submitted = :docs, updated_at = NOW() WHERE id = :id'
+    )->execute(['docs' => json_encode($merged), 'id' => $id]);
+
+    $changes = [];
+    foreach (ADMISSION_REQUIREMENTS as $key => $label) {
+        if ($before[$key] !== $after[$key]) {
+            $changes[] = $label . ($after[$key] ? ' received' : ' unmarked');
+        }
+    }
+    if ($changes) {
+        audit_log('update', 'admissions', $id, 'Requirements: ' . implode('; ', $changes));
+        flash('success', 'Requirements checklist updated.');
+    } else {
+        flash('info', 'No changes to the requirements checklist.');
+    }
+    redirect('/modules/admission/view.php?id=' . $id);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_registrar()) {
     require_csrf();
 
@@ -251,7 +279,8 @@ if (!$recent->fetch()) {
     audit_log('view', 'admissions', $id, 'Viewed admission application');
 }
 
-$documents = json_decode($admission['documents_submitted'] ?? '{}', true) ?: [];
+$documents = admission_documents_decode($admission['documents_submitted'] ?? null);
+$missingDocs = admission_missing_documents($documents);
 $sections = fetch_sections((int) $admission['grade_level_id']);
 
 render_header('Admission Details', 'admission');
@@ -293,12 +322,19 @@ render_header('Admission Details', 'admission');
             </div>
 
             <hr>
-            <h3>Documents</h3>
-            <ul class="mb-0">
-                <li>PSA Birth Certificate: <?= !empty($documents['psa_birth_certificate']) ? 'Submitted' : 'Not submitted' ?></li>
-                <li>Report Card / SF9: <?= !empty($documents['report_card']) ? 'Submitted' : 'Not submitted' ?></li>
-                <li>Good Moral Character: <?= !empty($documents['good_moral']) ? 'Submitted' : 'Not submitted' ?></li>
-            </ul>
+            <h3>Requirements</h3>
+            <?php if ($missingDocs): ?>
+                <p class="mb-2"><span class="badge badge-status-pending"><?= count($missingDocs) ?> missing</span>
+                    <span class="text-muted small">Tick items as they are received, then save.</span></p>
+            <?php else: ?>
+                <p class="mb-2"><span class="badge badge-status-approved">Complete</span></p>
+            <?php endif; ?>
+            <form method="post" class="mb-0">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="update_documents">
+                <?= render_requirements_checkboxes($documents, 'req') ?>
+                <button type="submit" class="btn btn-sm btn-outline-light mt-2"><i class="bi bi-check2-square" aria-hidden="true"></i> Save checklist</button>
+            </form>
         </div>
     </div>
 
